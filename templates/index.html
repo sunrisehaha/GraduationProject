@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧园区配送监控系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="screen-shell">
+        <header class="topbar">
+            <div class="topbar__title">
+                <p class="eyebrow">SMART PARK LOGISTICS</p>
+                <h1>智慧园区配送监控系统</h1>
+                <p class="topbar__subtitle">园区地图监控 / 配送订单调度 / 小车运行状态总览</p>
+            </div>
+
+            <div class="topbar__status">
+                <div class="status-chip">
+                    <span class="status-chip__dot"></span>
+                    <span id="systemStatusText">系统运行中</span>
+                </div>
+                <p id="lastUpdatedText" class="last-updated">等待数据加载</p>
+            </div>
+        </header>
+
+        <section class="stats-grid">
+            <article class="stat-card">
+                <p class="stat-card__label">小车总数</p>
+                <p class="stat-card__value" id="totalCarts">0</p>
+                <p class="stat-card__meta">当前接入配送机器人数量</p>
+            </article>
+            <article class="stat-card">
+                <p class="stat-card__label">运行中小车</p>
+                <p class="stat-card__value" id="activeCarts">0</p>
+                <p class="stat-card__meta">状态非 idle 的车辆</p>
+            </article>
+            <article class="stat-card">
+                <p class="stat-card__label">订单总数</p>
+                <p class="stat-card__value" id="totalOrders">0</p>
+                <p class="stat-card__meta">系统内已创建配送订单</p>
+            </article>
+            <article class="stat-card">
+                <p class="stat-card__label">待处理订单</p>
+                <p class="stat-card__value" id="pendingOrders">0</p>
+                <p class="stat-card__meta">等待执行或尚未完成</p>
+            </article>
+        </section>
+
+        <main class="dashboard-layout">
+            <section class="map-section panel-card">
+                <div class="panel-card__header">
+                    <div>
+                        <p class="panel-card__eyebrow">MAP OVERVIEW</p>
+                        <h2>园区配送地图</h2>
+                    </div>
+                    <p id="mapSummary" class="panel-card__desc">展示障碍物、小车位置与订单起终点。</p>
+                </div>
+
+                <div class="map-toolbar">
+                    <div class="legend">
+                        <span class="legend__item"><i class="legend__swatch legend__swatch--cart"></i>空闲小车</span>
+                        <span class="legend__item"><i class="legend__swatch legend__swatch--busy"></i>执行中小车</span>
+                        <span class="legend__item"><i class="legend__swatch legend__swatch--obstacle"></i>障碍区域</span>
+                        <span class="legend__item"><i class="legend__swatch legend__swatch--start"></i>订单起点</span>
+                        <span class="legend__item"><i class="legend__swatch legend__swatch--end"></i>订单终点</span>
+                    </div>
+                    <div class="map-tags">
+                        <span class="tag">地图规模 20 x 12</span>
+                        <span class="tag" id="cartPositionTag">在线小车 0 台</span>
+                        <span class="tag" id="orderPositionTag">订单标记 0 个</span>
+                    </div>
+                </div>
+
+                <div class="canvas-wrap">
+                    <canvas id="parkCanvas" width="800" height="480"></canvas>
+                </div>
+            </section>
+
+            <aside class="sidebar">
+                <section class="panel-card">
+                    <div class="panel-card__header">
+                        <div>
+                            <p class="panel-card__eyebrow">DISPATCH</p>
+                            <h2>创建配送订单</h2>
+                        </div>
+                        <p class="panel-card__desc">输入起点和终点坐标，生成新的配送任务。</p>
+                    </div>
+
+                    <form id="orderForm" class="order-form">
+                        <div class="form-grid">
+                            <label>
+                                <span>起点 X</span>
+                                <input type="number" id="startX" min="0" max="19" required>
+                            </label>
+                            <label>
+                                <span>起点 Y</span>
+                                <input type="number" id="startY" min="0" max="11" required>
+                            </label>
+                            <label>
+                                <span>终点 X</span>
+                                <input type="number" id="endX" min="0" max="19" required>
+                            </label>
+                            <label>
+                                <span>终点 Y</span>
+                                <input type="number" id="endY" min="0" max="11" required>
+                            </label>
+                        </div>
+                        <button type="submit">提交订单</button>
+                    </form>
+                </section>
+
+                <section class="panel-card panel-card--stretch">
+                    <div class="panel-card__header">
+                        <div>
+                            <p class="panel-card__eyebrow">FLEET STATUS</p>
+                            <h2>小车状态列表</h2>
+                        </div>
+                        <p class="panel-card__desc">查看当前小车编号、坐标位置和运行状态。</p>
+                    </div>
+                    <ul id="cartList" class="data-list"></ul>
+                </section>
+
+                <section class="panel-card panel-card--stretch">
+                    <div class="panel-card__header">
+                        <div>
+                            <p class="panel-card__eyebrow">ORDER QUEUE</p>
+                            <h2>订单状态列表</h2>
+                        </div>
+                        <p class="panel-card__desc">展示订单编号、起终点和当前配送状态。</p>
+                    </div>
+                    <ul id="orderList" class="data-list"></ul>
+                </section>
+            </aside>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
