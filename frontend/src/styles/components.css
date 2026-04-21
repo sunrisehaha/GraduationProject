@@ -201,6 +201,11 @@
   background: linear-gradient(135deg, var(--accent) 0%, #8ae7ff 100%);
 }
 
+.order-form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .info-row {
   display: flex;
   justify-content: space-between;
@@ -264,6 +269,15 @@
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.03);
   text-align: center;
+}
+
+.view-error {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.24);
+  color: #ffd6d6;
+  font-size: 14px;
 }
 
 @media (max-width: 1200px) {

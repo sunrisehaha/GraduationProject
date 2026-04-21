@@ -14,7 +14,7 @@ defineProps({
         <p class="panel-card__eyebrow">SYSTEM LOG</p>
         <h2>系统消息</h2>
       </div>
-      <p class="panel-card__desc">这一块后续会接入后端调度事件和前端操作反馈。</p>
+      <p class="panel-card__desc">当前已接入前端轮询产生的订单、调度和完成事件消息。</p>
     </div>
 
     <ul class="message-list">

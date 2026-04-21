@@ -38,6 +38,10 @@ defineProps({
         <span class="info-row__label">执行小车</span>
         <span class="info-row__value">{{ task.cart }}</span>
       </div>
+      <div class="info-row">
+        <span class="info-row__label">任务来源</span>
+        <span class="info-row__value">{{ task.source }}</span>
+      </div>
     </div>
   </section>
 </template>

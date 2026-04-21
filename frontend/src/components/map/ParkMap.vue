@@ -1,3 +1,20 @@
+<script setup>
+defineProps({
+  mapInfo: {
+    type: Object,
+    required: true,
+  },
+  currentTask: {
+    type: Object,
+    required: true,
+  },
+  currentPath: {
+    type: Array,
+    required: true,
+  },
+})
+</script>
+
 <template>
   <section class="map-section panel-card">
     <div class="panel-card__header">
@@ -5,7 +22,7 @@
         <p class="panel-card__eyebrow">MAP OVERVIEW</p>
         <h2>园区配送地图</h2>
       </div>
-      <p class="panel-card__desc">当前先迁移 Vue 页面结构，下一阶段再接入 Canvas 2.5D 园区渲染与实时状态。</p>
+      <p class="panel-card__desc">{{ mapInfo.summary }}</p>
     </div>
 
     <div class="map-toolbar">
@@ -18,17 +35,16 @@
       </div>
 
       <div class="map-tags">
-        <span class="tag">地图规模 20 x 12</span>
-        <span class="tag">/api 代理待接入</span>
-        <span class="tag">Canvas 渲染待迁移</span>
+        <span v-for="tag in mapInfo.tags" :key="tag" class="tag">{{ tag }}</span>
       </div>
     </div>
 
     <div class="canvas-wrap">
       <div class="map-placeholder">
         <div>
-          <p class="map-placeholder__title">ParkMap.vue</p>
-          <p>这里会迁移当前项目里的 2.5D 园区场景、路径绘制和小车状态显示。</p>
+          <p class="map-placeholder__title">ParkMap.vue 正在等待地图迁移</p>
+          <p>当前任务：{{ currentTask.id }} / 状态：{{ currentTask.status }}</p>
+          <p>当前路径节点数：{{ currentPath.length }}</p>
         </div>
       </div>
     </div>
