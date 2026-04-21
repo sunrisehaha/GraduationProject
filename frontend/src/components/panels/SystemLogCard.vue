@@ -1,0 +1,27 @@
+<script setup>
+defineProps({
+  logs: {
+    type: Array,
+    required: true
+  }
+})
+</script>
+
+<template>
+  <section class="panel-card">
+    <div class="panel-card__header">
+      <div>
+        <p class="panel-card__eyebrow">SYSTEM LOG</p>
+        <h2>系统消息</h2>
+      </div>
+      <p class="panel-card__desc">这一块后续会接入后端调度事件和前端操作反馈。</p>
+    </div>
+
+    <ul class="message-list">
+      <li v-for="log in logs" :key="`${log.text}-${log.time}`" class="message-item">
+        <p class="message-item__text">{{ log.text }}</p>
+        <p class="message-item__time">{{ log.time }}</p>
+      </li>
+    </ul>
+  </section>
+</template>
