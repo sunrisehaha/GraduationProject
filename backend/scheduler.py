@@ -1,8 +1,8 @@
 from threading import Thread
 from time import sleep
 
-from astar import find_path
-from models import (
+from backend.astar import find_path
+from backend.models import (
     MAP_HEIGHT,
     MAP_WIDTH,
     OBSTACLES,
