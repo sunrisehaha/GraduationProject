@@ -9,6 +9,7 @@ import FleetStatusCard from '../components/panels/FleetStatusCard.vue'
 import SystemLogCard from '../components/panels/SystemLogCard.vue'
 
 const {
+  carts,
   currentCartView,
   currentPath,
   currentTask,
@@ -16,6 +17,7 @@ const {
   fleet,
   logs,
   mapInfo,
+  orders,
   stats,
   submitOrder,
   topBar,
@@ -33,7 +35,13 @@ const {
     <StatsBar :stats="stats" />
 
     <main class="dashboard-layout">
-      <ParkMap :map-info="mapInfo" :current-task="currentTask" :current-path="currentPath" />
+      <ParkMap
+        :map-info="mapInfo"
+        :current-task="currentTask"
+        :current-path="currentPath"
+        :carts="carts"
+        :orders="orders"
+      />
 
       <aside class="sidebar">
         <CreateOrderCard :submit-order="submitOrder" />

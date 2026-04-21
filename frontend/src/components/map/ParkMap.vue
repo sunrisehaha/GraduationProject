@@ -1,5 +1,8 @@
 <script setup>
-defineProps({
+import { computed, ref } from 'vue'
+import { useMapScene } from '../../composables/useMapScene'
+
+const props = defineProps({
   mapInfo: {
     type: Object,
     required: true,
@@ -12,7 +15,26 @@ defineProps({
     type: Array,
     required: true,
   },
+  carts: {
+    type: Array,
+    required: true,
+  },
+  orders: {
+    type: Array,
+    required: true,
+  },
 })
+
+const canvasRef = ref(null)
+
+// 地图场景数据：把业务数据整理成渲染模块所需的最小输入
+const sceneData = computed(() => ({
+  carts: props.carts,
+  orders: props.orders,
+  currentPath: props.currentPath,
+}))
+
+useMapScene(canvasRef, sceneData)
 </script>
 
 <template>
@@ -40,12 +62,12 @@ defineProps({
     </div>
 
     <div class="canvas-wrap">
-      <div class="map-placeholder">
-        <div>
-          <p class="map-placeholder__title">ParkMap.vue 正在等待地图迁移</p>
-          <p>当前任务：{{ currentTask.id }} / 状态：{{ currentTask.status }}</p>
-          <p>当前路径节点数：{{ currentPath.length }}</p>
-        </div>
+      <canvas ref="canvasRef" class="park-canvas" width="800" height="480"></canvas>
+
+      <div class="map-overlay">
+        <p class="map-overlay__title">当前任务：{{ currentTask.id }}</p>
+        <p>订单状态：{{ currentTask.status }}</p>
+        <p>路径节点：{{ currentPath.length }}</p>
       </div>
     </div>
   </section>

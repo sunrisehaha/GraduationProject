@@ -236,6 +236,7 @@ export function useDashboardData() {
   })
 
   return {
+    carts,
     currentCart,
     currentCartView,
     currentPath,
@@ -245,6 +246,7 @@ export function useDashboardData() {
     isLoading,
     logs,
     mapInfo,
+    orders,
     refreshData,
     stats,
     submitOrder,
