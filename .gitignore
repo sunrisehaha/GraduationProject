@@ -1,6 +1,8 @@
 __pycache__/
 *.pyc
 .DS_Store
+*.db
+*.sqlite3
 
 frontend/node_modules/
 frontend/dist/
