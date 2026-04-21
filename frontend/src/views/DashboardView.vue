@@ -15,6 +15,7 @@ const {
   currentTask,
   errorMessage,
   fleet,
+  fleetSummary,
   logs,
   mapInfo,
   orders,
@@ -46,7 +47,7 @@ const {
       <aside class="sidebar">
         <CreateOrderCard :submit-order="submitOrder" />
         <CurrentTaskCard :task="currentTask" />
-        <FleetStatusCard :fleet="fleet" :current-cart="currentCartView" />
+        <FleetStatusCard :fleet="fleet" :fleet-summary="fleetSummary" :current-cart="currentCartView" />
         <SystemLogCard :logs="logs" />
         <p v-if="errorMessage" class="view-error">{{ errorMessage }}</p>
       </aside>

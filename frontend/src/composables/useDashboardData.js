@@ -4,12 +4,14 @@ import { createOrder, fetchOrders } from '../api/orders'
 
 const refreshIntervalMs = 1000
 
+// 时间格式化：统一界面上的时间显示格式
 function formatTime() {
   return new Date().toLocaleString('zh-CN', {
     hour12: false,
   })
 }
 
+// 状态翻译：把后端状态转成界面可读文字
 function getStatusText(status) {
   const statusMap = {
     idle: '空闲',
@@ -23,12 +25,40 @@ function getStatusText(status) {
   return statusMap[status] || status || '未知'
 }
 
+// 坐标格式化：把点位对象转成页面上的坐标字符串
 function formatPoint(point) {
   if (!point) {
     return '-'
   }
 
   return `(${point.x}, ${point.y})`
+}
+
+// 订单来源翻译：区分仿真订单和手动订单
+function getSourceText(source) {
+  return source === 'simulated' ? '仿真订单' : '手动订单'
+}
+
+// 任务阶段说明：给当前任务卡片一个更明确的流程提示
+function getTaskProgressText(order) {
+  if (!order) {
+    return '后台调度系统已启动，等待新的配送请求。'
+  }
+
+  const progressMap = {
+    pending: '订单已进入队列，系统正在查找最近的空闲小车。',
+    assigned: '订单已分配完成，小车即将前往取件点。',
+    to_pickup: '小车正在前往取件点，准备装载快递。',
+    delivering: '小车已经取件，正在按规划路径执行配送。',
+    completed: '订单配送已完成，等待系统分配下一条任务。',
+  }
+
+  return progressMap[order.status] || '当前任务状态已更新。'
+}
+
+// 顶部状态文案：根据是否有活动订单决定系统提示语
+function getTopBarStatusText(activeOrderCount) {
+  return activeOrderCount > 0 ? '后台自动配送中' : '后台待命中'
 }
 
 export function useDashboardData() {
@@ -46,7 +76,12 @@ export function useDashboardData() {
 
   let timerId = null
 
+  // 系统消息：记录最近的业务事件，避免连续插入完全重复的提示
   function addLog(text) {
+    if (logs.value[0]?.text === text) {
+      return
+    }
+
     logs.value.unshift({
       text,
       time: formatTime(),
@@ -181,8 +216,8 @@ export function useDashboardData() {
     ).length
 
     return {
-      statusText: activeOrders > 0 ? '后台自动配送中' : '后台待命中',
-      subtitle: 'Vue 前端已接入 Flask 实时数据，后续继续迁移地图渲染与业务交互',
+      statusText: getTopBarStatusText(activeOrders),
+      subtitle: 'Vue 监控页已接入后台自动调度、订单轮询和 2.5D 园区地图展示。',
     }
   })
 
@@ -202,26 +237,46 @@ export function useDashboardData() {
     }
   })
 
-  const currentTask = computed(() => ({
-    id: currentOrder.value ? `#${currentOrder.value.id}` : '暂无',
-    start: formatPoint(currentOrder.value?.start_point),
-    end: formatPoint(currentOrder.value?.end_point),
-    status: currentOrder.value ? getStatusText(currentOrder.value.status) : '无任务',
-    cart:
-      currentOrder.value?.assigned_cart_id
-        ? `Cart-${currentOrder.value.assigned_cart_id}`
-        : '待分配',
-    source: currentOrder.value?.source === 'simulated' ? '仿真订单' : '手动订单',
-  }))
+  const currentTask = computed(() => {
+    const order = currentOrder.value
+    const assignedCart = order?.assigned_cart_id
+      ? carts.value.find((cart) => cart.id === order.assigned_cart_id) || null
+      : null
+
+    return {
+      id: order ? `#${order.id}` : '暂无',
+      start: formatPoint(order?.start_point),
+      end: formatPoint(order?.end_point),
+      status: order ? getStatusText(order.status) : '无任务',
+      cart: assignedCart?.name || (order ? '待分配' : '-'),
+      source: order ? getSourceText(order.source) : '-',
+      pathNodes: order?.path?.length || 0,
+      progressText: getTaskProgressText(order),
+    }
+  })
+
+  const fleetSummary = computed(() => {
+    const idleCount = carts.value.filter((cart) => cart.status === 'idle').length
+    const activeCount = carts.value.filter((cart) => cart.status !== 'idle').length
+
+    return {
+      total: carts.value.length,
+      idle: idleCount,
+      active: activeCount,
+    }
+  })
 
   const fleet = computed(() =>
-    carts.value.map((cart) => ({
-      id: cart.id,
-      name: cart.name,
-      position: formatPoint(cart),
-      status: getStatusText(cart.status),
-      orderId: cart.current_order_id,
-    }))
+    carts.value
+      .map((cart) => ({
+        id: cart.id,
+        name: cart.name,
+        position: formatPoint(cart),
+        status: getStatusText(cart.status),
+        orderId: cart.current_order_id,
+        isActive: cart.status !== 'idle',
+      }))
+      .sort((left, right) => Number(right.isActive) - Number(left.isActive))
   )
 
   onMounted(async () => {
@@ -243,6 +298,7 @@ export function useDashboardData() {
     currentTask,
     errorMessage,
     fleet,
+    fleetSummary,
     isLoading,
     logs,
     mapInfo,

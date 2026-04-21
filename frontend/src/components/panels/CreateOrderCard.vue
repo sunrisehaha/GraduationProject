@@ -1,6 +1,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 
+// 创建订单卡片：负责提交手动订单并清空表单
 const props = defineProps({
   submitOrder: {
     type: Function,
@@ -37,7 +38,12 @@ async function handleSubmit() {
         <p class="panel-card__eyebrow">MANUAL ORDER</p>
         <h2>创建订单</h2>
       </div>
-      <p class="panel-card__desc">这里已经接入真实后端接口，手动创建后会由后台自动调度最近空闲小车。</p>
+      <p class="panel-card__desc">手动录入配送需求后，后台会自动查询最近空闲小车并开始调度。</p>
+    </div>
+
+    <div class="panel-note">
+      <p class="panel-note__title">使用方式</p>
+      <p class="panel-note__text">输入起点与终点坐标后提交订单，系统会自动规划和执行配送。</p>
     </div>
 
     <form class="order-form" @submit.prevent="handleSubmit">
