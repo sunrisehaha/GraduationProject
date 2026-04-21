@@ -1,41 +1,46 @@
+from copy import deepcopy
+
 from flask import Flask, jsonify, render_template, request
+
 from astar import find_path
-from models import carts, orders, create_order
+from models import MAP_HEIGHT, MAP_WIDTH, OBSTACLES, carts, create_order, orders, state_lock
+from scheduler import start_background_workers
 
 app = Flask(__name__)
 
-MAP_WIDTH = 20
-MAP_HEIGHT = 12
-OBSTACLES = [
-    {"x": 5, "y": 5},
-    {"x": 5, "y": 6},
-    {"x": 5, "y": 7},
-    {"x": 12, "y": 3},
-    {"x": 12, "y": 4}
-]
+
+def ensure_workers_started():
+    """Ensure background scheduler workers are running."""
+    start_background_workers()
 
 
 @app.route("/")
 def index():
     """Render the main page."""
+    ensure_workers_started()
     return render_template("index.html")
 
 
 @app.route("/api/carts", methods=["GET"])
 def get_carts():
     """Return all cart data."""
-    return jsonify(carts)
+    ensure_workers_started()
+    with state_lock:
+        return jsonify(deepcopy(carts))
 
 
 @app.route("/api/orders", methods=["GET"])
 def get_orders():
     """Return all order data."""
-    return jsonify(orders)
+    ensure_workers_started()
+    with state_lock:
+        return jsonify(deepcopy(orders))
 
 
 @app.route("/api/orders", methods=["POST"])
 def add_order():
     """Create a new order."""
+    ensure_workers_started()
     data = request.get_json() or {}
 
     start_point = data.get("start_point")
@@ -44,13 +49,15 @@ def add_order():
     if not start_point or not end_point:
         return jsonify({"error": "start_point and end_point are required"}), 400
 
-    order = create_order(start_point, end_point)
-    return jsonify(order), 201
+    with state_lock:
+        order = create_order(start_point, end_point, source="manual")
+        return jsonify(deepcopy(order)), 201
 
 
 @app.route("/api/path", methods=["POST"])
 def get_path():
     """Return the planned path between start and end."""
+    ensure_workers_started()
     data = request.get_json() or {}
     start = data.get("start")
     end = data.get("end")
@@ -67,5 +74,6 @@ def get_path():
     )
     return jsonify({"path": path})
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run(port=5001, debug=True)

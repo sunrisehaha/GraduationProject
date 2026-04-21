@@ -8,11 +8,12 @@
 </head>
 <body>
     <div class="screen-shell">
+        <!-- 顶部信息栏：展示系统标题、运行状态和最近刷新时间 -->
         <header class="topbar">
             <div class="topbar__title">
                 <p class="eyebrow">SMART PARK LOGISTICS</p>
-                <h1>智慧园区配送监控系统</h1>
-                <p class="topbar__subtitle">园区地图监控 / 配送订单调度 / 小车运行状态总览</p>
+                <h1>智慧园区快递配送系统</h1>
+                <p class="topbar__subtitle">后台自动调度、路径规划、车辆状态刷新与仿真订单一体化演示</p>
             </div>
 
             <div class="topbar__status">
@@ -24,51 +25,54 @@
             </div>
         </header>
 
+        <!-- 顶部统计区：展示订单和小车的全局统计信息 -->
         <section class="stats-grid">
             <article class="stat-card">
-                <p class="stat-card__label">小车总数</p>
-                <p class="stat-card__value" id="totalCarts">0</p>
-                <p class="stat-card__meta">当前接入配送机器人数量</p>
-            </article>
-            <article class="stat-card">
-                <p class="stat-card__label">运行中小车</p>
-                <p class="stat-card__value" id="activeCarts">0</p>
-                <p class="stat-card__meta">状态非 idle 的车辆</p>
-            </article>
-            <article class="stat-card">
-                <p class="stat-card__label">订单总数</p>
+                <p class="stat-card__label">总订单数</p>
                 <p class="stat-card__value" id="totalOrders">0</p>
-                <p class="stat-card__meta">系统内已创建配送订单</p>
+                <p class="stat-card__meta">当前系统中的所有订单</p>
             </article>
             <article class="stat-card">
-                <p class="stat-card__label">待处理订单</p>
-                <p class="stat-card__value" id="pendingOrders">0</p>
-                <p class="stat-card__meta">等待执行或尚未完成</p>
+                <p class="stat-card__label">执行中订单</p>
+                <p class="stat-card__value" id="activeOrders">0</p>
+                <p class="stat-card__meta">已分配或配送中的订单</p>
+            </article>
+            <article class="stat-card">
+                <p class="stat-card__label">已完成订单</p>
+                <p class="stat-card__value" id="completedOrders">0</p>
+                <p class="stat-card__meta">已完成配送任务</p>
+            </article>
+            <article class="stat-card">
+                <p class="stat-card__label">空闲小车</p>
+                <p class="stat-card__value" id="idleCarts">0</p>
+                <p class="stat-card__meta">当前可接收新任务的小车数量</p>
             </article>
         </section>
 
+        <!-- 主体区域：左侧是地图监控，右侧是控制与状态面板 -->
         <main class="dashboard-layout">
+            <!-- 地图区域：Canvas 负责绘制园区、道路、建筑、小车和路径 -->
             <section class="map-section panel-card">
                 <div class="panel-card__header">
                     <div>
                         <p class="panel-card__eyebrow">MAP OVERVIEW</p>
                         <h2>园区配送地图</h2>
                     </div>
-                    <p id="mapSummary" class="panel-card__desc">展示障碍物、小车位置与订单起终点。</p>
+                    <p id="mapSummary" class="panel-card__desc">展示建筑、道路、绿化带、所有小车位置与当前执行路径。</p>
                 </div>
 
                 <div class="map-toolbar">
                     <div class="legend">
                         <span class="legend__item"><i class="legend__swatch legend__swatch--cart"></i>空闲小车</span>
                         <span class="legend__item"><i class="legend__swatch legend__swatch--busy"></i>执行中小车</span>
-                        <span class="legend__item"><i class="legend__swatch legend__swatch--obstacle"></i>障碍区域</span>
-                        <span class="legend__item"><i class="legend__swatch legend__swatch--start"></i>订单起点</span>
-                        <span class="legend__item"><i class="legend__swatch legend__swatch--end"></i>订单终点</span>
+                        <span class="legend__item"><i class="legend__swatch legend__swatch--obstacle"></i>建筑 / 障碍物</span>
+                        <span class="legend__item"><i class="legend__swatch legend__swatch--start"></i>起点</span>
+                        <span class="legend__item"><i class="legend__swatch legend__swatch--end"></i>终点</span>
                     </div>
                     <div class="map-tags">
                         <span class="tag">地图规模 20 x 12</span>
                         <span class="tag" id="cartPositionTag">在线小车 0 台</span>
-                        <span class="tag" id="orderPositionTag">订单标记 0 个</span>
+                        <span class="tag" id="orderPositionTag">执行订单 0 个</span>
                     </div>
                 </div>
 
@@ -77,14 +81,16 @@
                 </div>
             </section>
 
+            <!-- 右侧控制区：按业务流程拆成 4 张卡片，便于演示 -->
             <aside class="sidebar">
+                <!-- 创建订单卡片：手动输入起点和终点，提交给后端创建订单 -->
                 <section class="panel-card">
                     <div class="panel-card__header">
                         <div>
-                            <p class="panel-card__eyebrow">DISPATCH</p>
-                            <h2>创建配送订单</h2>
+                            <p class="panel-card__eyebrow">MANUAL ORDER</p>
+                            <h2>创建订单</h2>
                         </div>
-                        <p class="panel-card__desc">输入起点和终点坐标，生成新的配送任务。</p>
+                        <p class="panel-card__desc">你可以手动创建订单，后台会自动分配最近空闲小车并执行配送。</p>
                     </div>
 
                     <form id="orderForm" class="order-form">
@@ -106,35 +112,88 @@
                                 <input type="number" id="endY" min="0" max="11" required>
                             </label>
                         </div>
-                        <button type="submit">提交订单</button>
+                        <button type="submit" id="createOrderButton">创建订单</button>
                     </form>
                 </section>
 
-                <section class="panel-card panel-card--stretch">
+                <!-- 当前任务卡片：展示当前正在关注的订单和它的执行信息 -->
+                <section class="panel-card">
+                    <div class="panel-card__header">
+                        <div>
+                            <p class="panel-card__eyebrow">CURRENT TASK</p>
+                            <h2>当前任务</h2>
+                        </div>
+                        <p class="panel-card__desc">后台优先处理最早的未完成订单，并自动调度最优小车。</p>
+                    </div>
+
+                    <div class="info-stack">
+                        <div class="info-row">
+                            <span class="info-row__label">订单编号</span>
+                            <span class="info-row__value" id="currentOrderId">暂无</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-row__label">起点</span>
+                            <span class="info-row__value" id="currentOrderStart">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-row__label">终点</span>
+                            <span class="info-row__value" id="currentOrderEnd">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-row__label">订单状态</span>
+                            <span class="info-row__value info-row__value--badge" id="currentOrderStatus">无任务</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-row__label">执行小车</span>
+                            <span class="info-row__value" id="currentOrderCart">-</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 小车状态卡片：展示主小车状态，并列出所有小车摘要 -->
+                <section class="panel-card">
                     <div class="panel-card__header">
                         <div>
                             <p class="panel-card__eyebrow">FLEET STATUS</p>
-                            <h2>小车状态列表</h2>
+                            <h2>小车状态</h2>
                         </div>
-                        <p class="panel-card__desc">查看当前小车编号、坐标位置和运行状态。</p>
+                        <p class="panel-card__desc">前端会定时刷新并展示所有小车的实时状态。</p>
                     </div>
-                    <ul id="cartList" class="data-list"></ul>
+
+                    <div class="info-stack">
+                        <div class="info-row">
+                            <span class="info-row__label">主小车名称</span>
+                            <span class="info-row__value" id="activeCartName">暂无</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-row__label">当前位置</span>
+                            <span class="info-row__value" id="activeCartPosition">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-row__label">运行状态</span>
+                            <span class="info-row__value info-row__value--badge" id="activeCartStatus">未知</span>
+                        </div>
+                    </div>
+
+                    <ul id="fleetList" class="mini-list"></ul>
                 </section>
 
+                <!-- 系统消息卡片：展示最近发生的业务事件，便于观察调度过程 -->
                 <section class="panel-card panel-card--stretch">
                     <div class="panel-card__header">
                         <div>
-                            <p class="panel-card__eyebrow">ORDER QUEUE</p>
-                            <h2>订单状态列表</h2>
+                            <p class="panel-card__eyebrow">SYSTEM LOG</p>
+                            <h2>系统消息</h2>
                         </div>
-                        <p class="panel-card__desc">展示订单编号、起终点和当前配送状态。</p>
+                        <p class="panel-card__desc">显示订单生成、调度分配、配送开始与完成等业务事件。</p>
                     </div>
-                    <ul id="orderList" class="data-list"></ul>
+                    <ul id="messageList" class="message-list"></ul>
                 </section>
             </aside>
         </main>
     </div>
 
+    <!-- 前端主脚本：负责拉取数据、渲染地图和更新页面状态 -->
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
