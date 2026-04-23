@@ -1,4 +1,4 @@
-"""Flask 应用入口：负责初始化扩展、数据库和接口。"""
+"""Flask 应用入口：负责应用初始化、页面托管和接口注册。"""
 
 import sys
 from pathlib import Path
@@ -12,13 +12,27 @@ from backend.runtime import MAP_HEIGHT, MAP_WIDTH, OBSTACLES, state_lock
 from backend.scheduler import start_background_workers
 from backend.services.bootstrap_service import init_database
 from backend.services.cart_service import list_carts
-from backend.services.order_service import create_order, list_orders, serialize_order
+from backend.services.order_service import (
+    create_order,
+    get_order_by_id,
+    get_order_detail,
+    list_order_events,
+    list_orders,
+    list_orders_by_status,
+    serialize_order,
+)
 
 FRONTEND_DIST_DIR = Path(__file__).resolve().parent.parent / "frontend" / "dist"
 
 
 def create_app():
-    """创建应用：统一初始化配置、扩展和种子数据。"""
+    """创建应用实例。
+
+    这里做三件事：
+    1. 载入配置
+    2. 初始化数据库扩展
+    3. 在非迁移命令下自动建表并注入默认数据
+    """
     app = Flask(__name__)
     app.config.from_object(Config)
 
@@ -34,17 +48,20 @@ def create_app():
 
 
 def ensure_workers_started(app):
-    """确保后台线程已启动。"""
+    """确保后台线程已启动。
+
+    页面和接口都会走到这里，这样就不用担心线程忘记启动。
+    """
     start_background_workers(app)
 
 
 def is_migration_command():
-    """识别迁移命令：避免迁移时先执行 create_all。"""
+    """识别迁移命令：避免执行 flask db 命令时先自动建表。"""
     return "db" in sys.argv
 
 
 def register_routes(app):
-    """注册全部路由：当前项目规模下直接集中管理。"""
+    """注册全部路由：当前项目规模下先集中写在一个文件里。"""
 
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")
@@ -70,10 +87,39 @@ def register_routes(app):
 
     @app.route("/api/orders", methods=["GET"])
     def get_orders():
-        """返回全部订单数据。"""
+        """返回订单列表。
+
+        这里支持通过 ?status=pending 这样的方式按状态过滤。
+        不传 status 时默认返回全部订单。
+        """
+        ensure_workers_started(app)
+        status = request.args.get("status")
+        with state_lock:
+            if status:
+                return jsonify(list_orders_by_status(status))
+
+            return jsonify(list_orders())
+
+    @app.route("/api/orders/<int:order_id>", methods=["GET"])
+    def get_order_detail_view(order_id):
+        """返回单个订单详情：给订单历史详情面板使用。"""
         ensure_workers_started(app)
         with state_lock:
-            return jsonify(list_orders())
+            order = get_order_detail(order_id)
+            if not order:
+                return jsonify({"error": "order not found"}), 404
+
+            return jsonify(order)
+
+    @app.route("/api/orders/<int:order_id>/events", methods=["GET"])
+    def get_order_events(order_id):
+        """返回指定订单的最近事件。"""
+        ensure_workers_started(app)
+        with state_lock:
+            if not get_order_by_id(order_id):
+                return jsonify({"error": "order not found"}), 404
+
+            return jsonify(list_order_events(order_id))
 
     @app.route("/api/orders", methods=["POST"])
     def add_order():
