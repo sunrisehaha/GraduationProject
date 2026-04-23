@@ -1,4 +1,5 @@
 <script setup>
+// 页面顶部：负责展示系统标题、总说明和最新刷新时间。
 defineProps({
   statusText: {
     type: String,
@@ -18,7 +19,7 @@ defineProps({
 <template>
   <header class="topbar">
     <div class="topbar__title">
-      <p class="eyebrow">SMART PARK LOGISTICS</p>
+      <p class="eyebrow">SMART PARK DISPATCH STUDIO</p>
       <h1>智慧园区快递配送系统</h1>
       <p class="topbar__subtitle">{{ subtitle }}</p>
     </div>

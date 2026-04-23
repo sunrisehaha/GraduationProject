@@ -1,3 +1,4 @@
+// 2.5D 地图绘制模块：把订单、小车和路径数据渲染成园区监控画面。
 import { onBeforeUnmount, onMounted, watch } from 'vue'
 
 const gridCols = 20
@@ -16,11 +17,11 @@ const roadCols = new Set([3, 8, 14, 17])
 
 // 场景配置：统一控制 2.5D 地图的尺寸、原点和地块厚度
 const scene = {
-  tileWidth: 34,
-  tileHeight: 17,
-  originX: 400,
-  originY: 108,
-  baseHeight: 14,
+  tileWidth: 38,
+  tileHeight: 19,
+  originX: 488,
+  originY: 126,
+  baseHeight: 16,
 }
 
 // 坐标转换：把网格坐标映射为等角视图中的屏幕坐标
@@ -436,6 +437,7 @@ function drawMap(ctx, canvas, sceneData) {
 }
 
 export function useMapScene(canvasRef, sceneDataRef) {
+  // 渲染入口：每次拿到最新业务数据后，重画整张地图。
   function renderScene() {
     const canvas = canvasRef.value
 
@@ -449,6 +451,7 @@ export function useMapScene(canvasRef, sceneDataRef) {
       return
     }
 
+    // 画布宽度会跟随响应式布局变化，这里动态修正地图中心点。
     scene.originX = canvas.width / 2
     drawMap(ctx, canvas, sceneDataRef.value)
   }
@@ -469,6 +472,7 @@ export function useMapScene(canvasRef, sceneDataRef) {
   )
 
   onBeforeUnmount(() => {
+    // 组件卸载时清空画布，避免残留上一次的图像。
     const canvas = canvasRef.value
 
     if (!canvas) {

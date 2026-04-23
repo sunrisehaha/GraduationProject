@@ -1,5 +1,5 @@
 <script setup>
-// 当前任务卡片：集中展示后台自动调度选中的订单信息
+// 当前任务卡片：聚焦“系统现在正在推进哪一单”，信息尽量短平快。
 defineProps({
   task: {
     type: Object,
@@ -9,13 +9,13 @@ defineProps({
 </script>
 
 <template>
-  <section class="panel-card">
+  <section class="panel-card panel-card--compact">
     <div class="panel-card__header">
       <div>
         <p class="panel-card__eyebrow">CURRENT TASK</p>
         <h2>当前任务</h2>
       </div>
-      <p class="panel-card__desc">这里展示当前正在被调度或执行的主任务。</p>
+      <p class="panel-card__desc">这里聚焦系统此刻最重要的一条执行任务。</p>
     </div>
 
     <div class="panel-note">
@@ -27,6 +27,10 @@ defineProps({
       <div class="info-row">
         <span class="info-row__label">订单编号</span>
         <span class="info-row__value">{{ task.id }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-row__label">业务单号</span>
+        <span class="info-row__value">{{ task.orderNo }}</span>
       </div>
       <div class="info-row">
         <span class="info-row__label">起点</span>
@@ -47,6 +51,10 @@ defineProps({
       <div class="info-row">
         <span class="info-row__label">任务来源</span>
         <span class="info-row__value">{{ task.source }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-row__label">创建时间</span>
+        <span class="info-row__value">{{ task.createdAt }}</span>
       </div>
       <div class="info-row">
         <span class="info-row__label">路径节点</span>

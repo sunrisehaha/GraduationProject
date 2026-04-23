@@ -1,5 +1,5 @@
 <script setup>
-// 系统消息卡片：按时间倒序展示最近的调度和配送日志
+// 系统消息卡片：按时间倒序展示最近的调度和配送日志。
 defineProps({
   logs: {
     type: Array,
@@ -20,7 +20,7 @@ defineProps({
 
     <p v-if="!logs.length" class="empty-text">后台调度系统已启动，等待新的业务事件。</p>
 
-    <ul v-else class="message-list">
+    <ul v-else class="message-list message-list--scroll">
       <li
         v-for="(log, index) in logs"
         :key="`${log.text}-${log.time}`"

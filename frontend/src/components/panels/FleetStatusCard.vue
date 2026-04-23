@@ -1,5 +1,5 @@
 <script setup>
-// 小车状态卡片：展示主小车状态和整个车队概况
+// 小车状态卡片：展示主小车状态和整个车队概况。
 defineProps({
   fleet: {
     type: Array,
@@ -47,7 +47,7 @@ defineProps({
       </div>
     </div>
 
-    <ul class="mini-list">
+    <ul class="mini-list mini-list--scroll">
       <li v-for="cart in fleet" :key="cart.id" class="mini-list__item">
         <div class="mini-list__head">
           <p class="mini-list__title">{{ cart.name }}</p>

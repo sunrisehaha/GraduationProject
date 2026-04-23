@@ -1,4 +1,5 @@
 <script setup>
+// 统计条：页面顶部的四张概览卡都由这里统一渲染。
 defineProps({
   stats: {
     type: Array,

@@ -1,7 +1,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 
-// 创建订单卡片：负责提交手动订单并清空表单
+// 创建订单卡片：负责收集用户输入，并把坐标交给后端创建订单。
 const props = defineProps({
   submitOrder: {
     type: Function,
@@ -17,6 +17,7 @@ const form = reactive({
 })
 const submitting = ref(false)
 
+// 提交动作：把表单值交给外层方法，成功后把输入框清空。
 async function handleSubmit() {
   submitting.value = true
   const result = await props.submitOrder({ ...form })

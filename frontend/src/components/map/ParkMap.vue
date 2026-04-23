@@ -1,4 +1,5 @@
 <script setup>
+// 地图组件：接收当前任务、小车和订单数据，然后交给 canvas 渲染模块绘制。
 import { computed, ref } from 'vue'
 import { useMapScene } from '../../composables/useMapScene'
 
@@ -62,11 +63,13 @@ useMapScene(canvasRef, sceneData)
     </div>
 
     <div class="canvas-wrap">
-      <canvas ref="canvasRef" class="park-canvas" width="800" height="480"></canvas>
+      <canvas ref="canvasRef" class="park-canvas" width="980" height="620"></canvas>
 
       <div class="map-overlay">
         <p class="map-overlay__title">当前任务：{{ currentTask.id }}</p>
+        <p>业务单号：{{ currentTask.orderNo }}</p>
         <p>订单状态：{{ currentTask.status }}</p>
+        <p>执行小车：{{ currentTask.cart }}</p>
         <p>路径节点：{{ currentPath.length }}</p>
       </div>
     </div>
