@@ -2,12 +2,12 @@ from heapq import heappop, heappush
 
 
 def heuristic(a, b):
-    """Use Manhattan distance for 4-direction grid movement."""
+    """估算两点距离：A* 在四方向网格里常用曼哈顿距离。"""
     return abs(a["x"] - b["x"]) + abs(a["y"] - b["y"])
 
 
 def reconstruct_path(came_from, current):
-    """Build the final path from end node back to start node."""
+    """回溯最终路径：从终点一路倒推回起点，再整体反转。"""
     path = [{"x": current[0], "y": current[1]}]
 
     while current in came_from:
@@ -19,7 +19,7 @@ def reconstruct_path(came_from, current):
 
 
 def find_path(start, end, obstacles=None, width=20, height=12):
-    """Find a path on a 2D grid using A*."""
+    """在二维网格上用 A* 算法寻找路径。"""
     if obstacles is None:
         obstacles = []
 
@@ -28,6 +28,7 @@ def find_path(start, end, obstacles=None, width=20, height=12):
     obstacle_set = {(item["x"], item["y"]) for item in obstacles}
 
     def in_bounds(position):
+        """判断坐标是否还在地图边界内。"""
         x, y = position
         return 0 <= x < width and 0 <= y < height
 

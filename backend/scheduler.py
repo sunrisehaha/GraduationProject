@@ -1,4 +1,8 @@
-"""调度模块：启动后台线程，持续驱动订单分配与小车移动。"""
+"""调度模块：启动后台线程，持续驱动订单分配与小车移动。
+
+这个文件现在只保留“线程循环”这层职责，
+真正的业务逻辑已经下沉到 dispatch_service 里了。
+"""
 
 from threading import Thread
 from time import sleep

@@ -1,4 +1,4 @@
-"""调度服务：封装订单分配和小车移动逻辑。"""
+"""调度服务：封装订单分配、小车推进和仿真订单生成逻辑。"""
 
 import json
 
@@ -19,7 +19,7 @@ from backend.services.order_service import (
 
 
 def build_full_path(cart, order):
-    """规划完整路径：先去取件点，再去终点。"""
+    """规划完整路径：先从小车当前位置到起点，再从起点到终点。"""
     start_point, end_point = get_order_start_end(order)
     cart_position = {"x": cart.current_x, "y": cart.current_y}
 
@@ -50,6 +50,7 @@ def assign_order_to_cart(order, carts):
     best_path = []
     best_distance = None
 
+    # 这里按“完整路径长度最短”来挑车，是当前项目最直观的调度规则。
     for cart in carts:
         if cart.status != "idle":
             continue
@@ -103,6 +104,7 @@ def complete_cart_order(cart, order):
 def advance_carts():
     """推进所有忙碌小车向前移动一步。"""
     for cart in get_busy_carts():
+        # 数据库存的是 JSON 字符串，这里先还原成路径数组。
         path = json.loads(cart.current_path_json or "[]")
         order = get_order_by_id(cart.current_order_id)
 
@@ -141,4 +143,3 @@ def create_simulation_order_if_needed(max_active_orders):
     """按活动订单数量决定是否生成仿真订单。"""
     if count_active_orders() < max_active_orders:
         create_simulated_order()
-

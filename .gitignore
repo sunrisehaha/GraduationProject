@@ -3,6 +3,7 @@ __pycache__/
 .DS_Store
 *.db
 *.sqlite3
+*.db-journal
 
 frontend/node_modules/
 frontend/dist/

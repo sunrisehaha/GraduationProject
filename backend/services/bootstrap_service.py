@@ -1,4 +1,4 @@
-"""初始化服务：建表并注入默认演示数据。"""
+"""初始化服务：负责建表和注入默认演示数据。"""
 
 from backend.extensions import db
 from backend.models import Cart, Order
@@ -20,7 +20,7 @@ DEFAULT_CARTS = [
 
 
 def seed_carts():
-    """注入默认小车：仅在空库时执行一次。"""
+    """注入默认小车：只有空库时才执行，避免重复写入。"""
     if Cart.query.first():
         return
 
@@ -39,7 +39,7 @@ def seed_carts():
 
 
 def seed_orders():
-    """注入默认订单：保持现有页面首次进入时就有数据。"""
+    """注入默认订单：保证页面第一次打开就能看到业务数据。"""
     if Order.query.first():
         return
 
@@ -52,8 +52,7 @@ def seed_orders():
 
 
 def init_database():
-    """初始化数据库：建表并注入默认数据。"""
+    """初始化数据库：先建表，再补默认小车和默认订单。"""
     db.create_all()
     seed_carts()
     seed_orders()
-
