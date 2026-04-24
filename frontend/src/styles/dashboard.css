@@ -62,12 +62,19 @@
   border: 1px solid rgba(84, 120, 138, 0.14);
 }
 
-.park-canvas {
+.park-three-scene {
   display: block;
   width: 100%;
-  height: auto;
-  max-width: 100%;
+  min-height: 584px;
+  overflow: hidden;
   border-radius: 18px;
+  background: #eaf4f5;
+}
+
+.park-three-scene canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .map-overlay {
@@ -152,5 +159,9 @@
 
   .canvas-wrap {
     min-height: auto;
+  }
+
+  .park-three-scene {
+    min-height: 420px;
   }
 }

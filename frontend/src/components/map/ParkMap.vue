@@ -1,7 +1,7 @@
 <script setup>
-// 地图组件：接收当前任务、小车和订单数据，然后交给 canvas 渲染模块绘制。
+// 地图组件：接收当前任务、小车和订单数据，然后交给 Three.js 场景模块绘制。
 import { computed, ref } from 'vue'
-import { useMapScene } from '../../composables/useMapScene'
+import { useThreeMapScene } from '../../composables/useThreeMapScene'
 
 const props = defineProps({
   mapInfo: {
@@ -26,7 +26,7 @@ const props = defineProps({
   },
 })
 
-const canvasRef = ref(null)
+const sceneRef = ref(null)
 
 // 地图场景数据：把业务数据整理成渲染模块所需的最小输入
 const sceneData = computed(() => ({
@@ -35,7 +35,7 @@ const sceneData = computed(() => ({
   currentPath: props.currentPath,
 }))
 
-useMapScene(canvasRef, sceneData)
+useThreeMapScene(sceneRef, sceneData)
 </script>
 
 <template>
@@ -63,7 +63,7 @@ useMapScene(canvasRef, sceneData)
     </div>
 
     <div class="canvas-wrap">
-      <canvas ref="canvasRef" class="park-canvas" width="980" height="620"></canvas>
+      <div ref="sceneRef" class="park-three-scene"></div>
 
       <div class="map-overlay">
         <p class="map-overlay__title">当前任务：{{ currentTask.id }}</p>
