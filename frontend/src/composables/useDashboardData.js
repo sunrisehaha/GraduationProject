@@ -5,6 +5,7 @@ import { createOrder, fetchOrderDetail, fetchOrderEvents, fetchOrders } from '..
 // 看板轮询间隔：让页面保持实时感，但不要快到影响演示体验。
 const refreshIntervalMs = 1000
 const historyListLimit = 60
+const orderFetchLimit = 120
 
 // 历史筛选项：放在这里统一管理，组件只负责展示。
 const orderFilterOptions = [
@@ -92,10 +93,13 @@ function buildOrderView(order) {
 
 // 当前主订单挑选规则：优先展示正在配送的订单，其次是已分配、待调度。
 function pickCurrentOrder(orderList) {
+  const latestOrders = orderList.slice().reverse()
+
   return (
-    orderList.find((order) => order.status === 'delivering') ||
-    orderList.find((order) => order.status === 'assigned') ||
-    orderList.find((order) => order.status === 'pending') ||
+    latestOrders.find((order) => order.status === 'delivering') ||
+    latestOrders.find((order) => order.status === 'to_pickup') ||
+    latestOrders.find((order) => order.status === 'assigned') ||
+    latestOrders.find((order) => order.status === 'pending') ||
     null
   )
 }
@@ -196,7 +200,10 @@ export function useDashboardData() {
       errorMessage.value = ''
 
       const previousOrders = orders.value.slice()
-      const [latestCarts, latestOrders] = await Promise.all([fetchCarts(), fetchOrders()])
+      const [latestCarts, latestOrders] = await Promise.all([
+        fetchCarts(),
+        fetchOrders('all', orderFetchLimit),
+      ])
 
       processOrderChanges(previousOrders, latestOrders)
       carts.value = latestCarts
@@ -289,19 +296,35 @@ export function useDashboardData() {
   })
 
   // 当前路径：地图只需要当前主任务路径。
-  const currentPath = computed(() => currentOrder.value?.path || [])
+  const currentPath = computed(() => {
+    const order = currentOrder.value
+
+    if (!order?.assigned_cart_id) {
+      return order?.path || []
+    }
+
+    const cart = carts.value.find((item) => item.id === order.assigned_cart_id)
+
+    if (!cart?.current_path?.length) {
+      return order.path || []
+    }
+
+    // 地图只强调“从当前小车位置继续要走的路”，避免完整路径和小车当前位置错位。
+    const currentIndex = Math.max(0, (cart.path_index || 0) - 1)
+    return cart.current_path.slice(currentIndex)
+  })
 
   // 顶部统计：整个页面都依赖这些总览数字。
   const stats = computed(() => {
     const totalOrders = orders.value.length
     const activeOrders = orders.value.filter((order) =>
-      ['assigned', 'delivering'].includes(order.status)
+      ['assigned', 'to_pickup', 'delivering'].includes(order.status)
     ).length
     const completedOrders = orders.value.filter((order) => order.status === 'completed').length
     const idleCarts = carts.value.filter((cart) => cart.status === 'idle').length
 
     return [
-      { label: '总订单数', value: String(totalOrders), meta: '数据库中累计写入的订单' },
+      { label: '最近订单数', value: String(totalOrders), meta: '当前监控页最近拉取的订单' },
       { label: '执行中订单', value: String(activeOrders), meta: '已分配或配送中的任务' },
       { label: '已完成订单', value: String(completedOrders), meta: '已经完成闭环的配送任务' },
       { label: '空闲小车', value: String(idleCarts), meta: '可立刻接单的小车数量' },
@@ -311,7 +334,7 @@ export function useDashboardData() {
   // 顶部状态区：给页面一个更统一的口吻。
   const topBar = computed(() => {
     const activeOrders = orders.value.filter((order) =>
-      ['assigned', 'delivering'].includes(order.status)
+      ['assigned', 'to_pickup', 'delivering'].includes(order.status)
     ).length
 
     return {
@@ -323,7 +346,7 @@ export function useDashboardData() {
   // 地图摘要：给地图区顶部和标签区提供内容。
   const mapInfo = computed(() => {
     const activeOrders = orders.value.filter((order) =>
-      ['assigned', 'delivering'].includes(order.status)
+      ['assigned', 'to_pickup', 'delivering'].includes(order.status)
     ).length
     const completedOrders = orders.value.filter((order) => order.status === 'completed').length
 

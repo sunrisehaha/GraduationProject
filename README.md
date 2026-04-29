@@ -8,6 +8,7 @@
 - [技术栈](#技术栈)
 - [项目结构](#项目结构)
 - [核心业务流](#核心业务流)
+- [从零构建理解路线](#从零构建理解路线)
 - [快速启动](#快速启动)
 - [数据库与迁移](#数据库与迁移)
 - [重要文件导航](#重要文件导航)
@@ -38,7 +39,7 @@
 - Vue 3
 - Vite
 - Composition API
-- Canvas 2D 绘制 2.5D 园区地图
+- Canvas 2D / Three.js 园区地图展示
 
 ### 后端
 - Flask
@@ -86,6 +87,81 @@ GraduationProject/
 
 ### 4. 状态回放
 订单状态变化会写入 [订单事件表](./backend/models/order_event.py)，前端在历史卡片中直接展示这些事件，形成一条“配送时间线”。
+
+## 从零构建理解路线
+如果从零开始做这个项目，最稳的顺序不是先做页面，而是先做业务闭环：
+
+```text
+地图规则
+  ↓
+路径规划
+  ↓
+数据模型
+  ↓
+订单创建
+  ↓
+自动调度
+  ↓
+小车移动
+  ↓
+查询接口
+  ↓
+前端轮询
+  ↓
+看板展示
+  ↓
+地图视觉升级
+```
+
+### 1. 先定义世界规则
+先确定园区是一个 `20 x 12` 网格，哪些格子是障碍物，小车和订单点位都在这个网格里表达。
+
+对应文件：[runtime.py](./backend/runtime.py)
+
+### 2. 再实现路径规划
+用 A* 根据起点、终点和障碍物算出一条路径。这里先不考虑订单和页面，只解决“怎么从 A 点走到 B 点”。
+
+对应文件：[astar.py](./backend/astar.py)
+
+### 3. 再设计最小数据模型
+系统至少要记住订单、小车、订单点位和订单事件。订单负责业务状态，小车负责当前位置和当前路径。
+
+对应目录：[models](./backend/models/)
+
+### 4. 再做订单创建
+前端提交起点和终点，后端创建一条 `pending` 订单。此时系统只是能接收任务，还没有自动调度。
+
+对应文件：[order_service.py](./backend/services/order_service.py)
+
+### 5. 再做调度逻辑
+调度器扫描 `pending` 订单，找到空闲小车，计算完整路径，并把订单分给路径最短的小车。
+
+对应文件：[dispatch_service.py](./backend/services/dispatch_service.py)
+
+### 6. 再做后台推进
+后台线程定时做三件事：分配订单、推动小车前进一步、生成仿真订单。这样系统不用手动点击也能持续运行。
+
+对应文件：[scheduler.py](./backend/scheduler.py)
+
+### 7. 再做后端接口
+前端需要通过接口拿到订单、小车和路径数据，所以 Flask 负责把业务服务包装成 HTTP 接口。
+
+对应文件：[backend/app.py](./backend/app.py)
+
+### 8. 再做前端数据中心
+前端每秒轮询后端，把原始订单和小车整理成当前任务、当前路径、统计数字和历史列表。
+
+对应文件：[useDashboardData.js](./frontend/src/composables/useDashboardData.js)
+
+### 9. 再做基础看板
+页面先把核心信息展示清楚：顶部统计、当前任务、订单创建、订单历史、车队状态和地图区域。
+
+对应文件：[DashboardView.vue](./frontend/src/views/DashboardView.vue)
+
+### 10. 最后做地图视觉升级
+地图只是展示层。业务数据已经跑通后，再从基础地图升级到 Three.js 场景，避免一开始就被视觉复杂度拖住。
+
+对应文件：[ParkMap.vue](./frontend/src/components/map/ParkMap.vue)、[useThreeMapScene.js](./frontend/src/composables/useThreeMapScene.js)
 
 ## 快速启动
 ### 1. 安装依赖

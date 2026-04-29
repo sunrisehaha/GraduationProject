@@ -26,12 +26,10 @@ FRONTEND_DIST_DIR = Path(__file__).resolve().parent.parent / "frontend" / "dist"
 
 
 def create_app():
-    """创建应用实例。
-
-    这里做三件事：
-    1. 载入配置
-    2. 初始化数据库扩展
-    3. 在非迁移命令下自动建表并注入默认数据
+    """ 创建应用实例：
+        1. 载入配置
+        2. 初始化数据库扩展
+        3. 在非迁移命令下自动建表并注入默认数据
     """
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -48,10 +46,7 @@ def create_app():
 
 
 def ensure_workers_started(app):
-    """确保后台线程已启动。
-
-    页面和接口都会走到这里，这样就不用担心线程忘记启动。
-    """
+    # 确保后台线程已启动
     start_background_workers(app)
 
 
@@ -94,11 +89,12 @@ def register_routes(app):
         """
         ensure_workers_started(app)
         status = request.args.get("status")
+        limit = request.args.get("limit", type=int)
         with state_lock:
             if status:
-                return jsonify(list_orders_by_status(status))
+                return jsonify(list_orders_by_status(status, limit=limit))
 
-            return jsonify(list_orders())
+            return jsonify(list_orders(limit=limit))
 
     @app.route("/api/orders/<int:order_id>", methods=["GET"])
     def get_order_detail_view(order_id):

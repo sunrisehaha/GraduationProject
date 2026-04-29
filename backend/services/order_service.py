@@ -37,7 +37,7 @@ def _order_points_map(order):
 
 
 def serialize_order(order):
-    """把 ORM 订单对象转成前端能直接消费的字典。"""
+    """前端展示订单：把 ORM 订单对象转成前端能直接消费的字典。"""
     points = _order_points_map(order)
     return {
         "id": order.id,
@@ -106,13 +106,19 @@ def create_order(start_point, end_point, source="manual", remark=None):
     return order
 
 
-def list_orders():
-    """查询全部订单：按编号升序返回，默认给监控页总览使用。"""
-    orders = Order.query.order_by(Order.id.asc()).all()
+def list_orders(limit=None):
+    """查询订单列表：监控页默认只需要最近一段历史，避免越跑越卡。"""
+    query = Order.query.order_by(Order.id.desc())
+
+    if limit:
+        query = query.limit(limit)
+
+    orders = query.all()
+    orders.reverse()
     return [serialize_order(order) for order in orders]
 
 
-def list_orders_by_status(status=None):
+def list_orders_by_status(status=None, limit=None):
     """按状态查询订单。
 
     如果没有传状态，直接回全部订单；
@@ -123,7 +129,12 @@ def list_orders_by_status(status=None):
     if status and status != "all":
         query = query.filter_by(status=status)
 
-    return [serialize_order(order) for order in query.all()]
+    if limit:
+        query = query.limit(limit)
+
+    orders = query.all()
+    orders.reverse()
+    return [serialize_order(order) for order in orders]
 
 
 def get_order_by_id(order_id):

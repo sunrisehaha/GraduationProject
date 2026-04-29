@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent          # 计算项目根目录
 DATABASE_PATH = BASE_DIR / "data" / "project.db"
 DEFAULT_DATABASE_URI = f"sqlite:///{DATABASE_PATH}"
 

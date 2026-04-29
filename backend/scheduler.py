@@ -1,7 +1,7 @@
 """调度模块：启动后台线程，持续驱动订单分配与小车移动。
 
-这个文件现在只保留“线程循环”这层职责，
-真正的业务逻辑已经下沉到 dispatch_service 里了。
+这个文件现在只保留“线程循环”这层职责
+真正的业务逻辑已下沉到 dispatch_service 里
 """
 
 from threading import Thread
@@ -14,10 +14,10 @@ from backend.services.dispatch_service import (
     dispatch_pending_orders,
 )
 
-DISPATCH_INTERVAL = 1.0
-MOVE_INTERVAL = 0.8
-SIMULATION_INTERVAL = 6.0
-MAX_ACTIVE_ORDERS = 6
+DISPATCH_INTERVAL = 1.0         # 每 1 秒尝试分配订单
+MOVE_INTERVAL = 0.8             # 每 0.8 秒推动小车移动一步
+SIMULATION_INTERVAL = 6.0       # 每 6 秒尝试生成仿真订单
+MAX_ACTIVE_ORDERS = 6           # 最多保持 6 个活动订单
 
 _workers_started = False
 
