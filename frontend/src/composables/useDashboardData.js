@@ -353,7 +353,7 @@ export function useDashboardData() {
     return {
       summary: `当前园区共有 ${carts.value.length} 台小车在线，执行中订单 ${activeOrders} 个，已完成 ${completedOrders} 个。`,
       tags: [
-        '地图规模 20 x 12',
+        '地图规模 40 x 35',
         `在线小车 ${carts.value.length} 台`,
         `当前路径 ${currentPath.value.length} 个节点`,
       ],

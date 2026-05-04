@@ -10,7 +10,7 @@ from datetime import datetime
 
 from backend.extensions import db
 from backend.models import Order, OrderEvent, OrderPoint
-from backend.runtime import MAP_HEIGHT, MAP_WIDTH, OBSTACLES
+from backend.runtime import MAP_HEIGHT, MAP_WIDTH, OBSTACLES, is_free_point
 
 
 ACTIVE_ORDER_STATUSES = ["pending", "assigned", "to_pickup", "delivering"]
@@ -89,6 +89,12 @@ def generate_order_no():
 
 def create_order(start_point, end_point, source="manual", remark=None):
     """创建订单：主表、点位表、事件表一起写入。"""
+    if not is_free_point(start_point) or not is_free_point(end_point):
+        raise ValueError("起点或终点不在可配送区域内")
+
+    if start_point == end_point:
+        raise ValueError("起点和终点不能相同")
+
     order = Order(
         order_no=generate_order_no(),
         status="pending",

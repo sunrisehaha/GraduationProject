@@ -18,7 +18,7 @@ def reconstruct_path(came_from, current):
     return path
 
 
-def find_path(start, end, obstacles=None, width=20, height=12):
+def find_path(start, end, obstacles=None, width=40, height=35):
     """在二维网格上用 A* 算法寻找路径。"""
     if obstacles is None:
         obstacles = []

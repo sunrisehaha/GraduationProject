@@ -1,7 +1,7 @@
 <script setup>
 // 地图组件：接收当前任务、小车和订单数据，然后交给 Three.js 场景模块绘制。
 import { computed, ref } from 'vue'
-import { useThreeMapScene } from '../../composables/useThreeMapScene'
+import { useThreeCampusPrototype } from '../../composables/useThreeCampusPrototype'
 
 const props = defineProps({
   mapInfo: {
@@ -35,7 +35,8 @@ const sceneData = computed(() => ({
   currentPath: props.currentPath,
 }))
 
-useThreeMapScene(sceneRef, sceneData)
+// 当前阶段先展示 Bruno 风格 Three.js 原型，业务数据稍后再重新接入。
+useThreeCampusPrototype(sceneRef, sceneData)
 </script>
 
 <template>

@@ -1,17 +1,44 @@
-// Three.js 园区沙盘渲染模块：静态园区使用贴图资产，动态业务层只负责小车、路径和订单点位。
+// Three.js 园区沙盘渲染模块：后端负责业务数据，前端只负责把地图、小车、路径画出来。
 import { nextTick, onBeforeUnmount, onMounted, watch } from 'vue'
 import * as THREE from 'three'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 
-const gridCols = 20
-const gridRows = 12
-const tileSize = 1.2
+const gridCols = 40
+const gridRows = 35
+const tileSize = 0.82
 const campusTextureUrl = '/scene/campus-map.png'
 
+const assetUrls = {
+  vehicle: '/scene/bruno/vehicle/default.glb',
+  birchTree: '/scene/bruno/birchTrees/birchTreesVisual.glb',
+  oakTree: '/scene/bruno/oakTrees/oakTreesVisual.glb',
+  cherryTree: '/scene/bruno/cherryTrees/cherryTreesVisual.glb',
+  terrainModel: '/scene/bruno/terrain/terrain.glb',
+  terrainTexture: '/scene/bruno/terrain/terrain.png',
+}
+
 const campusHeightBlocks = [
-  { x: 5, y: 6, width: 1, depth: 3, height: 1.45, body: '#9eb8c5', roof: '#e7eff2' },
-  { x: 12, y: 3.5, width: 1, depth: 2, height: 1.7, body: '#a8bdc8', roof: '#edf4f5' },
-  { x: 15.5, y: 8, width: 2, depth: 1, height: 1.25, body: '#9fc4bf', roof: '#eaf4ef' },
-  { x: 2, y: 9, width: 1.6, depth: 1, height: 1.05, body: '#b7c7c5', roof: '#f0f5f4' },
+  { x: 8, y: 8.5, width: 4, depth: 7, height: 1.35, body: '#9eb8c5', roof: '#e7eff2' },
+  { x: 18.5, y: 7, width: 5, depth: 6, height: 1.65, body: '#a8bdc8', roof: '#edf4f5' },
+  { x: 31.5, y: 10, width: 5, depth: 6, height: 1.25, body: '#9fc4bf', roof: '#eaf4ef' },
+  { x: 10, y: 25.5, width: 6, depth: 7, height: 1.25, body: '#b7c7c5', roof: '#f0f5f4' },
+  { x: 25, y: 24.5, width: 6, depth: 7, height: 1.5, body: '#9fb8c7', roof: '#eef5f6' },
+]
+
+const treePlacements = [
+  { type: 'birchTree', x: 1.5, y: 6, scale: 0.78 },
+  { type: 'oakTree', x: 5, y: 14, scale: 0.92 },
+  { type: 'cherryTree', x: 11, y: 1.5, scale: 0.82 },
+  { type: 'birchTree', x: 22, y: 2, scale: 0.76 },
+  { type: 'oakTree', x: 34, y: 3, scale: 0.9 },
+  { type: 'cherryTree', x: 37, y: 14, scale: 0.86 },
+  { type: 'birchTree', x: 2, y: 24, scale: 0.74 },
+  { type: 'oakTree', x: 15, y: 28, scale: 0.88 },
+  { type: 'cherryTree', x: 21, y: 31.5, scale: 0.8 },
+  { type: 'birchTree', x: 33, y: 27, scale: 0.76 },
+  { type: 'oakTree', x: 38, y: 32, scale: 0.9 },
+  { type: 'cherryTree', x: 1, y: 32, scale: 0.82 },
 ]
 
 const sceneState = {
@@ -25,14 +52,20 @@ const sceneState = {
   cartGroup: null,
   resizeObserver: null,
   animationFrameId: 0,
+  lastFrameTime: 0,
   animatedWheels: [],
   pulseTargets: [],
   cartObjects: new Map(),
+  assets: {},
 }
 
-// 坐标映射：后端 20 x 12 网格转为 Three.js 世界坐标。
+// 坐标映射：后端 40 x 35 网格转为 Three.js 世界坐标。
 function gridToWorld(point, height = 0) {
-  return new THREE.Vector3((point.x - 9.5) * tileSize, height, (point.y - 5.5) * tileSize)
+  return new THREE.Vector3(
+    (point.x - (gridCols - 1) / 2) * tileSize,
+    height,
+    (point.y - (gridRows - 1) / 2) * tileSize
+  )
 }
 
 function normalizeAngle(angle) {
@@ -69,9 +102,23 @@ function createCylinder(radiusTop, radiusBottom, height, material, segments = 16
   return mesh
 }
 
-// 资源清理：贴图、材质和几何体都需要释放，避免页面反复进入后占用显存。
+function markImportedAsset(object) {
+  object.traverse((child) => {
+    child.userData.skipDispose = true
+    if (child.isMesh) {
+      child.castShadow = true
+      child.receiveShadow = true
+    }
+  })
+}
+
+// 资源清理：手写几何体要释放；GLB 克隆体共享资源，避免重复 dispose 影响其他实例。
 function disposeObject(object) {
   object.traverse((child) => {
+    if (child.userData.skipDispose) {
+      return
+    }
+
     if (child.geometry) {
       child.geometry.dispose()
     }
@@ -100,13 +147,60 @@ function clearGroup(group) {
   }
 }
 
-// 场景基础：保持固定斜俯视角，让贴图底图和动态标记都容易看清。
+function loadGltf(loader, url) {
+  return new Promise((resolve, reject) => {
+    loader.load(url, resolve, undefined, reject)
+  })
+}
+
+async function loadSceneAssets() {
+  const loader = new GLTFLoader()
+  const dracoLoader = new DRACOLoader()
+  dracoLoader.setDecoderPath('/scene/bruno/draco/')
+  loader.setDRACOLoader(dracoLoader)
+
+  const [vehicle, birchTree, oakTree, cherryTree, terrainModel] = await Promise.all([
+    loadGltf(loader, assetUrls.vehicle),
+    loadGltf(loader, assetUrls.birchTree),
+    loadGltf(loader, assetUrls.oakTree),
+    loadGltf(loader, assetUrls.cherryTree),
+    loadGltf(loader, assetUrls.terrainModel),
+  ])
+
+  sceneState.assets = {
+    vehicle: vehicle.scene,
+    birchTree: birchTree.scene,
+    oakTree: oakTree.scene,
+    cherryTree: cherryTree.scene,
+    terrainModel: terrainModel.scene,
+  }
+
+  dracoLoader.dispose()
+}
+
+function fitObjectToFootprint(object, maxWidth, maxDepth) {
+  const box = new THREE.Box3().setFromObject(object)
+  const size = new THREE.Vector3()
+  const center = new THREE.Vector3()
+  box.getSize(size)
+  box.getCenter(center)
+
+  const scale = Math.min(maxWidth / Math.max(size.x, 0.001), maxDepth / Math.max(size.z, 0.001))
+  object.scale.multiplyScalar(scale)
+  object.position.sub(center.multiplyScalar(scale))
+
+  const updatedBox = new THREE.Box3().setFromObject(object)
+  object.position.y -= updatedBox.min.y
+}
+
+// 场景基础：固定斜俯视角，优先保证答辩演示稳定。
 function createBaseScene(container) {
   const scene = new THREE.Scene()
   scene.background = new THREE.Color('#eaf4f5')
+  scene.fog = new THREE.Fog('#eaf4f5', 32, 58)
 
-  const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100)
-  camera.position.set(10.5, 12.5, 13.5)
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 120)
+  camera.position.set(18, 30, 30)
   camera.lookAt(0, 0, 0)
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
@@ -116,17 +210,17 @@ function createBaseScene(container) {
   renderer.outputColorSpace = THREE.SRGBColorSpace
   container.appendChild(renderer.domElement)
 
-  const ambientLight = new THREE.HemisphereLight('#ffffff', '#c6dce0', 2.7)
+  const ambientLight = new THREE.HemisphereLight('#ffffff', '#c6dce0', 2.5)
   scene.add(ambientLight)
 
-  const mainLight = new THREE.DirectionalLight('#fff8e8', 2.8)
-  mainLight.position.set(-8, 16, 8)
+  const mainLight = new THREE.DirectionalLight('#fff8e8', 2.9)
+  mainLight.position.set(-14, 24, 16)
   mainLight.castShadow = true
-  mainLight.shadow.mapSize.set(1024, 1024)
-  mainLight.shadow.camera.left = -18
-  mainLight.shadow.camera.right = 18
-  mainLight.shadow.camera.top = 18
-  mainLight.shadow.camera.bottom = -18
+  mainLight.shadow.mapSize.set(2048, 2048)
+  mainLight.shadow.camera.left = -24
+  mainLight.shadow.camera.right = 24
+  mainLight.shadow.camera.top = 24
+  mainLight.shadow.camera.bottom = -24
   scene.add(mainLight)
 
   const staticGroup = new THREE.Group()
@@ -145,8 +239,6 @@ function createBaseScene(container) {
   sceneState.pathGroup = pathGroup
   sceneState.markerGroup = markerGroup
   sceneState.cartGroup = cartGroup
-
-  // 后续如果要导入 GLB，只需要替换 buildStaticCampus，不影响动态业务层。
 }
 
 function createCampusHeightBlock(item) {
@@ -174,44 +266,88 @@ function createCampusHeightBlock(item) {
   return group
 }
 
-// 静态园区：把确定性生成的园区底图贴到平面上，减少代码建模维护成本。
+function addDecorativeTerrain(group) {
+  const terrain = sceneState.assets.terrainModel?.clone(true)
+
+  if (!terrain) {
+    return
+  }
+
+  markImportedAsset(terrain)
+  fitObjectToFootprint(terrain, gridCols * tileSize * 1.04, gridRows * tileSize * 1.04)
+  terrain.position.y = -0.1
+  terrain.traverse((child) => {
+    if (child.isMesh) {
+      child.material = child.material.clone()
+      child.material.transparent = true
+      child.material.opacity = 0.32
+    }
+  })
+  group.add(terrain)
+}
+
+function addTrees(group) {
+  treePlacements.forEach((item) => {
+    const source = sceneState.assets[item.type]
+
+    if (!source) {
+      return
+    }
+
+    const tree = source.clone(true)
+    markImportedAsset(tree)
+    fitObjectToFootprint(tree, tileSize * 0.8, tileSize * 0.8)
+    tree.scale.multiplyScalar(item.scale)
+    const center = gridToWorld({ x: item.x, y: item.y }, 0.02)
+    tree.position.x += center.x
+    tree.position.z += center.z
+    tree.rotation.y = item.x * 0.37 + item.y * 0.19
+    group.add(tree)
+  })
+}
+
+// 静态园区：底图保证业务坐标准确，GLB 资源负责提升空间质感。
 function buildStaticCampus(group) {
   clearGroup(group)
 
-  const planeWidth = (gridCols + 2) * tileSize
-  const planeDepth = (gridRows + 2) * tileSize
+  const planeWidth = (gridCols + 1) * tileSize
+  const planeDepth = (gridRows + 1) * tileSize
   const geometry = new THREE.PlaneGeometry(planeWidth, planeDepth)
-  const material = new THREE.MeshBasicMaterial({
+  const material = new THREE.MeshStandardMaterial({
     color: '#edf7f6',
+    roughness: 0.88,
+    metalness: 0,
     side: THREE.DoubleSide,
   })
   const campusPlane = new THREE.Mesh(geometry, material)
   campusPlane.rotation.x = -Math.PI / 2
-  campusPlane.position.y = -0.02
+  campusPlane.position.y = -0.015
   campusPlane.receiveShadow = true
   group.add(campusPlane)
 
-  const loader = new THREE.TextureLoader()
-  loader.load(campusTextureUrl, (texture) => {
+  const textureLoader = new THREE.TextureLoader()
+  textureLoader.load(campusTextureUrl, (texture) => {
     texture.colorSpace = THREE.SRGBColorSpace
     texture.anisotropy = 8
     material.map = texture
     material.needsUpdate = true
   })
 
-  // 只叠加少量关键楼体，让答辩时能看出建筑高度，不回到全量代码建模。
+  addDecorativeTerrain(group)
+
   campusHeightBlocks.forEach((item) => {
     group.add(createCampusHeightBlock(item))
   })
+
+  addTrees(group)
 }
 
-// 当前路径：只画前端传入的剩余路径，让路线和小车当前位置一致。
 function addPath(group, path) {
   if (!path?.length) {
     return
   }
 
-  const points = path.map((point) => gridToWorld(point, 0.18))
+  const points = path.map((point) => gridToWorld(point, 0.2))
   const geometry = new THREE.BufferGeometry().setFromPoints(points)
   const material = new THREE.LineBasicMaterial({
     color: '#1fb8e8',
@@ -224,10 +360,10 @@ function addPath(group, path) {
   const nodeMaterial = new THREE.MeshBasicMaterial({ color: '#7ce8ff' })
   path.forEach((point, index) => {
     const node = new THREE.Mesh(
-      new THREE.SphereGeometry(index === 0 ? 0.13 : 0.075, 14, 10),
+      new THREE.SphereGeometry(index === 0 ? 0.12 : 0.065, 14, 10),
       nodeMaterial
     )
-    node.position.copy(gridToWorld(point, 0.23))
+    node.position.copy(gridToWorld(point, 0.25))
     group.add(node)
     sceneState.pulseTargets.push(node)
   })
@@ -235,16 +371,16 @@ function addPath(group, path) {
 
 function createOrderMarker(point, color, height) {
   const group = new THREE.Group()
-  const pole = createCylinder(0.025, 0.025, height, createMaterial('#f7fbfc'), 8)
+  const pole = createCylinder(0.022, 0.022, height, createMaterial('#f7fbfc'), 8)
   pole.position.y = height / 2
   group.add(pole)
 
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.17, 16, 12), new THREE.MeshBasicMaterial({ color }))
-  head.position.y = height + 0.13
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 12), new THREE.MeshBasicMaterial({ color }))
+  head.position.y = height + 0.12
   group.add(head)
 
   const ring = new THREE.Mesh(
-    new THREE.TorusGeometry(0.25, 0.016, 8, 28),
+    new THREE.TorusGeometry(0.22, 0.014, 8, 28),
     new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.66 })
   )
   ring.rotation.x = Math.PI / 2
@@ -260,56 +396,58 @@ function createOrderMarker(point, color, height) {
 function addOrderMarkers(group, orders) {
   orders
     .filter((order) => order.status !== 'completed' && order.start_point && order.end_point)
+    .slice(-18)
     .forEach((order) => {
-      group.add(createOrderMarker(order.start_point, '#34d399', 0.62))
-      group.add(createOrderMarker(order.end_point, '#f87171', 0.78))
+      group.add(createOrderMarker(order.start_point, '#34d399', 0.58))
+      group.add(createOrderMarker(order.end_point, '#f87171', 0.72))
     })
+}
+
+function createFallbackCart(cart) {
+  const isIdle = cart.status === 'idle'
+  const group = new THREE.Group()
+  const body = createBox(0.42, 0.26, 0.56, createMaterial(isIdle ? '#55d8c1' : '#f2a84b'))
+  body.position.y = 0.28
+  group.add(body)
+  return group
+}
+
+function createStatusRing(cart) {
+  const isIdle = cart.status === 'idle'
+  const color = isIdle ? '#55d8c1' : '#f2a84b'
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(0.46, 0.025, 8, 36),
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.72 })
+  )
+  ring.rotation.x = Math.PI / 2
+  ring.position.y = 0.04
+  ring.userData.isStatusRing = true
+  return ring
 }
 
 function createCart(cart) {
   const group = new THREE.Group()
-  const isIdle = cart.status === 'idle'
-  const bodyMaterial = createMaterial(isIdle ? '#55d8c1' : '#f2a84b')
-  const darkMaterial = createMaterial('#2a3a42')
-  const parcelMaterial = createMaterial('#d8ae74')
+  const model = sceneState.assets.vehicle ? sceneState.assets.vehicle.clone(true) : createFallbackCart(cart)
 
-  const body = createBox(0.56, 0.32, 0.72, bodyMaterial)
-  body.position.y = 0.34
-  group.add(body)
+  markImportedAsset(model)
+  fitObjectToFootprint(model, 0.9, 1.05)
+  model.rotation.y = Math.PI
+  model.position.y = 0.12
+  group.add(model)
 
-  const cabin = createBox(0.34, 0.2, 0.28, createMaterial('#f5fbff'))
-  cabin.position.set(0.02, 0.58, 0.08)
-  group.add(cabin)
+  const ring = createStatusRing(cart)
+  group.add(ring)
 
-  const parcel = createBox(0.28, 0.24, 0.28, parcelMaterial)
-  parcel.position.set(-0.02, 0.66, -0.18)
-  group.add(parcel)
-
-  const headLightMaterial = new THREE.MeshBasicMaterial({ color: '#fff3a3' })
-  const headLightPositions = [-0.16, 0.16]
-  headLightPositions.forEach((x) => {
-    const light = createBox(0.1, 0.08, 0.025, headLightMaterial)
-    light.position.set(x, 0.42, 0.37)
-    group.add(light)
+  model.traverse((child) => {
+    const name = child.name?.toLowerCase() || ''
+    if (name.includes('wheel') || child.geometry?.type === 'CylinderGeometry') {
+      child.userData.isWheel = true
+    }
   })
 
-  const wheelPositions = [
-    [-0.32, 0.18, -0.28],
-    [0.32, 0.18, -0.28],
-    [-0.32, 0.18, 0.28],
-    [0.32, 0.18, 0.28],
-  ]
-
-  wheelPositions.forEach(([x, y, z]) => {
-    const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.08, 16), darkMaterial)
-    wheel.rotation.z = Math.PI / 2
-    wheel.position.set(x, y, z)
-    wheel.castShadow = true
-    group.add(wheel)
-  })
-
-  const center = gridToWorld({ x: cart.x, y: cart.y }, 0.12)
+  const center = gridToWorld({ x: cart.x, y: cart.y }, 0.08)
   group.position.copy(center)
+  group.userData.previousPosition = group.position.clone()
   group.userData.targetPosition = group.position.clone()
   group.userData.targetRotation = group.rotation.y
   group.userData.status = cart.status
@@ -317,11 +455,23 @@ function createCart(cart) {
   return group
 }
 
+function updateCartStatusRing(cartObject, status) {
+  const ring = cartObject.children.find((child) => child.userData.isStatusRing)
+
+  if (!ring) {
+    return
+  }
+
+  const color = status === 'idle' ? '#55d8c1' : '#f2a84b'
+  ring.material.color.set(color)
+  sceneState.pulseTargets.push(ring)
+}
+
 function resolveCartTargetRotation(cart, cartObject, target) {
   const moveX = target.x - cartObject.position.x
   const moveZ = target.z - cartObject.position.z
 
-  if (Math.abs(moveX) > 0.02 || Math.abs(moveZ) > 0.02) {
+  if (Math.abs(moveX) > 0.01 || Math.abs(moveZ) > 0.01) {
     return Math.atan2(moveX, moveZ)
   }
 
@@ -330,11 +480,11 @@ function resolveCartTargetRotation(cart, cartObject, target) {
     return cartObject.userData.targetRotation ?? cartObject.rotation.y
   }
 
-  const nextTarget = gridToWorld(nextPoint, 0.12)
+  const nextTarget = gridToWorld(nextPoint, 0.08)
   const nextX = nextTarget.x - target.x
   const nextZ = nextTarget.z - target.z
 
-  if (Math.abs(nextX) > 0.02 || Math.abs(nextZ) > 0.02) {
+  if (Math.abs(nextX) > 0.01 || Math.abs(nextZ) > 0.01) {
     return Math.atan2(nextX, nextZ)
   }
 
@@ -357,21 +507,17 @@ function syncCarts(carts) {
   carts.forEach((cart) => {
     let cartObject = sceneState.cartObjects.get(cart.id)
 
-    if (cartObject?.userData.status !== cart.status) {
-      if (cartObject) {
-        sceneState.cartGroup.remove(cartObject)
-        disposeObject(cartObject)
-      }
-
+    if (!cartObject) {
       cartObject = createCart(cart)
       sceneState.cartObjects.set(cart.id, cartObject)
       sceneState.cartGroup.add(cartObject)
     }
 
-    const target = gridToWorld({ x: cart.x, y: cart.y }, 0.12)
+    const target = gridToWorld({ x: cart.x, y: cart.y }, 0.08)
     cartObject.userData.targetPosition = target
     cartObject.userData.status = cart.status
     cartObject.userData.targetRotation = resolveCartTargetRotation(cart, cartObject, target)
+    updateCartStatusRing(cartObject, cart.status)
   })
 }
 
@@ -387,7 +533,7 @@ function updateDynamicObjects(sceneData) {
 
   sceneState.cartObjects.forEach((cartObject) => {
     cartObject.traverse((child) => {
-      if (child.geometry?.type === 'CylinderGeometry') {
+      if (child.userData.isWheel) {
         sceneState.animatedWheels.push(child)
       }
     })
@@ -414,21 +560,31 @@ function resizeRenderer(container) {
 function startAnimationLoop() {
   const render = (time) => {
     const seconds = time * 0.001
-
-    sceneState.animatedWheels.forEach((wheel) => {
-      wheel.rotation.x = seconds * 4
-    })
+    const delta = sceneState.lastFrameTime ? Math.min(seconds - sceneState.lastFrameTime, 0.05) : 1 / 60
+    sceneState.lastFrameTime = seconds
+    const moveEase = 1 - Math.exp(-7.5 * delta)
+    const turnEase = 1 - Math.exp(-8.5 * delta)
 
     sceneState.cartObjects.forEach((cartObject) => {
       const target = cartObject.userData.targetPosition
+      const before = cartObject.position.clone()
 
       if (target) {
-        cartObject.position.lerp(target, 0.18)
+        cartObject.position.lerp(target, moveEase)
       }
 
+      const movedDistance = cartObject.position.distanceTo(before)
+      cartObject.userData.previousPosition = before
+
       if (Number.isFinite(cartObject.userData.targetRotation)) {
-        cartObject.rotation.y = lerpAngle(cartObject.rotation.y, cartObject.userData.targetRotation, 0.18)
+        cartObject.rotation.y = lerpAngle(cartObject.rotation.y, cartObject.userData.targetRotation, turnEase)
       }
+
+      cartObject.traverse((child) => {
+        if (child.userData.isWheel && movedDistance > 0.0001) {
+          child.rotation.z += movedDistance * 8
+        }
+      })
     })
 
     sceneState.pulseTargets.forEach((target, index) => {
@@ -453,6 +609,7 @@ export function useThreeMapScene(containerRef, sceneDataRef) {
     }
 
     createBaseScene(container)
+    await loadSceneAssets()
     buildStaticCampus(sceneState.staticGroup)
     updateDynamicObjects(sceneDataRef.value || {})
     resizeRenderer(container)
@@ -508,8 +665,10 @@ export function useThreeMapScene(containerRef, sceneDataRef) {
     sceneState.cartGroup = null
     sceneState.resizeObserver = null
     sceneState.animationFrameId = 0
+    sceneState.lastFrameTime = 0
     sceneState.animatedWheels = []
     sceneState.pulseTargets = []
     sceneState.cartObjects = new Map()
+    sceneState.assets = {}
   })
 }

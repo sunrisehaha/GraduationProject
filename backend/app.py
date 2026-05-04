@@ -130,7 +130,11 @@ def register_routes(app):
             return jsonify({"error": "start_point and end_point are required"}), 400
 
         with state_lock:
-            order = create_order(start_point, end_point, source="manual")
+            try:
+                order = create_order(start_point, end_point, source="manual")
+            except ValueError as error:
+                return jsonify({"error": str(error)}), 400
+
             return jsonify(serialize_order(order)), 201
 
     @app.route("/api/path", methods=["POST"])

@@ -51,19 +51,19 @@ async function handleSubmit() {
       <div class="form-grid">
         <label>
           <span>起点 X</span>
-          <input v-model="form.startX" type="number" min="0" max="19" placeholder="0-19" required />
+          <input v-model="form.startX" type="number" min="0" max="39" placeholder="0-39" required />
         </label>
         <label>
           <span>起点 Y</span>
-          <input v-model="form.startY" type="number" min="0" max="11" placeholder="0-11" required />
+          <input v-model="form.startY" type="number" min="0" max="34" placeholder="0-34" required />
         </label>
         <label>
           <span>终点 X</span>
-          <input v-model="form.endX" type="number" min="0" max="19" placeholder="0-19" required />
+          <input v-model="form.endX" type="number" min="0" max="39" placeholder="0-39" required />
         </label>
         <label>
           <span>终点 Y</span>
-          <input v-model="form.endY" type="number" min="0" max="11" placeholder="0-11" required />
+          <input v-model="form.endY" type="number" min="0" max="34" placeholder="0-34" required />
         </label>
       </div>
 
