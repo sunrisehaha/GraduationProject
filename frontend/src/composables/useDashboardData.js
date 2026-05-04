@@ -1,6 +1,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { fetchCarts } from '../api/carts'
 import { createOrder, fetchOrderDetail, fetchOrderEvents, fetchOrders } from '../api/orders'
+import { campusBusinessMap } from './campusBusinessMap'
 
 // 看板轮询间隔：让页面保持实时感，但不要快到影响演示体验。
 const refreshIntervalMs = 1000
@@ -353,7 +354,10 @@ export function useDashboardData() {
     return {
       summary: `当前园区共有 ${carts.value.length} 台小车在线，执行中订单 ${activeOrders} 个，已完成 ${completedOrders} 个。`,
       tags: [
-        '地图规模 40 x 35',
+        `地图规模 ${campusBusinessMap.gridCols} x ${campusBusinessMap.gridRows}`,
+        `建筑/禁行区 ${campusBusinessMap.zones.length} 处`,
+        `业务点位 ${campusBusinessMap.servicePoints.length} 个`,
+        `主路走廊 ${campusBusinessMap.roads.length} 条`,
         `在线小车 ${carts.value.length} 台`,
         `当前路径 ${currentPath.value.length} 个节点`,
       ],

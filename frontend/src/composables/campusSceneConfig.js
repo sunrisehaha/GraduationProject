@@ -1,24 +1,78 @@
-// 园区 3D 场景配置：集中定义主模型资源、网格到世界坐标映射和业务锚点。
+// 园区 3D 场景配置：把 Blender 主模型、业务楼栋体系和 Three.js 场景参数收敛到一起。
+
+import { campusBusinessMap, getServicePointById } from './campusBusinessMap.js'
 
 export const campusSceneConfig = {
-  gridCols: 40,
-  gridRows: 35,
+  gridCols: campusBusinessMap.gridCols,
+  gridRows: campusBusinessMap.gridRows,
   tileSize: 0.82,
   groundY: 0.22,
   modelUrls: {
     campus: '/scene/campus/campus.glb',
     vehicle: '/scene/bruno/vehicle/default.glb',
   },
-  // 业务锚点：这些点既是演示语义说明，也是轻量环境动画的落点。
+  // 业务锚点：优先展示门岗、快递中心、关键住宅楼、公共服务楼和停车区。
   businessAnchors: [
-    { id: 'gate_north', label: '北门岗', type: 'gate', point: { x: 3, y: 3 } },
-    { id: 'hub_express_main', label: '快递中心', type: 'hub', point: { x: 8, y: 9 } },
-    { id: 'building_teaching_a', label: '教学楼', type: 'teaching', point: { x: 18, y: 8 } },
-    { id: 'building_dorm_a', label: '宿舍区 A', type: 'dorm', point: { x: 28, y: 11 } },
-    { id: 'building_dorm_b', label: '宿舍区 B', type: 'dorm', point: { x: 24, y: 24 } },
-    { id: 'parking_dispatch', label: '调度停车区', type: 'parking', point: { x: 10, y: 28 } },
-    { id: 'building_lab_a', label: '实验楼', type: 'lab', point: { x: 32, y: 27 } },
-    { id: 'barrier_south', label: '南侧路障', type: 'barrier', point: { x: 19, y: 31 } },
+    {
+      id: 'gate_north',
+      label: '北门岗',
+      type: 'gate',
+      point: getServicePointById('gate_north').point,
+    },
+    {
+      id: 'hub_dispatch_loading',
+      label: '快递装货口',
+      type: 'hub',
+      point: getServicePointById('hub_dispatch_loading').point,
+    },
+    {
+      id: 'building_residential_1',
+      label: '1栋住宅楼',
+      type: 'dorm',
+      point: getServicePointById('marker_residential_1_dropoff').point,
+    },
+    {
+      id: 'building_residential_8',
+      label: '8栋住宅楼',
+      type: 'dorm',
+      point: getServicePointById('marker_residential_8_dropoff').point,
+    },
+    {
+      id: 'building_resident_service',
+      label: '住户服务大楼',
+      type: 'service',
+      point: getServicePointById('marker_resident_service_dropoff').point,
+    },
+    {
+      id: 'building_comprehensive',
+      label: '综合楼',
+      type: 'teaching',
+      point: getServicePointById('marker_comprehensive_dropoff').point,
+    },
+    {
+      id: 'building_sports_center',
+      label: '运动健身中心',
+      type: 'sports',
+      point: getServicePointById('marker_sports_center_dropoff').point,
+    },
+    {
+      id: 'building_power_room',
+      label: '发电间',
+      type: 'utility',
+      point: getServicePointById('marker_power_room_dropoff').point,
+    },
+    {
+      id: 'hub_dispatch_waiting',
+      label: '调度等待区',
+      type: 'parking',
+      point: getServicePointById('hub_dispatch_waiting').point,
+    },
+    {
+      id: 'gate_south',
+      label: '南门岗',
+      type: 'gate',
+      point: getServicePointById('gate_south').point,
+    },
   ],
 }
 

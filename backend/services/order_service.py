@@ -15,6 +15,29 @@ from backend.runtime import MAP_HEIGHT, MAP_WIDTH, OBSTACLES, is_free_point
 
 ACTIVE_ORDER_STATUSES = ["pending", "assigned", "to_pickup", "delivering"]
 
+# 演示业务点位：先把仿真订单约束到真实楼栋收件点，避免再生成“落在空地上的订单”。
+SIMULATED_PICKUP_POINTS = [
+    {"x": 30, "y": 10},  # 快递装货口
+    {"x": 33, "y": 12},  # 快递出件口
+]
+
+SIMULATED_DELIVERY_POINTS = [
+    {"x": 5, "y": 6},    # 1栋住宅楼
+    {"x": 9, "y": 6},    # 2栋住宅楼
+    {"x": 5, "y": 10},   # 3栋住宅楼
+    {"x": 9, "y": 10},   # 4栋住宅楼
+    {"x": 5, "y": 25},   # 5栋住宅楼
+    {"x": 9, "y": 25},   # 6栋住宅楼
+    {"x": 5, "y": 29},   # 7栋住宅楼
+    {"x": 9, "y": 29},   # 8栋住宅楼
+    {"x": 19, "y": 8},   # 住户服务大楼
+    {"x": 24, "y": 8},   # 党群服务中心
+    {"x": 33, "y": 8},   # 物业管理中心
+    {"x": 19, "y": 21},  # 运动健身中心
+    {"x": 24, "y": 21},  # 综合楼
+    {"x": 33, "y": 27},  # 发电间
+]
+
 
 def now_text():
     """返回界面使用的时间文本。"""
@@ -239,10 +262,10 @@ def random_free_point():
 
 def create_simulated_order():
     """创建仿真订单：供后台自动演示使用。"""
-    start_point = random_free_point()
-    end_point = random_free_point()
+    start_point = random.choice(SIMULATED_PICKUP_POINTS)
+    end_point = random.choice(SIMULATED_DELIVERY_POINTS)
 
     while end_point == start_point:
-        end_point = random_free_point()
+        end_point = random.choice(SIMULATED_DELIVERY_POINTS)
 
     return create_order(start_point, end_point, source="simulated")

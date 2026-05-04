@@ -3,7 +3,7 @@ import { nextTick, onBeforeUnmount, onMounted, watch } from 'vue'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
-import { campusSceneConfig, gridPointToWorld } from './campusSceneConfig'
+import { campusSceneConfig, gridPointToWorld } from './campusSceneConfig.js'
 const markerColors = {
   start: '#34d399',
   end: '#fb7185',
@@ -13,6 +13,9 @@ const anchorColors = {
   hub: '#22d3ee',
   teaching: '#60a5fa',
   dorm: '#a78bfa',
+  service: '#14b8a6',
+  sports: '#f59e0b',
+  utility: '#fb7185',
   parking: '#fbbf24',
   lab: '#38bdf8',
   barrier: '#f97316',

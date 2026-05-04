@@ -65,8 +65,8 @@ def seed_orders():
         return
 
     create_order(
-        start_point={"x": 2, "y": 3},
-        end_point={"x": 35, "y": 30},
+        start_point={"x": 33, "y": 12},
+        end_point={"x": 24, "y": 21},
         source="manual",
         remark="系统初始化订单",
     )

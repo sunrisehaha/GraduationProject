@@ -1,0 +1,188 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="920" viewBox="0 0 1360 920">
+  <defs>
+    <style>
+      .title { font: 700 28px 'PingFang SC', 'Microsoft YaHei', sans-serif; fill: #16324f; }
+      .subtitle { font: 400 15px 'PingFang SC', 'Microsoft YaHei', sans-serif; fill: #5e7892; }
+      .legend-title { font: 700 18px 'PingFang SC', 'Microsoft YaHei', sans-serif; fill: #16324f; }
+      .legend-text { font: 400 13px 'PingFang SC', 'Microsoft YaHei', sans-serif; fill: #37506a; }
+      .zone-label { font: 600 13px 'PingFang SC', 'Microsoft YaHei', sans-serif; fill: #17324f; }
+      .zone-small { font: 600 12px 'PingFang SC', 'Microsoft YaHei', sans-serif; fill: #17324f; }
+      .point-label { font: 600 12px 'PingFang SC', 'Microsoft YaHei', sans-serif; fill: #17324f; }
+      .axis-label { font: 400 11px 'SF Mono', Consolas, monospace; fill: #7f92a6; }
+    </style>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#d8e5ef" stroke-width="1" />
+    </pattern>
+  </defs>
+
+  <rect width="1360" height="920" fill="#f4fbff" />
+  <rect x="24" y="24" width="1312" height="872" rx="26" fill="#ffffff" stroke="#d8e7f2" />
+
+  <text x="56" y="74" class="title">智慧园区配送业务地图 2D 平面图</text>
+  <text x="56" y="102" class="subtitle">当前版本：8 栋住宅楼 + 住户服务大楼 + 党群服务中心 + 运动健身中心 + 综合楼 + 物业中心 + 快递服务中心 + 发电间</text>
+
+  <g transform="translate(56,130)">
+    <rect x="0" y="0" width="800" height="700" rx="18" fill="#eef7fb" stroke="#d8e7f1" />
+    <rect x="0" y="0" width="800" height="700" fill="url(#grid)" rx="18" />
+
+    <!-- 主路和服务车道 -->
+    <rect x="260" y="0" width="60" height="700" fill="#d8edf8" />
+    <rect x="560" y="0" width="60" height="700" fill="#d8edf8" />
+    <rect x="0" y="240" width="800" height="60" fill="#d8edf8" />
+    <rect x="0" y="360" width="800" height="60" fill="#d8edf8" />
+    <rect x="0" y="580" width="800" height="60" fill="#d8edf8" />
+    <rect x="0" y="120" width="260" height="20" fill="#e6f4fb" />
+    <rect x="0" y="200" width="260" height="20" fill="#e6f4fb" />
+    <rect x="0" y="500" width="260" height="20" fill="#e6f4fb" />
+    <rect x="320" y="160" width="400" height="20" fill="#e6f4fb" />
+    <rect x="320" y="420" width="400" height="20" fill="#e6f4fb" />
+    <rect x="600" y="540" width="120" height="20" fill="#e6f4fb" />
+
+    <!-- 建筑区 -->
+    <!-- 北侧住宅 -->
+    <rect x="80" y="60" width="40" height="60" rx="10" fill="#c9b8ff" stroke="#7c64d7" />
+    <rect x="160" y="60" width="40" height="60" rx="10" fill="#c9b8ff" stroke="#7c64d7" />
+    <rect x="80" y="140" width="40" height="60" rx="10" fill="#c9b8ff" stroke="#7c64d7" />
+    <rect x="160" y="140" width="40" height="60" rx="10" fill="#c9b8ff" stroke="#7c64d7" />
+    <text x="100" y="96" text-anchor="middle" class="zone-small">1栋</text>
+    <text x="180" y="96" text-anchor="middle" class="zone-small">2栋</text>
+    <text x="100" y="176" text-anchor="middle" class="zone-small">3栋</text>
+    <text x="180" y="176" text-anchor="middle" class="zone-small">4栋</text>
+
+    <!-- 南侧住宅 -->
+    <rect x="80" y="440" width="40" height="60" rx="10" fill="#b9c3ff" stroke="#6873d8" />
+    <rect x="160" y="440" width="40" height="60" rx="10" fill="#b9c3ff" stroke="#6873d8" />
+    <rect x="80" y="520" width="40" height="60" rx="10" fill="#b9c3ff" stroke="#6873d8" />
+    <rect x="160" y="520" width="40" height="60" rx="10" fill="#b9c3ff" stroke="#6873d8" />
+    <text x="100" y="476" text-anchor="middle" class="zone-small">5栋</text>
+    <text x="180" y="476" text-anchor="middle" class="zone-small">6栋</text>
+    <text x="100" y="556" text-anchor="middle" class="zone-small">7栋</text>
+    <text x="180" y="556" text-anchor="middle" class="zone-small">8栋</text>
+
+    <!-- 北侧公共楼 -->
+    <rect x="340" y="80" width="80" height="80" rx="12" fill="#8fd6ff" stroke="#4e8fc4" />
+    <rect x="460" y="80" width="60" height="80" rx="12" fill="#9fe2d5" stroke="#4c9d8d" />
+    <rect x="640" y="80" width="60" height="80" rx="12" fill="#9fd3ff" stroke="#5e91c6" />
+    <rect x="620" y="180" width="80" height="60" rx="12" fill="#8fe0c8" stroke="#4a9c84" />
+    <text x="380" y="122" text-anchor="middle" class="zone-label">住户服务大楼</text>
+    <text x="490" y="122" text-anchor="middle" class="zone-small">党群服务中心</text>
+    <text x="670" y="122" text-anchor="middle" class="zone-small">物业管理中心</text>
+    <text x="660" y="214" text-anchor="middle" class="zone-label">快递服务中心</text>
+
+    <!-- 南侧公共楼 -->
+    <rect x="340" y="440" width="80" height="100" rx="12" fill="#ffd89a" stroke="#c99439" />
+    <rect x="440" y="440" width="80" height="100" rx="12" fill="#9fcfff" stroke="#5d90c7" />
+    <rect x="660" y="480" width="40" height="60" rx="10" fill="#ffb7a7" stroke="#d56d57" />
+    <text x="380" y="490" text-anchor="middle" class="zone-label">运动健身中心</text>
+    <text x="480" y="490" text-anchor="middle" class="zone-label">综合楼</text>
+    <text x="680" y="514" text-anchor="middle" class="zone-small">发电间</text>
+
+    <!-- 中央绿化 -->
+    <rect x="340" y="280" width="60" height="100" rx="14" fill="#c0ebca" stroke="#6aa373" />
+    <text x="370" y="330" text-anchor="middle" class="zone-small">中央绿化</text>
+    <text x="370" y="348" text-anchor="middle" class="zone-small">隔离带</text>
+
+    <!-- 业务点位 -->
+    <g>
+      <!-- 门岗和枢纽 -->
+      <circle cx="290" cy="30" r="9" fill="#7dd3fc" stroke="#0f6d94" stroke-width="2" />
+      <text x="306" y="26" class="point-label">北门岗</text>
+
+      <circle cx="590" cy="670" r="9" fill="#7dd3fc" stroke="#0f6d94" stroke-width="2" />
+      <text x="606" y="666" class="point-label">南门岗</text>
+
+      <circle cx="610" cy="210" r="10" fill="#34d399" stroke="#147a55" stroke-width="2" />
+      <text x="626" y="206" class="point-label">快递装货口</text>
+
+      <circle cx="670" cy="250" r="10" fill="#22d3ee" stroke="#0e8092" stroke-width="2" />
+      <text x="686" y="246" class="point-label">快递出件口</text>
+
+      <circle cx="310" cy="570" r="10" fill="#fbbf24" stroke="#9a6a08" stroke-width="2" />
+      <text x="326" y="566" class="point-label">调度等待区</text>
+
+      <circle cx="410" cy="630" r="10" fill="#f97316" stroke="#a64508" stroke-width="2" />
+      <text x="426" y="626" class="point-label">南侧路障</text>
+
+      <!-- 楼栋收件点 -->
+      <circle cx="110" cy="130" r="8" fill="#fb7185" stroke="#b3264f" stroke-width="2" />
+      <circle cx="190" cy="130" r="8" fill="#fb7185" stroke="#b3264f" stroke-width="2" />
+      <circle cx="110" cy="210" r="8" fill="#fb7185" stroke="#b3264f" stroke-width="2" />
+      <circle cx="190" cy="210" r="8" fill="#fb7185" stroke="#b3264f" stroke-width="2" />
+      <circle cx="110" cy="510" r="8" fill="#fb7185" stroke="#b3264f" stroke-width="2" />
+      <circle cx="190" cy="510" r="8" fill="#fb7185" stroke="#b3264f" stroke-width="2" />
+      <circle cx="110" cy="590" r="8" fill="#fb7185" stroke="#b3264f" stroke-width="2" />
+      <circle cx="190" cy="590" r="8" fill="#fb7185" stroke="#b3264f" stroke-width="2" />
+      <text x="122" y="126" class="zone-small">1栋收件点</text>
+      <text x="202" y="126" class="zone-small">2栋收件点</text>
+      <text x="122" y="206" class="zone-small">3栋收件点</text>
+      <text x="202" y="206" class="zone-small">4栋收件点</text>
+      <text x="122" y="506" class="zone-small">5栋收件点</text>
+      <text x="202" y="506" class="zone-small">6栋收件点</text>
+      <text x="122" y="586" class="zone-small">7栋收件点</text>
+      <text x="202" y="586" class="zone-small">8栋收件点</text>
+
+      <circle cx="390" cy="170" r="8" fill="#fb7185" stroke="#b3264f" stroke-width="2" />
+      <circle cx="490" cy="170" r="8" fill="#fb7185" stroke="#b3264f" stroke-width="2" />
+      <circle cx="670" cy="170" r="8" fill="#fb7185" stroke="#b3264f" stroke-width="2" />
+      <circle cx="390" cy="430" r="8" fill="#fb7185" stroke="#b3264f" stroke-width="2" />
+      <circle cx="490" cy="430" r="8" fill="#fb7185" stroke="#b3264f" stroke-width="2" />
+      <circle cx="670" cy="550" r="8" fill="#fb7185" stroke="#b3264f" stroke-width="2" />
+      <text x="404" y="166" class="zone-small">服务大楼收件点</text>
+      <text x="504" y="166" class="zone-small">党群中心收件点</text>
+      <text x="684" y="166" class="zone-small">物业中心收件点</text>
+      <text x="404" y="426" class="zone-small">健身中心收件点</text>
+      <text x="504" y="426" class="zone-small">综合楼收件点</text>
+      <text x="684" y="546" class="zone-small">发电间收件点</text>
+    </g>
+
+    <rect x="0" y="0" width="800" height="700" rx="18" fill="none" stroke="#8ba8c0" stroke-width="2" />
+    <text x="0" y="-12" class="axis-label">y=0</text>
+    <text x="740" y="-12" class="axis-label">x 方向 →</text>
+    <text x="-28" y="22" class="axis-label">0</text>
+    <text x="-36" y="704" class="axis-label">34</text>
+  </g>
+
+  <g transform="translate(900,150)">
+    <text x="0" y="0" class="legend-title">图例</text>
+
+    <rect x="0" y="26" width="26" height="16" rx="4" fill="#d8edf8" />
+    <text x="38" y="39" class="legend-text">主路 / 服务车道：小车主通行骨架</text>
+
+    <rect x="0" y="58" width="26" height="16" rx="4" fill="#c9b8ff" />
+    <text x="38" y="71" class="legend-text">住宅楼：8 栋高频上门送件建筑</text>
+
+    <rect x="0" y="90" width="26" height="16" rx="4" fill="#8fd6ff" />
+    <text x="38" y="103" class="legend-text">公共服务建筑：住户服务、党群、综合、物业</text>
+
+    <rect x="0" y="122" width="26" height="16" rx="4" fill="#8fe0c8" />
+    <text x="38" y="135" class="legend-text">快递服务中心：装货和出件核心枢纽</text>
+
+    <rect x="0" y="154" width="26" height="16" rx="4" fill="#c0ebca" />
+    <text x="38" y="167" class="legend-text">中央绿化隔离带：视觉区，不允许穿行</text>
+
+    <circle cx="13" cy="208" r="8" fill="#34d399" />
+    <text x="38" y="213" class="legend-text">装货点：快递小车统一起运点</text>
+
+    <circle cx="13" cy="240" r="8" fill="#fb7185" />
+    <text x="38" y="245" class="legend-text">收件点：每栋楼独立收件点</text>
+
+    <circle cx="13" cy="272" r="8" fill="#fbbf24" />
+    <text x="38" y="277" class="legend-text">停车点：空闲小车调度等待区</text>
+
+    <circle cx="13" cy="304" r="8" fill="#7dd3fc" />
+    <text x="38" y="309" class="legend-text">门岗：主入口 / 离场入口</text>
+
+    <circle cx="13" cy="336" r="8" fill="#f97316" />
+    <text x="38" y="341" class="legend-text">路障：演示特殊事件或禁行提醒</text>
+
+    <text x="0" y="396" class="legend-title">当前设计重点</text>
+    <text x="0" y="424" class="legend-text">1. 订单目的地不再是抽象坐标，而是楼栋级地点。</text>
+    <text x="0" y="452" class="legend-text">2. 8 栋住宅楼提供高频订单，公共楼提供中频订单。</text>
+    <text x="0" y="480" class="legend-text">3. 快递中心负责统一装货，再沿主路分发到各收件点。</text>
+
+    <text x="0" y="538" class="legend-title">建议后续地址输入</text>
+    <text x="0" y="566" class="legend-text">住宅：1栋101室、5栋302室、8栋2单元401室</text>
+    <text x="0" y="594" class="legend-text">公共楼：综合楼、住户服务大楼、运动健身中心</text>
+    <text x="0" y="622" class="legend-text">系统内部再把这些地点映射成楼下收件点坐标。</text>
+  </g>
+</svg>

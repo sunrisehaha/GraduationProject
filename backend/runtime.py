@@ -20,13 +20,23 @@ def build_block(x_start, y_start, width, height):
     ]
 
 
-# 障碍物坐标：路径规划和地图绘制都会用到这份数据。
+# 障碍物坐标：这里按“8 栋住宅楼 + 公共服务建筑群”的新版园区格局细化。
 OBSTACLES = [
-    *build_block(6, 5, 4, 7),      # 宿舍区 A
-    *build_block(16, 4, 5, 6),     # 综合楼
-    *build_block(29, 7, 5, 6),     # 快递站
-    *build_block(7, 22, 6, 7),     # 宿舍区 B
-    *build_block(22, 21, 6, 7),    # 教学实验区
+    *build_block(4, 3, 2, 3),      # 1栋住宅楼
+    *build_block(8, 3, 2, 3),      # 2栋住宅楼
+    *build_block(4, 7, 2, 3),      # 3栋住宅楼
+    *build_block(8, 7, 2, 3),      # 4栋住宅楼
+    *build_block(4, 22, 2, 3),     # 5栋住宅楼
+    *build_block(8, 22, 2, 3),     # 6栋住宅楼
+    *build_block(4, 26, 2, 3),     # 7栋住宅楼
+    *build_block(8, 26, 2, 3),     # 8栋住宅楼
+    *build_block(17, 4, 4, 4),     # 住户服务大楼
+    *build_block(23, 4, 3, 4),     # 党群服务中心
+    *build_block(32, 4, 3, 4),     # 物业管理中心
+    *build_block(31, 9, 4, 3),     # 快递服务中心
+    *build_block(17, 22, 4, 5),    # 运动健身中心
+    *build_block(22, 22, 4, 5),    # 综合楼
+    *build_block(33, 24, 2, 3),    # 发电间
     *build_block(17, 14, 3, 5),    # 中央绿化隔离带
 ]
 
