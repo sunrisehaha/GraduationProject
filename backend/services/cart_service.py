@@ -28,8 +28,12 @@ def serialize_cart(cart):
 
 def list_carts():
     """查询全部小车：监控页轮询时主要调用这个函数。"""
-    carts = Cart.query.order_by(Cart.id.asc()).all()
-    return [serialize_cart(cart) for cart in carts]
+    return [serialize_cart(cart) for cart in get_all_carts()]
+
+
+def get_all_carts():
+    """查询全部小车：调度解释需要同时展示空闲车和忙碌车。"""
+    return Cart.query.order_by(Cart.id.asc()).all()
 
 
 def get_idle_carts():

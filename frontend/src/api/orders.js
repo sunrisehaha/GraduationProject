@@ -1,4 +1,5 @@
 // 订单接口模块：统一封装订单相关请求，页面层只调用这里暴露的方法。
+import { postJson, requestJson } from './request'
 
 export async function fetchOrders(status = 'all', limit = 120) {
   const queryParams = new URLSearchParams()
@@ -12,48 +13,17 @@ export async function fetchOrders(status = 'all', limit = 120) {
   }
 
   const query = queryParams.toString() ? `?${queryParams.toString()}` : ''
-  const response = await fetch(`/api/orders${query}`)
-
-  if (!response.ok) {
-    throw new Error('获取订单数据失败')
-  }
-
-  return response.json()
+  return requestJson(`/api/orders${query}`, {}, '获取订单数据失败')
 }
 
 export async function createOrder(payload) {
-  const response = await fetch('/api/orders', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  })
-
-  if (!response.ok) {
-    const errorPayload = await response.json().catch(() => null)
-    throw new Error(errorPayload?.error || '创建订单失败')
-  }
-
-  return response.json()
+  return postJson('/api/orders', payload, '创建订单失败')
 }
 
 export async function fetchOrderDetail(orderId) {
-  const response = await fetch(`/api/orders/${orderId}`)
-
-  if (!response.ok) {
-    throw new Error('获取订单详情失败')
-  }
-
-  return response.json()
+  return requestJson(`/api/orders/${orderId}`, {}, '获取订单详情失败')
 }
 
 export async function fetchOrderEvents(orderId) {
-  const response = await fetch(`/api/orders/${orderId}/events`)
-
-  if (!response.ok) {
-    throw new Error('获取订单事件失败')
-  }
-
-  return response.json()
+  return requestJson(`/api/orders/${orderId}/events`, {}, '获取订单事件失败')
 }

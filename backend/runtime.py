@@ -74,6 +74,7 @@ state_lock = RLock()
 demo_mode_enabled = False
 simulation_paused = False
 current_demo_order_ids = []
+last_dispatch_explanation = None
 
 
 def is_demo_simulation_paused():
@@ -109,3 +110,19 @@ def get_demo_state(active_orders=0):
         "current_demo_order_count": len(current_demo_order_ids),
         "active_orders": active_orders,
     }
+
+
+def set_last_dispatch_explanation(explanation):
+    """记录最近一次调度解释：前端用它说明为什么选中某辆小车。"""
+    global last_dispatch_explanation
+    last_dispatch_explanation = explanation
+
+
+def clear_last_dispatch_explanation():
+    """清空调度解释：演示重置后避免继续显示旧决策。"""
+    set_last_dispatch_explanation(None)
+
+
+def get_last_dispatch_explanation():
+    """读取最近一次调度解释。"""
+    return last_dispatch_explanation

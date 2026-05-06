@@ -1,44 +1,22 @@
 // 演示控制接口模块：统一封装答辩演示相关请求。
-
-async function requestDemoAction(url, options = {}) {
-  const response = await fetch(url, options)
-
-  if (!response.ok) {
-    const errorPayload = await response.json().catch(() => null)
-    throw new Error(errorPayload?.error || '演示控制请求失败')
-  }
-
-  return response.json()
-}
+import { postAction, postJson, requestJson } from './request'
 
 export function fetchDemoState() {
-  return requestDemoAction('/api/demo')
+  return requestJson('/api/demo', {}, '演示控制请求失败')
 }
 
 export function setDemoMode(enabled) {
-  return requestDemoAction('/api/demo/mode', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ enabled }),
-  })
+  return postJson('/api/demo/mode', { enabled }, '演示控制请求失败')
 }
 
 export function resetDemoScene() {
-  return requestDemoAction('/api/demo/reset', {
-    method: 'POST',
-  })
+  return postAction('/api/demo/reset', '演示控制请求失败')
 }
 
 export function createOneDemoOrder() {
-  return requestDemoAction('/api/demo/order-one', {
-    method: 'POST',
-  })
+  return postAction('/api/demo/order-one', '演示控制请求失败')
 }
 
 export function createFiveDemoOrders() {
-  return requestDemoAction('/api/demo/order-five', {
-    method: 'POST',
-  })
+  return postAction('/api/demo/order-five', '演示控制请求失败')
 }

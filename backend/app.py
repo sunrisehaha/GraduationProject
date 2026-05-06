@@ -9,6 +9,7 @@ from backend.astar import find_path
 from backend.config import Config
 from backend.extensions import db, migrate
 from backend.runtime import MAP_HEIGHT, MAP_WIDTH, OBSTACLES, state_lock
+from backend.runtime import get_last_dispatch_explanation
 from backend.scheduler import start_background_workers
 from backend.services.bootstrap_service import init_database
 from backend.services.cart_service import list_carts
@@ -180,6 +181,13 @@ def register_routes(app):
         ensure_workers_started(app)
         with state_lock:
             return jsonify(create_five_demo_orders()), 201
+
+    @app.route("/api/dispatch/explanation", methods=["GET"])
+    def get_dispatch_explanation():
+        """返回最近一次调度解释：说明为什么这辆车接这个单。"""
+        ensure_workers_started(app)
+        with state_lock:
+            return jsonify(get_last_dispatch_explanation() or {})
 
     @app.route("/api/path", methods=["POST"])
     def get_path():

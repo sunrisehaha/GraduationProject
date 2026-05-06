@@ -5,6 +5,7 @@ from backend.extensions import db
 from backend.models import Cart, Order, OrderEvent, OrderPoint
 from backend.runtime import (
     get_demo_state,
+    clear_last_dispatch_explanation,
     set_current_demo_order_ids,
     set_demo_mode,
     set_simulation_paused,
@@ -64,6 +65,7 @@ def reset_demo_scene():
     db.session.commit()
     set_demo_mode(True)
     set_current_demo_order_ids([])
+    clear_last_dispatch_explanation()
     return get_current_demo_state()
 
 

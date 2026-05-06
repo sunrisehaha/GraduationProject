@@ -1,5 +1,6 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { fetchCarts } from '../api/carts'
+import { fetchDispatchExplanation } from '../api/dispatch'
 import {
   createFiveDemoOrders,
   createOneDemoOrder,
@@ -13,116 +14,27 @@ import {
   findDeliveryTargetByText,
   getServicePointById,
 } from './campusBusinessMap'
+import {
+  formatPlace,
+  formatPoint,
+  formatTime,
+  getSourceText,
+  getStatusText,
+} from './dashboardFormatters'
+import {
+  buildDestinationLabel,
+  buildOrderView,
+  getTaskProgressText,
+  getTopBarStatusText,
+  orderFilterOptions,
+  pickCurrentOrder,
+  pickDefaultSelectedOrder,
+} from './dashboardOrders'
 
 // 看板轮询间隔：让页面保持实时感，但不要快到影响演示体验。
 const refreshIntervalMs = 1000
 const historyListLimit = 60
 const orderFetchLimit = 120
-
-// 历史筛选项：放在这里统一管理，组件只负责展示。
-const orderFilterOptions = [
-  { value: 'all', label: '全部订单' },
-  { value: 'pending', label: '待调度' },
-  { value: 'assigned', label: '已分配' },
-  { value: 'delivering', label: '配送中' },
-  { value: 'completed', label: '已完成' },
-]
-
-// 时间格式化：统一界面上的时间显示格式。
-function formatTime() {
-  return new Date().toLocaleString('zh-CN', {
-    hour12: false,
-  })
-}
-
-// 状态翻译：把后端状态值转成页面可读的中文。
-function getStatusText(status) {
-  const statusMap = {
-    idle: '空闲',
-    pending: '待调度',
-    assigned: '已分配',
-    to_pickup: '前往取件点',
-    delivering: '配送中',
-    completed: '已完成',
-    cancelled: '已取消',
-  }
-
-  return statusMap[status] || status || '未知'
-}
-
-// 点位格式化：把坐标对象转成页面上更直观的文本。
-function formatPoint(point) {
-  if (!point) {
-    return '-'
-  }
-
-  return `(${point.x}, ${point.y})`
-}
-
-// 地点格式化：优先展示“1栋101室、综合楼”这类人类可读地点，同时保留坐标方便解释。
-function formatPlace(point, label) {
-  if (!point && !label) {
-    return '-'
-  }
-
-  if (label && point) {
-    return `${label} · ${formatPoint(point)}`
-  }
-
-  return label || formatPoint(point)
-}
-
-// 订单来源翻译：区分手动订单和仿真订单。
-function getSourceText(source) {
-  if (source === 'simulated') {
-    return '仿真订单'
-  }
-
-  if (source === 'demo') {
-    return '演示订单'
-  }
-
-  return '手动订单'
-}
-
-// 当前任务阶段说明：给当前任务卡片配一段更像人话的描述。
-function getTaskProgressText(order) {
-  if (!order) {
-    return '后台调度系统已启动，等待新的配送请求。'
-  }
-
-  const progressMap = {
-    pending: '订单已进入队列，系统正在寻找最近的空闲小车。',
-    assigned: '订单已完成分配，小车正在准备前往取件点。',
-    to_pickup: '小车正在靠近取件点，准备开始装载。',
-    delivering: '小车已经取件，正在沿规划路径执行配送。',
-    completed: '订单配送已完成，系统正在等待下一条任务。',
-  }
-
-  return progressMap[order.status] || '当前任务状态已更新。'
-}
-
-// 顶部状态文案：根据活动订单数量生成简洁的系统状态。
-function getTopBarStatusText(activeOrderCount) {
-  return activeOrderCount > 0 ? '系统正在自动配送' : '系统待命中'
-}
-
-// 订单摘要格式化：把原始订单对象加工成界面直接能用的版本。
-function buildOrderView(order) {
-  if (!order) {
-    return null
-  }
-
-  return {
-    ...order,
-    displayId: `#${order.id}`,
-    displayOrderNo: order.order_no || `ORD-${order.id}`,
-    startText: formatPlace(order.start_point, order.start_label),
-    endText: formatPlace(order.end_point, order.end_label),
-    statusText: getStatusText(order.status),
-    sourceText: getSourceText(order.source),
-  }
-}
 
 // 手动下单起点：第一版保留为可选的固定业务点，优先让用户直接从真实地点发单。
 const manualOrderStartOrder = ['marker_express_pickup', 'hub_dispatch_loading', 'gate_north', 'gate_south']
@@ -149,34 +61,6 @@ const manualOrderPlaceSuggestions = Array.from(
   )
 )
 
-function buildDestinationLabel(rawText, target) {
-  const input = String(rawText || '').trim()
-
-  if (!input) {
-    return target.name
-  }
-
-  return /室|单元|门口|前台|大厅|值班|办公室/.test(input) ? input : target.name
-}
-
-// 当前主订单挑选规则：优先展示正在配送的订单，其次是已分配、待调度。
-function pickCurrentOrder(orderList) {
-  const latestOrders = orderList.slice().reverse()
-
-  return (
-    latestOrders.find((order) => order.status === 'delivering') ||
-    latestOrders.find((order) => order.status === 'to_pickup') ||
-    latestOrders.find((order) => order.status === 'assigned') ||
-    latestOrders.find((order) => order.status === 'pending') ||
-    null
-  )
-}
-
-// 历史详情默认选中项：优先跟随当前主订单，没有时退回最新订单。
-function pickDefaultSelectedOrder(orderList) {
-  return pickCurrentOrder(orderList) || orderList[orderList.length - 1] || null
-}
-
 export function useDashboardData() {
   // 基础数据：后端轮询回来的原始小车和订单。
   const carts = ref([])
@@ -188,6 +72,7 @@ export function useDashboardData() {
     current_demo_order_count: 0,
     active_orders: 0,
   })
+  const dispatchExplanationState = ref(null)
 
   // 历史面板状态：当前筛选条件、选中的订单，以及它的详情和事件。
   const orderFilter = ref('all')
@@ -275,16 +160,18 @@ export function useDashboardData() {
       errorMessage.value = ''
 
       const previousOrders = orders.value.slice()
-      const [latestCarts, latestOrders, latestDemoState] = await Promise.all([
+      const [latestCarts, latestOrders, latestDemoState, latestDispatchExplanation] = await Promise.all([
         fetchCarts(),
         fetchOrders('all', orderFetchLimit),
         fetchDemoState(),
+        fetchDispatchExplanation(),
       ])
 
       processOrderChanges(previousOrders, latestOrders)
       carts.value = latestCarts
       orders.value = latestOrders
       demoState.value = latestDemoState
+      dispatchExplanationState.value = latestDispatchExplanation
 
       const selectedStillExists = latestOrders.some((order) => order.id === selectedOrderId.value)
       const fallbackOrder = pickDefaultSelectedOrder(latestOrders)
@@ -592,6 +479,38 @@ export function useDashboardData() {
     isDemoMode: demoState.value.demo_mode_enabled,
   }))
 
+  // 调度解释：把后端候选车比较结果转成页面可读文本。
+  const dispatchExplanation = computed(() => {
+    const explanation = dispatchExplanationState.value
+
+    if (!explanation?.order_id) {
+      return {
+        hasExplanation: false,
+        strategy: '最近空闲车优先',
+        summary: '还没有调度决策。',
+        candidates: [],
+      }
+    }
+
+    return {
+      ...explanation,
+      hasExplanation: true,
+      orderText: `#${explanation.order_id} · ${formatPoint(explanation.start_point)} -> ${formatPoint(explanation.end_point)}`,
+      selectedCartText: explanation.selected_cart_name || '暂无',
+      selectedPathText: explanation.selected_path_length
+        ? `${explanation.selected_path_length} 个路径节点`
+        : '-',
+      candidates: (explanation.candidates || []).map((candidate) => ({
+        ...candidate,
+        statusText: getStatusText(candidate.status),
+        distanceText:
+          candidate.distance_to_pickup === null || candidate.distance_to_pickup === undefined
+            ? '-'
+            : `${candidate.distance_to_pickup} 格`,
+      })),
+    }
+  })
+
   // 生命周期：组件挂载时立即拉一次数据，然后开始轮询。
   onMounted(async () => {
     await refreshData()
@@ -611,6 +530,7 @@ export function useDashboardData() {
     currentPath,
     currentTask,
     demoControl,
+    dispatchExplanation,
     errorMessage,
     fleet,
     fleetSummary,
