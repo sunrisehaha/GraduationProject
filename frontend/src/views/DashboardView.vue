@@ -6,6 +6,7 @@ import StatsBar from '../components/layout/StatsBar.vue'
 import ParkMap from '../components/map/ParkMap.vue'
 import CreateOrderCard from '../components/panels/CreateOrderCard.vue'
 import CurrentTaskCard from '../components/panels/CurrentTaskCard.vue'
+import DemoControlCard from '../components/panels/DemoControlCard.vue'
 import FleetStatusCard from '../components/panels/FleetStatusCard.vue'
 import OrderHistoryCard from '../components/panels/OrderHistoryCard.vue'
 import SystemLogCard from '../components/panels/SystemLogCard.vue'
@@ -15,16 +16,23 @@ const {
   currentCartView,
   currentPath,
   currentTask,
+  demoControl,
   errorMessage,
   fleet,
   fleetSummary,
   filteredOrders,
   logs,
   mapInfo,
+  manualOrderPlaceSuggestions,
+  manualOrderStartOptions,
   orders,
   orderFilter,
   orderFilterOptions,
   stats,
+  handleCreateFiveDemoOrders,
+  handleCreateOneDemoOrder,
+  handleResetDemo,
+  handleRestoreAutoSimulation,
   selectOrder,
   selectedOrderId,
   selectedOrderView,
@@ -61,7 +69,18 @@ const {
       </section>
 
       <aside class="dashboard-side">
-        <CreateOrderCard :submit-order="submitOrder" />
+        <DemoControlCard
+          :demo-control="demoControl"
+          :reset-demo="handleResetDemo"
+          :create-one-demo-order="handleCreateOneDemoOrder"
+          :create-five-demo-orders="handleCreateFiveDemoOrders"
+          :restore-auto-simulation="handleRestoreAutoSimulation"
+        />
+        <CreateOrderCard
+          :submit-order="submitOrder"
+          :start-options="manualOrderStartOptions"
+          :destination-suggestions="manualOrderPlaceSuggestions"
+        />
         <OrderHistoryCard
           :orders="filteredOrders"
           :selected-order="selectedOrderView"

@@ -1,5 +1,5 @@
 // 园区 3D 场景模块：加载 Blender 导出的主场景，再用 Three.js 控制小车、路径和业务标记。
-import { nextTick, onBeforeUnmount, onMounted, watch } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, reactive, watch } from 'vue'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
@@ -23,6 +23,7 @@ const anchorColors = {
 
 function createState() {
   return {
+    container: null,
     scene: null,
     camera: null,
     renderer: null,
@@ -32,6 +33,7 @@ function createState() {
     ambientLight: null,
     sunLight: null,
     sceneRoot: null,
+    landscapeRoot: null,
     markerRoot: null,
     cartRoot: null,
     effectRoot: null,
@@ -41,12 +43,241 @@ function createState() {
     cartObjects: new Map(),
     swayingObjects: [],
     pulseObjects: [],
+    cleanupHandlers: [],
+    interactionState: reactive({
+      activeDragMode: null,
+    }),
+    cameraControls: null,
     currentSceneData: {
       carts: [],
       orders: [],
       currentPath: [],
     },
   }
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max)
+}
+
+// 监控视角控制器：把默认镜头拆成观察中心、距离和水平朝向，后续所有交互都围绕它更新。
+function createCameraControls() {
+  const { camera, gridCols, gridRows, tileSize } = campusSceneConfig
+  const cameraPosition = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z)
+  const target = new THREE.Vector3(camera.lookAt.x, camera.lookAt.y, camera.lookAt.z)
+  const offset = cameraPosition.clone().sub(target)
+  const distance = offset.length()
+  const horizontalDistance = Math.max(Math.hypot(offset.x, offset.z), 0.001)
+  const padding = camera.controls.boundsPaddingTiles * tileSize
+  const halfWidth = ((gridCols - 1) * tileSize) / 2
+  const halfDepth = ((gridRows - 1) * tileSize) / 2
+
+  return {
+    target,
+    defaultTarget: target.clone(),
+    distance,
+    defaultDistance: distance,
+    yaw: Math.atan2(offset.x, offset.z),
+    defaultYaw: Math.atan2(offset.x, offset.z),
+    pitch: Math.atan2(offset.y, horizontalDistance),
+    defaultPitch: Math.atan2(offset.y, horizontalDistance),
+    isDragging: false,
+    dragMode: null,
+    pointerId: null,
+    lastPointer: null,
+    bounds: {
+      minX: -halfWidth + padding,
+      maxX: halfWidth - padding,
+      minZ: -halfDepth + padding,
+      maxZ: halfDepth - padding,
+    },
+  }
+}
+
+function clampCameraTarget(controls) {
+  controls.target.x = clamp(controls.target.x, controls.bounds.minX, controls.bounds.maxX)
+  controls.target.z = clamp(controls.target.z, controls.bounds.minZ, controls.bounds.maxZ)
+}
+
+function applyCameraControls(state) {
+  if (!state.camera || !state.cameraControls) {
+    return
+  }
+
+  const controls = state.cameraControls
+  const horizontalDistance = controls.distance * Math.cos(controls.pitch)
+
+  state.camera.position.set(
+    controls.target.x + Math.sin(controls.yaw) * horizontalDistance,
+    controls.target.y + Math.sin(controls.pitch) * controls.distance,
+    controls.target.z + Math.cos(controls.yaw) * horizontalDistance
+  )
+  state.camera.lookAt(controls.target)
+}
+
+function buildPlanarVectors(yaw) {
+  return {
+    right: new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw)),
+    forward: new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw)),
+  }
+}
+
+// 平移逻辑：统一沿当前镜头朝向的平面坐标移动观察中心，而不是直接改相机位置。
+function panCameraTarget(state, lateralDistance, forwardDistance) {
+  if (!state.cameraControls) {
+    return
+  }
+
+  const { right, forward } = buildPlanarVectors(state.cameraControls.yaw)
+  state.cameraControls.target.addScaledVector(right, lateralDistance)
+  state.cameraControls.target.addScaledVector(forward, forwardDistance)
+  clampCameraTarget(state.cameraControls)
+  applyCameraControls(state)
+}
+
+function panCameraByPointer(state, deltaX, deltaY) {
+  if (!state.container || !state.cameraControls || !state.camera) {
+    return
+  }
+
+  const viewportHeight = Math.max(state.container.clientHeight, 1)
+  const cameraFovRadians = THREE.MathUtils.degToRad(state.camera.fov)
+  const worldUnitsPerPixel =
+    (2 * Math.tan(cameraFovRadians / 2) * state.cameraControls.distance) / viewportHeight
+
+  panCameraTarget(state, -deltaX * worldUnitsPerPixel, deltaY * worldUnitsPerPixel)
+}
+
+function zoomCamera(state, wheelDeltaY) {
+  if (!state.cameraControls) {
+    return
+  }
+
+  const { controls } = campusSceneConfig.camera
+  const scale = wheelDeltaY > 0 ? 1 + controls.zoomStep : 1 / (1 + controls.zoomStep)
+
+  state.cameraControls.distance = clamp(
+    state.cameraControls.distance * scale,
+    controls.minDistance,
+    controls.maxDistance
+  )
+  applyCameraControls(state)
+}
+
+// 旋转逻辑：左键拖拽只改变观察角度，观察中心仍然保持在当前地图位置。
+function rotateCameraByPointer(state, deltaX, deltaY) {
+  if (!state.cameraControls) {
+    return
+  }
+
+  const { controls } = campusSceneConfig.camera
+  state.cameraControls.yaw -= deltaX * controls.dragRotateSpeed
+  state.cameraControls.pitch = clamp(
+    state.cameraControls.pitch + deltaY * controls.dragPitchSpeed,
+    controls.minPitch,
+    controls.maxPitch
+  )
+
+  applyCameraControls(state)
+}
+
+// 事件绑定：左键旋转、右键平移、滚轮缩放都收敛到地图容器上，组件销毁时一起清理。
+function bindCameraControls(state, container) {
+  const { controls } = campusSceneConfig.camera
+
+  const register = (target, eventName, handler, options) => {
+    target.addEventListener(eventName, handler, options)
+    state.cleanupHandlers.push(() => target.removeEventListener(eventName, handler, options))
+  }
+
+  const stopDragging = () => {
+    if (!state.cameraControls) {
+      return
+    }
+
+    state.cameraControls.isDragging = false
+    state.cameraControls.dragMode = null
+    state.cameraControls.pointerId = null
+    state.cameraControls.lastPointer = null
+    state.interactionState.activeDragMode = null
+  }
+
+  register(container, 'pointerdown', (event) => {
+    const dragMode = event.button === 0 ? 'rotate' : event.button === 2 ? 'pan' : null
+
+    if (!controls.mouseEnabled || !dragMode || !state.cameraControls) {
+      return
+    }
+
+    event.preventDefault()
+    state.cameraControls.isDragging = true
+    state.cameraControls.dragMode = dragMode
+    state.cameraControls.pointerId = event.pointerId
+    state.cameraControls.lastPointer = {
+      x: event.clientX,
+      y: event.clientY,
+    }
+    state.interactionState.activeDragMode = dragMode
+    container.setPointerCapture?.(event.pointerId)
+  })
+
+  register(container, 'pointermove', (event) => {
+    if (
+      !controls.mouseEnabled ||
+      !state.cameraControls?.isDragging ||
+      state.cameraControls.pointerId !== event.pointerId ||
+      !state.cameraControls.lastPointer
+    ) {
+      return
+    }
+
+    event.preventDefault()
+    const deltaX = event.clientX - state.cameraControls.lastPointer.x
+    const deltaY = event.clientY - state.cameraControls.lastPointer.y
+
+    state.cameraControls.lastPointer = {
+      x: event.clientX,
+      y: event.clientY,
+    }
+
+    if (state.cameraControls.dragMode === 'rotate') {
+      rotateCameraByPointer(state, deltaX, deltaY)
+      return
+    }
+
+    if (state.cameraControls.dragMode === 'pan') {
+      panCameraByPointer(state, deltaX, deltaY)
+    }
+  })
+
+  register(container, 'pointerup', (event) => {
+    if (state.cameraControls?.pointerId === event.pointerId) {
+      stopDragging()
+      container.releasePointerCapture?.(event.pointerId)
+    }
+  })
+
+  register(container, 'pointercancel', () => {
+    stopDragging()
+  })
+
+  register(container, 'contextmenu', (event) => {
+    event.preventDefault()
+  })
+
+  register(
+    container,
+    'wheel',
+    (event) => {
+      if (!controls.mouseEnabled) {
+        return
+      }
+
+      event.preventDefault()
+      zoomCamera(state, event.deltaY)
+    },
+    { passive: false }
+  )
 }
 
 function pickCurrentOrder(orders) {
@@ -154,14 +385,47 @@ function normalizePathPoints(path) {
     }))
 }
 
+function gridPointKey(point) {
+  return `${point.x},${point.y}`
+}
+
+function gridPointToVector(point, height = campusSceneConfig.groundY) {
+  const world = gridPointToWorld(point, height)
+  return new THREE.Vector3(world.x, world.y, world.z)
+}
+
+function buildCartPathKey(cart, path) {
+  return `${cart.current_order_id || 'idle'}:${path.map(gridPointKey).join('|')}`
+}
+
+function buildRouteVectors(path, startIndex) {
+  return path.slice(startIndex).map((point) => gridPointToVector(point))
+}
+
+function rotateCartToward(entry, direction, delta) {
+  if (direction.lengthSq() <= 0.0001) {
+    return
+  }
+
+  const targetRotation = Math.atan2(direction.x, direction.z)
+  entry.group.rotation.y +=
+    Math.atan2(
+      Math.sin(targetRotation - entry.group.rotation.y),
+      Math.cos(targetRotation - entry.group.rotation.y)
+    ) * Math.min(1, delta * 7)
+}
+
 function createBaseScene(state, container) {
+  const { camera: cameraConfig } = campusSceneConfig
+  state.container = container
+  state.cameraControls = createCameraControls()
+
   state.scene = new THREE.Scene()
-  state.scene.background = new THREE.Color('#dff3ff')
-  state.scene.fog = new THREE.Fog('#dff3ff', 24, 52)
+  state.scene.background = new THREE.Color('#f3fbff')
+  state.scene.fog = null
 
   state.camera = new THREE.PerspectiveCamera(34, 1, 0.1, 120)
-  state.camera.position.set(14.5, 14.2, 17.6)
-  state.camera.lookAt(0, 0, 0)
+  applyCameraControls(state)
 
   state.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
   state.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -169,20 +433,21 @@ function createBaseScene(state, container) {
   state.renderer.shadowMap.type = THREE.PCFSoftShadowMap
   state.renderer.outputColorSpace = THREE.SRGBColorSpace
   state.renderer.toneMapping = THREE.ACESFilmicToneMapping
-  state.renderer.toneMappingExposure = 1.06
+  state.renderer.toneMappingExposure = 1.12
   container.appendChild(state.renderer.domElement)
 
-  state.ambientLight = new THREE.HemisphereLight('#ffffff', '#b4d7dc', 2.4)
-  state.sunLight = new THREE.DirectionalLight('#fff1cf', 3)
-  state.sunLight.position.set(-8, 16, 10)
+  state.ambientLight = new THREE.HemisphereLight('#ffffff', '#d3efe5', 2.7)
+  state.sunLight = new THREE.DirectionalLight('#fff4d8', 3.2)
+  state.sunLight.position.set(-12, 26, 18)
   state.sunLight.castShadow = true
   state.sunLight.shadow.mapSize.set(2048, 2048)
-  state.sunLight.shadow.camera.left = -18
-  state.sunLight.shadow.camera.right = 18
-  state.sunLight.shadow.camera.top = 18
-  state.sunLight.shadow.camera.bottom = -18
+  state.sunLight.shadow.camera.left = -cameraConfig.shadowExtent
+  state.sunLight.shadow.camera.right = cameraConfig.shadowExtent
+  state.sunLight.shadow.camera.top = cameraConfig.shadowExtent
+  state.sunLight.shadow.camera.bottom = -cameraConfig.shadowExtent
 
   state.sceneRoot = new THREE.Group()
+  state.landscapeRoot = new THREE.Group()
   state.markerRoot = new THREE.Group()
   state.cartRoot = new THREE.Group()
   state.effectRoot = new THREE.Group()
@@ -191,10 +456,13 @@ function createBaseScene(state, container) {
     state.ambientLight,
     state.sunLight,
     state.sceneRoot,
+    state.landscapeRoot,
     state.effectRoot,
     state.markerRoot,
     state.cartRoot
   )
+
+  bindCameraControls(state, container)
 }
 
 async function loadAssets(state) {
@@ -248,6 +516,33 @@ function addCampusModel(state) {
   state.sceneRoot.add(campus)
   state.campusScene = campus
   collectSwayTargets(state, campus)
+}
+
+function addLandscapeAssets(state) {
+  if (!state.landscapeRoot) {
+    return
+  }
+
+  clearGroup(state.landscapeRoot)
+
+  campusSceneConfig.treeClusters.forEach(({ asset, point, targetSize, rotation = 0 }, index) => {
+    const source = state.assets[asset]
+    if (!source) {
+      return
+    }
+
+    const cluster = source.clone(true)
+    markImportedAsset(cluster)
+    fitToSize(cluster, targetSize)
+    cluster.name = `landscape_${asset}_${index + 1}`
+
+    const world = gridPointToWorld(point, campusSceneConfig.groundY)
+    cluster.position.set(world.x, world.y, world.z)
+    cluster.rotation.y = rotation
+
+    state.landscapeRoot.add(cluster)
+    collectSwayTargets(state, cluster)
+  })
 }
 
 function addAnchorEffects(state) {
@@ -420,10 +715,50 @@ function ensureCartObject(state, cart) {
     ring,
     wheels,
     lastPosition: new THREE.Vector3(),
+    routePathKey: null,
+    routePoints: [],
     initialized: false,
   }
   state.cartObjects.set(cart.id, entry)
   return entry
+}
+
+function syncCartRoute(entry, cart, serverPosition) {
+  const path = normalizePathPoints(cart.current_path || [])
+  const isBusy = cart.status !== 'idle' && cart.current_order_id && path.length >= 2
+
+  entry.group.userData.serverPosition = serverPosition
+
+  // 空闲车没有任务时必须立即停止动画；重置演示时不能继续补跑旧路径。
+  if (!isBusy) {
+    entry.routePathKey = null
+    entry.routePoints = []
+    entry.group.position.copy(serverPosition)
+    entry.lastPosition.copy(serverPosition)
+    return
+  }
+
+  const pathKey = buildCartPathKey(cart, path)
+  const currentIndex = clamp(Math.max(0, (cart.path_index || 0) - 1), 0, path.length - 1)
+
+  if (entry.routePathKey === pathKey) {
+    const isCloseToServerPosition =
+      entry.group.position.distanceTo(serverPosition) < campusSceneConfig.tileSize * 0.65
+
+    if (entry.routePoints.length === 0 && currentIndex < path.length - 1 && isCloseToServerPosition) {
+      entry.routePoints = buildRouteVectors(path, currentIndex + 1)
+    }
+    return
+  }
+
+  entry.routePathKey = pathKey
+  entry.routePoints = buildRouteVectors(path, currentIndex + 1)
+
+  // 页面中途刷新时直接从服务端当前格开始；避免旧视觉位置跨区域追新路径。
+  if (entry.group.position.distanceTo(serverPosition) > campusSceneConfig.tileSize * 2) {
+    entry.group.position.copy(serverPosition)
+    entry.lastPosition.copy(serverPosition)
+  }
 }
 
 function syncCartObjects(state, carts, activeCartId) {
@@ -441,8 +776,7 @@ function syncCartObjects(state, carts, activeCartId) {
 
   carts.forEach((cart) => {
     const entry = ensureCartObject(state, cart)
-    const world = gridPointToWorld(cart, campusSceneConfig.groundY)
-    const nextPosition = new THREE.Vector3(world.x, world.y, world.z)
+    const nextPosition = gridPointToVector(cart)
 
     if (!entry.initialized) {
       entry.group.position.copy(nextPosition)
@@ -450,7 +784,7 @@ function syncCartObjects(state, carts, activeCartId) {
       entry.initialized = true
     }
 
-    entry.group.userData.targetPosition = nextPosition
+    syncCartRoute(entry, cart, nextPosition)
     entry.group.userData.cartStatus = cart.status
     entry.group.userData.isActive = cart.id === activeCartId
     entry.ring.material.color.set(cart.id === activeCartId ? '#34d399' : '#60a5fa')
@@ -505,29 +839,31 @@ function resizeRenderer(state, container) {
 
 function updateCartAnimations(state, delta) {
   state.cartObjects.forEach((entry) => {
-    const targetPosition = entry.group.userData.targetPosition
+    // 小车按完整路径队列匀速前进，避免直接追服务端整数坐标造成跳格和斜穿。
+    let remainingDistance = campusSceneConfig.tileSize * 1.25 * delta
 
-    if (!targetPosition) {
-      return
-    }
+    while (remainingDistance > 0 && entry.routePoints.length > 0) {
+      const targetPosition = entry.routePoints[0]
+      const movement = targetPosition.clone().sub(entry.group.position)
+      const distance = movement.length()
 
-    const movement = targetPosition.clone().sub(entry.group.position)
-    const distance = movement.length()
-
-    if (distance > 0.001) {
-      const step = Math.min(1, delta * 4.2)
-      entry.group.position.lerp(targetPosition, step)
-
-      const direction = targetPosition.clone().sub(entry.group.position)
-      if (direction.lengthSq() > 0.0001) {
-        const targetRotation = Math.atan2(direction.x, direction.z)
-        entry.group.rotation.y += Math.atan2(
-          Math.sin(targetRotation - entry.group.rotation.y),
-          Math.cos(targetRotation - entry.group.rotation.y)
-        ) * Math.min(1, delta * 8)
+      if (distance <= 0.01) {
+        entry.group.position.copy(targetPosition)
+        entry.routePoints.shift()
+        continue
       }
-    } else {
-      entry.group.position.copy(targetPosition)
+
+      const travelDistance = Math.min(distance, remainingDistance)
+      const direction = movement.normalize()
+      entry.group.position.addScaledVector(direction, travelDistance)
+      rotateCartToward(entry, direction, delta)
+
+      remainingDistance -= travelDistance
+
+      if (travelDistance >= distance - 0.01) {
+        entry.group.position.copy(targetPosition)
+        entry.routePoints.shift()
+      }
     }
 
     const movedDistance = entry.group.position.distanceTo(entry.lastPosition)
@@ -627,6 +963,7 @@ export function useThreeCampusPrototype(containerRef, sceneData) {
     createBaseScene(state, container)
     await loadAssets(state)
     addCampusModel(state)
+    addLandscapeAssets(state)
     addAnchorEffects(state)
     updateSceneData(state)
     resizeRenderer(state, container)
@@ -642,6 +979,8 @@ export function useThreeCampusPrototype(containerRef, sceneData) {
     }
 
     state.resizeObserver?.disconnect()
+    state.cleanupHandlers.forEach((cleanup) => cleanup())
+    state.cleanupHandlers = []
 
     state.cartObjects.forEach((entry) => {
       entry.group.removeFromParent()
@@ -659,4 +998,8 @@ export function useThreeCampusPrototype(containerRef, sceneData) {
     state.renderer?.dispose()
     state.renderer?.domElement.remove()
   })
+
+  return {
+    interactionState: state.interactionState,
+  }
 }

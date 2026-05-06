@@ -7,7 +7,7 @@
 from threading import Thread
 from time import sleep
 
-from backend.runtime import state_lock
+from backend.runtime import is_demo_simulation_paused, state_lock
 from backend.services.dispatch_service import (
     advance_carts,
     create_simulation_order_if_needed,
@@ -48,7 +48,8 @@ def simulation_loop():
     """按固定频率生成仿真订单。"""
     while True:
         with state_lock:
-            create_simulation_order_if_needed(MAX_ACTIVE_ORDERS)
+            if not is_demo_simulation_paused():
+                create_simulation_order_if_needed(MAX_ACTIVE_ORDERS)
         sleep(SIMULATION_INTERVAL)
 
 

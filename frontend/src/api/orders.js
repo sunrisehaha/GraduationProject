@@ -31,7 +31,8 @@ export async function createOrder(payload) {
   })
 
   if (!response.ok) {
-    throw new Error('创建订单失败')
+    const errorPayload = await response.json().catch(() => null)
+    throw new Error(errorPayload?.error || '创建订单失败')
   }
 
   return response.json()

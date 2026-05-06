@@ -8,35 +8,25 @@ import json
 import random
 from datetime import datetime
 
+from backend.campus_rules import CAMPUS_RULES, service_points_by_ids
 from backend.extensions import db
 from backend.models import Order, OrderEvent, OrderPoint
-from backend.runtime import MAP_HEIGHT, MAP_WIDTH, OBSTACLES, is_free_point
+from backend.runtime import MAP_HEIGHT, MAP_WIDTH, is_free_point
 
 
 ACTIVE_ORDER_STATUSES = ["pending", "assigned", "to_pickup", "delivering"]
 
-# 演示业务点位：先把仿真订单约束到真实楼栋收件点，避免再生成“落在空地上的订单”。
-SIMULATED_PICKUP_POINTS = [
-    {"x": 30, "y": 10},  # 快递装货口
-    {"x": 33, "y": 12},  # 快递出件口
-]
+def _point_key(point):
+    """统一点位键：后面做地点名回填时直接按坐标命中。"""
+    return (point["x"], point["y"])
 
-SIMULATED_DELIVERY_POINTS = [
-    {"x": 5, "y": 6},    # 1栋住宅楼
-    {"x": 9, "y": 6},    # 2栋住宅楼
-    {"x": 5, "y": 10},   # 3栋住宅楼
-    {"x": 9, "y": 10},   # 4栋住宅楼
-    {"x": 5, "y": 25},   # 5栋住宅楼
-    {"x": 9, "y": 25},   # 6栋住宅楼
-    {"x": 5, "y": 29},   # 7栋住宅楼
-    {"x": 9, "y": 29},   # 8栋住宅楼
-    {"x": 19, "y": 8},   # 住户服务大楼
-    {"x": 24, "y": 8},   # 党群服务中心
-    {"x": 33, "y": 8},   # 物业管理中心
-    {"x": 19, "y": 21},  # 运动健身中心
-    {"x": 24, "y": 21},  # 综合楼
-    {"x": 33, "y": 27},  # 发电间
-]
+
+SIMULATED_PICKUP_PLACES = service_points_by_ids(CAMPUS_RULES["simulation"]["pickupPointIds"])
+SIMULATED_DELIVERY_PLACES = service_points_by_ids(CAMPUS_RULES["simulation"]["deliveryPointIds"])
+KNOWN_PLACE_LABELS = {
+    (point["point"]["x"], point["point"]["y"]): point["name"].replace("收件点", "")
+    for point in CAMPUS_RULES["servicePoints"]
+}
 
 
 def now_text():
@@ -56,17 +46,51 @@ def _load_path(path_text):
 
 def _order_points_map(order):
     """把关联点位转成字典：后面组装起点、终点时更顺手。"""
-    return {point.point_type: {"x": point.x, "y": point.y} for point in order.points}
+    return {
+        point.point_type: {
+            "x": point.x,
+            "y": point.y,
+            "label_text": point.label_text,
+        }
+        for point in order.points
+    }
+
+
+def _normalize_point_payload(point):
+    """标准化点位载荷：把前端传来的坐标和地点名统一整理成固定结构。"""
+    if not isinstance(point, dict):
+        raise ValueError("点位参数格式不正确")
+
+    try:
+        x = int(point["x"])
+        y = int(point["y"])
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError("点位坐标格式不正确") from error
+
+    label_text = str(point.get("label_text") or "").strip() or None
+    return {"x": x, "y": y, "label_text": label_text}
+
+
+def infer_place_label(point):
+    """按坐标回填标准地点名：给仿真订单和旧订单一个可读文本。"""
+    if not point:
+        return None
+
+    return point.get("label_text") or KNOWN_PLACE_LABELS.get(_point_key(point))
 
 
 def serialize_order(order):
     """前端展示订单：把 ORM 订单对象转成前端能直接消费的字典。"""
     points = _order_points_map(order)
+    start_point = points.get("start")
+    end_point = points.get("end")
     return {
         "id": order.id,
         "order_no": order.order_no,
-        "start_point": points.get("start"),
-        "end_point": points.get("end"),
+        "start_point": start_point,
+        "end_point": end_point,
+        "start_label": infer_place_label(start_point),
+        "end_label": infer_place_label(end_point),
         "status": order.status,
         "create_time": _format_time(order.create_time),
         "pickup_time": _format_time(order.pickup_time),
@@ -112,10 +136,13 @@ def generate_order_no():
 
 def create_order(start_point, end_point, source="manual", remark=None):
     """创建订单：主表、点位表、事件表一起写入。"""
+    start_point = _normalize_point_payload(start_point)
+    end_point = _normalize_point_payload(end_point)
+
     if not is_free_point(start_point) or not is_free_point(end_point):
         raise ValueError("起点或终点不在可配送区域内")
 
-    if start_point == end_point:
+    if start_point["x"] == end_point["x"] and start_point["y"] == end_point["y"]:
         raise ValueError("起点和终点不能相同")
 
     order = Order(
@@ -126,8 +153,20 @@ def create_order(start_point, end_point, source="manual", remark=None):
         path_json="[]",
     )
     order.points = [
-        OrderPoint(point_type="start", x=start_point["x"], y=start_point["y"], sequence=1),
-        OrderPoint(point_type="end", x=end_point["x"], y=end_point["y"], sequence=2),
+        OrderPoint(
+            point_type="start",
+            x=start_point["x"],
+            y=start_point["y"],
+            label_text=start_point["label_text"] or infer_place_label(start_point),
+            sequence=1,
+        ),
+        OrderPoint(
+            point_type="end",
+            x=end_point["x"],
+            y=end_point["y"],
+            label_text=end_point["label_text"] or infer_place_label(end_point),
+            sequence=2,
+        ),
     ]
     db.session.add(order)
     record_order_event(order, "created", "订单已创建", extra={"source": source})
@@ -241,31 +280,24 @@ def complete_order(order):
     record_order_event(order, "completed", "订单已完成配送")
 
 
-def obstacle_set():
-    """返回障碍物集合：便于随机生成合法点位。"""
-    return {(item["x"], item["y"]) for item in OBSTACLES}
-
-
 def random_free_point():
-    """生成空闲点位：避开障碍物。"""
-    blocked = obstacle_set()
-
+    """生成空闲点位：直接复用统一通行规则。"""
     while True:
         point = {
             "x": random.randint(0, MAP_WIDTH - 1),
             "y": random.randint(0, MAP_HEIGHT - 1),
         }
 
-        if (point["x"], point["y"]) not in blocked:
+        if is_free_point(point):
             return point
 
 
 def create_simulated_order():
     """创建仿真订单：供后台自动演示使用。"""
-    start_point = random.choice(SIMULATED_PICKUP_POINTS)
-    end_point = random.choice(SIMULATED_DELIVERY_POINTS)
+    start_point = random.choice(SIMULATED_PICKUP_PLACES)
+    end_point = random.choice(SIMULATED_DELIVERY_PLACES)
 
     while end_point == start_point:
-        end_point = random.choice(SIMULATED_DELIVERY_POINTS)
+        end_point = random.choice(SIMULATED_DELIVERY_PLACES)
 
     return create_order(start_point, end_point, source="simulated")

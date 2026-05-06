@@ -36,7 +36,7 @@ const sceneData = computed(() => ({
 }))
 
 // 当前阶段先展示 Bruno 风格 Three.js 原型，业务数据稍后再重新接入。
-useThreeCampusPrototype(sceneRef, sceneData)
+const { interactionState } = useThreeCampusPrototype(sceneRef, sceneData)
 </script>
 
 <template>
@@ -64,7 +64,12 @@ useThreeCampusPrototype(sceneRef, sceneData)
     </div>
 
     <div class="canvas-wrap">
-      <div ref="sceneRef" class="park-three-scene"></div>
+      <div
+        ref="sceneRef"
+        class="park-three-scene"
+        :class="{ 'park-three-scene--active': interactionState.activeDragMode }"
+        aria-label="园区三维地图"
+      ></div>
 
       <div class="map-overlay">
         <p class="map-overlay__title">当前任务：{{ currentTask.id }}</p>
@@ -72,6 +77,23 @@ useThreeCampusPrototype(sceneRef, sceneData)
         <p>订单状态：{{ currentTask.status }}</p>
         <p>执行小车：{{ currentTask.cart }}</p>
         <p>路径节点：{{ currentPath.length }}</p>
+      </div>
+
+      <div
+        class="map-control-hint"
+        :class="{ 'map-control-hint--active': interactionState.activeDragMode }"
+      >
+        <p class="map-control-hint__title">
+          {{
+            interactionState.activeDragMode === 'rotate'
+              ? '正在旋转地图'
+              : interactionState.activeDragMode === 'pan'
+                ? '正在平移地图'
+                : '鼠标控制地图'
+          }}
+        </p>
+        <p>左键拖拽旋转 · 右键拖拽平移</p>
+        <p>滚轮缩放</p>
       </div>
     </div>
   </section>

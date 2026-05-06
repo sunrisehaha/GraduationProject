@@ -517,6 +517,13 @@ function syncCarts(carts) {
     cartObject.userData.targetPosition = target
     cartObject.userData.status = cart.status
     cartObject.userData.targetRotation = resolveCartTargetRotation(cart, cartObject, target)
+
+    // 空闲车没有任务时直接归位，避免重置演示后继续播放旧插值动画。
+    if (cart.status === 'idle' && !cart.current_order_id && !cart.current_path?.length) {
+      cartObject.position.copy(target)
+      cartObject.userData.previousPosition = target.clone()
+    }
+
     updateCartStatusRing(cartObject, cart.status)
   })
 }

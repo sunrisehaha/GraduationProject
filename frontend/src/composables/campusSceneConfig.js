@@ -1,4 +1,4 @@
-// 园区 3D 场景配置：把 Blender 主模型、业务楼栋体系和 Three.js 场景参数收敛到一起。
+// 园区 3D 场景配置：统一管理更大园区的网格尺寸、镜头参数和关键业务锚点。
 
 import { campusBusinessMap, getServicePointById } from './campusBusinessMap.js'
 
@@ -7,11 +7,46 @@ export const campusSceneConfig = {
   gridRows: campusBusinessMap.gridRows,
   tileSize: 0.82,
   groundY: 0.22,
-  modelUrls: {
-    campus: '/scene/campus/campus.glb',
-    vehicle: '/scene/bruno/vehicle/default.glb',
+  camera: {
+    position: { x: 32, y: 38, z: 36 },
+    lookAt: { x: 0, y: 0, z: 4 },
+    fogNear: 42,
+    fogFar: 92,
+    shadowExtent: 32,
+    controls: {
+      minDistance: 24,
+      maxDistance: 72,
+      zoomStep: 0.12,
+      dragRotateSpeed: 0.006,
+      dragPitchSpeed: 0.004,
+      minPitch: 0.34,
+      maxPitch: 1.14,
+      boundsPaddingTiles: 2,
+      mouseEnabled: true,
+    },
   },
-  // 业务锚点：优先展示门岗、快递中心、关键住宅楼、公共服务楼和停车区。
+  modelUrls: {
+    campus: '/scene/campus/campus.glb?v=building-y-flip-road-rules-20260506',
+    vehicle: '/scene/bruno/vehicle/default.glb',
+    oakTrees: '/scene/bruno/oakTrees/oakTreesVisual.glb',
+    birchTrees: '/scene/bruno/birchTrees/birchTreesVisual.glb',
+    cherryTrees: '/scene/bruno/cherryTrees/cherryTreesVisual.glb',
+  },
+  treeClusters: [
+    { asset: 'birchTrees', point: { x: 23, y: 6 }, targetSize: 5.6, rotation: 0.18 },
+    { asset: 'cherryTrees', point: { x: 27, y: 6 }, targetSize: 5.0, rotation: -0.28 },
+    { asset: 'birchTrees', point: { x: 30, y: 7 }, targetSize: 4.8, rotation: 0.32 },
+    { asset: 'birchTrees', point: { x: 34, y: 17 }, targetSize: 4.6, rotation: 0.52 },
+    { asset: 'birchTrees', point: { x: 34, y: 20 }, targetSize: 4.4, rotation: 0.46 },
+    { asset: 'oakTrees', point: { x: 23, y: 28 }, targetSize: 5.8, rotation: -0.14 },
+    { asset: 'birchTrees', point: { x: 27, y: 29 }, targetSize: 4.8, rotation: 0.38 },
+    { asset: 'oakTrees', point: { x: 30, y: 29 }, targetSize: 5.0, rotation: -0.22 },
+    { asset: 'birchTrees', point: { x: 15, y: 18 }, targetSize: 3.4, rotation: 0.26 },
+    { asset: 'cherryTrees', point: { x: 15, y: 20 }, targetSize: 3.2, rotation: -0.28 },
+    { asset: 'birchTrees', point: { x: 15, y: 30 }, targetSize: 3.4, rotation: 0.22 },
+    { asset: 'oakTrees', point: { x: 15, y: 32 }, targetSize: 3.6, rotation: -0.18 },
+  ],
+  // 业务锚点：优先展示门岗、快递中心、住宅区、公共服务区和停车待命区。
   businessAnchors: [
     {
       id: 'gate_north',
@@ -44,16 +79,22 @@ export const campusSceneConfig = {
       point: getServicePointById('marker_resident_service_dropoff').point,
     },
     {
-      id: 'building_comprehensive',
-      label: '综合楼',
-      type: 'teaching',
-      point: getServicePointById('marker_comprehensive_dropoff').point,
+      id: 'building_property_center',
+      label: '物业管理中心',
+      type: 'service',
+      point: getServicePointById('marker_property_center_dropoff').point,
     },
     {
       id: 'building_sports_center',
       label: '运动健身中心',
       type: 'sports',
       point: getServicePointById('marker_sports_center_dropoff').point,
+    },
+    {
+      id: 'building_comprehensive',
+      label: '综合楼',
+      type: 'teaching',
+      point: getServicePointById('marker_comprehensive_dropoff').point,
     },
     {
       id: 'building_power_room',
@@ -76,7 +117,7 @@ export const campusSceneConfig = {
   ],
 }
 
-// 网格转 Three.js 世界坐标：保持后端 40 x 35 业务坐标和园区模型对齐。
+// 网格转 Three.js 世界坐标：保持后端 60 x 45 业务坐标和园区模型对齐。
 export function gridPointToWorld(point, height = 0) {
   const { gridCols, gridRows, tileSize } = campusSceneConfig
 

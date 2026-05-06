@@ -191,7 +191,8 @@
   font-size: 14px;
 }
 
-.order-form input {
+.order-form input,
+.order-form select {
   width: 100%;
   padding: 12px 14px;
   border: 1px solid rgba(84, 120, 138, 0.16);
@@ -201,9 +202,30 @@
   outline: none;
 }
 
-.order-form input:focus {
+.order-form input:focus,
+.order-form select:focus {
   border-color: rgba(84, 185, 217, 0.54);
   box-shadow: 0 0 0 4px rgba(84, 185, 217, 0.12);
+}
+
+.order-form__feedback {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.order-form__feedback--success {
+  color: #20614a;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.18);
+}
+
+.order-form__feedback--error {
+  color: #934545;
+  background: rgba(213, 109, 109, 0.12);
+  border: 1px solid rgba(213, 109, 109, 0.18);
 }
 
 .order-form button,
@@ -270,6 +292,8 @@
   color: var(--text);
   font-size: 14px;
   font-weight: 600;
+  text-align: right;
+  word-break: break-word;
 }
 
 .info-row__value--badge,
@@ -282,6 +306,45 @@
 .info-row__value--active {
   background: rgba(231, 160, 79, 0.2);
   color: #9c5d11;
+}
+
+.demo-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.demo-control-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.demo-button {
+  min-height: 44px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  color: white;
+  background: linear-gradient(135deg, var(--accent-strong) 0%, var(--accent) 100%);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.demo-button--secondary {
+  background: linear-gradient(135deg, #64748b 0%, #8ba3b6 100%);
+}
+
+.demo-button--ghost {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(84, 120, 138, 0.12);
+}
+
+.demo-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .summary-strip {
@@ -317,6 +380,11 @@
 .history-event-item__type {
   font-size: 14px;
   color: var(--text);
+}
+
+.history-item__route {
+  line-height: 1.6;
+  word-break: break-word;
 }
 
 .message-item__time,
@@ -457,7 +525,9 @@
   }
 
   .stats-grid,
-  .form-grid {
+  .form-grid,
+  .demo-status-grid,
+  .demo-control-actions {
     grid-template-columns: 1fr;
   }
 

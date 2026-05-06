@@ -1,0 +1,406 @@
+{
+  "grid": {
+    "cols": 60,
+    "rows": 45
+  },
+  "namingRules": {
+    "residential": "building_residential_<number>",
+    "publicBuilding": "building_<category>_<name>",
+    "hub": "hub_<business>_<name>",
+    "gate": "gate_<direction>",
+    "parking": "parking_<purpose>",
+    "obstacle": "obstacle_<type>_<index>",
+    "road": "road_<direction>_<index>",
+    "marker": "marker_<target>_<name>"
+  },
+  "zones": [
+    {
+      "id": "building_residential_1",
+      "name": "1栋住宅楼",
+      "kind": "residential",
+      "rect": { "x": 4, "y": 3, "width": 4, "height": 6 },
+      "heightLevel": "high",
+      "description": "1栋住宅楼，是上门送件的高频目标建筑。",
+      "aliases": ["1栋", "1号楼", "1栋楼", "1栋住宅楼"],
+      "addressExamples": ["1栋101室", "1栋202室", "1栋2单元302室"],
+      "orderDensity": "high",
+      "deliveryPointId": "marker_residential_1_dropoff",
+      "render": { "height": 5.6, "color": "#b7a2ff" }
+    },
+    {
+      "id": "building_residential_2",
+      "name": "2栋住宅楼",
+      "kind": "residential",
+      "rect": { "x": 10, "y": 3, "width": 4, "height": 6 },
+      "heightLevel": "high",
+      "description": "2栋住宅楼，是上门送件的高频目标建筑。",
+      "aliases": ["2栋", "2号楼", "2栋楼", "2栋住宅楼"],
+      "addressExamples": ["2栋101室", "2栋202室", "2栋2单元302室"],
+      "orderDensity": "high",
+      "deliveryPointId": "marker_residential_2_dropoff",
+      "render": { "height": 5.8, "color": "#c5b6ff" }
+    },
+    {
+      "id": "building_residential_3",
+      "name": "3栋住宅楼",
+      "kind": "residential",
+      "rect": { "x": 4, "y": 15, "width": 4, "height": 6 },
+      "heightLevel": "high",
+      "description": "3栋住宅楼，是上门送件的高频目标建筑。",
+      "aliases": ["3栋", "3号楼", "3栋楼", "3栋住宅楼"],
+      "addressExamples": ["3栋101室", "3栋202室", "3栋2单元302室"],
+      "orderDensity": "high",
+      "deliveryPointId": "marker_residential_3_dropoff",
+      "render": { "height": 5.6, "color": "#b7a2ff" }
+    },
+    {
+      "id": "building_residential_4",
+      "name": "4栋住宅楼",
+      "kind": "residential",
+      "rect": { "x": 10, "y": 15, "width": 4, "height": 6 },
+      "heightLevel": "high",
+      "description": "4栋住宅楼，是上门送件的高频目标建筑。",
+      "aliases": ["4栋", "4号楼", "4栋楼", "4栋住宅楼"],
+      "addressExamples": ["4栋101室", "4栋202室", "4栋2单元302室"],
+      "orderDensity": "high",
+      "deliveryPointId": "marker_residential_4_dropoff",
+      "render": { "height": 5.8, "color": "#c5b6ff" }
+    },
+    {
+      "id": "building_residential_5",
+      "name": "5栋住宅楼",
+      "kind": "residential",
+      "rect": { "x": 4, "y": 25, "width": 4, "height": 6 },
+      "heightLevel": "high",
+      "description": "5栋住宅楼，是上门送件的高频目标建筑。",
+      "aliases": ["5栋", "5号楼", "5栋楼", "5栋住宅楼"],
+      "addressExamples": ["5栋101室", "5栋202室", "5栋2单元302室"],
+      "orderDensity": "high",
+      "deliveryPointId": "marker_residential_5_dropoff",
+      "render": { "height": 5.7, "color": "#9fb6ff" }
+    },
+    {
+      "id": "building_residential_6",
+      "name": "6栋住宅楼",
+      "kind": "residential",
+      "rect": { "x": 10, "y": 25, "width": 4, "height": 6 },
+      "heightLevel": "high",
+      "description": "6栋住宅楼，是上门送件的高频目标建筑。",
+      "aliases": ["6栋", "6号楼", "6栋楼", "6栋住宅楼"],
+      "addressExamples": ["6栋101室", "6栋202室", "6栋2单元302室"],
+      "orderDensity": "high",
+      "deliveryPointId": "marker_residential_6_dropoff",
+      "render": { "height": 5.9, "color": "#b2c3ff" }
+    },
+    {
+      "id": "building_residential_7",
+      "name": "7栋住宅楼",
+      "kind": "residential",
+      "rect": { "x": 4, "y": 37, "width": 4, "height": 6 },
+      "heightLevel": "high",
+      "description": "7栋住宅楼，是上门送件的高频目标建筑。",
+      "aliases": ["7栋", "7号楼", "7栋楼", "7栋住宅楼"],
+      "addressExamples": ["7栋101室", "7栋202室", "7栋2单元302室"],
+      "orderDensity": "high",
+      "deliveryPointId": "marker_residential_7_dropoff",
+      "render": { "height": 5.7, "color": "#9fb6ff" }
+    },
+    {
+      "id": "building_residential_8",
+      "name": "8栋住宅楼",
+      "kind": "residential",
+      "rect": { "x": 10, "y": 37, "width": 4, "height": 6 },
+      "heightLevel": "high",
+      "description": "8栋住宅楼，是上门送件的高频目标建筑。",
+      "aliases": ["8栋", "8号楼", "8栋楼", "8栋住宅楼"],
+      "addressExamples": ["8栋101室", "8栋202室", "8栋2单元302室"],
+      "orderDensity": "high",
+      "deliveryPointId": "marker_residential_8_dropoff",
+      "render": { "height": 5.9, "color": "#b2c3ff" }
+    },
+    {
+      "id": "building_resident_service",
+      "name": "住户服务大楼",
+      "kind": "service",
+      "rect": { "x": 40, "y": 3, "width": 7, "height": 6 },
+      "heightLevel": "mid",
+      "description": "物业、民生咨询和住户服务办理集中区。",
+      "aliases": ["住户服务大楼", "住户服务中心", "服务大楼"],
+      "addressExamples": ["住户服务大楼一层大厅", "住户服务大楼前台"],
+      "orderDensity": "medium",
+      "deliveryPointId": "marker_resident_service_dropoff",
+      "render": { "height": 3.8, "color": "#80cfff" }
+    },
+    {
+      "id": "building_party_center",
+      "name": "党群服务中心",
+      "kind": "community",
+      "rect": { "x": 49, "y": 3, "width": 6, "height": 6 },
+      "heightLevel": "mid",
+      "description": "党群活动、社区会议和公共服务办理区。",
+      "aliases": ["党群服务中心", "党群中心", "社区党群中心"],
+      "addressExamples": ["党群服务中心前台", "党群服务中心会议室"],
+      "orderDensity": "medium",
+      "deliveryPointId": "marker_party_center_dropoff",
+      "render": { "height": 3.4, "color": "#8dd8ca" }
+    },
+    {
+      "id": "building_property_center",
+      "name": "物业管理中心",
+      "kind": "property",
+      "rect": { "x": 40, "y": 15, "width": 6, "height": 6 },
+      "heightLevel": "mid",
+      "description": "园区安防、维修和运营值守中心。",
+      "aliases": ["物业管理中心", "物业中心", "物业办公室"],
+      "addressExamples": ["物业管理中心值班室", "物业管理中心前台"],
+      "orderDensity": "medium",
+      "deliveryPointId": "marker_property_center_dropoff",
+      "render": { "height": 3.5, "color": "#71b7ef" }
+    },
+    {
+      "id": "hub_express_main",
+      "name": "快递服务中心",
+      "kind": "logistics",
+      "rect": { "x": 48, "y": 14, "width": 10, "height": 7 },
+      "heightLevel": "mid",
+      "description": "统一入库、分拣和装货的物流枢纽。",
+      "aliases": ["快递服务中心", "快递站", "物流中心"],
+      "addressExamples": ["快递服务中心装货口", "快递服务中心分拣区"],
+      "orderDensity": "high",
+      "render": { "height": 4.2, "color": "#6fd7b7" }
+    },
+    {
+      "id": "building_sports_center",
+      "name": "运动健身中心",
+      "kind": "sports",
+      "rect": { "x": 40, "y": 26, "width": 8, "height": 7 },
+      "heightLevel": "mid",
+      "description": "园区运动、健身和课程活动使用的公共楼。",
+      "aliases": ["运动健身中心", "健身中心", "运动中心"],
+      "addressExamples": ["运动健身中心前台", "运动健身中心器械区"],
+      "orderDensity": "medium",
+      "deliveryPointId": "marker_sports_center_dropoff",
+      "render": { "height": 4.0, "color": "#f3c46d" }
+    },
+    {
+      "id": "building_comprehensive",
+      "name": "综合楼",
+      "kind": "admin",
+      "rect": { "x": 50, "y": 26, "width": 8, "height": 7 },
+      "heightLevel": "mid",
+      "description": "行政、办公和多部门协同办公的综合楼。",
+      "aliases": ["综合楼", "办公综合楼", "综合服务楼"],
+      "addressExamples": ["综合楼一层大厅", "综合楼三层办公室"],
+      "orderDensity": "high",
+      "deliveryPointId": "marker_comprehensive_dropoff",
+      "render": { "height": 4.3, "color": "#7db7f8" }
+    },
+    {
+      "id": "building_power_room",
+      "name": "发电间",
+      "kind": "utility",
+      "rect": { "x": 54, "y": 37, "width": 4, "height": 4 },
+      "heightLevel": "low",
+      "description": "备用供电和设备保障房，低频但真实感很强。",
+      "aliases": ["发电间", "设备保障房", "电力设备间"],
+      "addressExamples": ["发电间值守点", "设备保障房门口"],
+      "orderDensity": "low",
+      "deliveryPointId": "marker_power_room_dropoff",
+      "render": { "height": 2.2, "color": "#e79a8d" }
+    },
+    {
+      "id": "landscape_north_trees",
+      "name": "北侧景观口袋绿地",
+      "kind": "landscape",
+      "rect": { "x": 22, "y": 4, "width": 10, "height": 6 },
+      "heightLevel": "low",
+      "description": "北侧留给树木、花坛和景观小品的扩展空间。",
+      "cartPassable": false,
+      "pedestrianPassable": true,
+      "reserveUse": "trees",
+      "render": { "color": "#bfe5c7", "treeCount": 6 }
+    },
+    {
+      "id": "space_pedestrian_plaza",
+      "name": "中央步行广场",
+      "kind": "plaza",
+      "rect": { "x": 24, "y": 16, "width": 8, "height": 8 },
+      "heightLevel": "low",
+      "description": "中央步行广场，未来可布置行人、公告牌和公共活动。",
+      "cartPassable": false,
+      "pedestrianPassable": true,
+      "reserveUse": "plaza",
+      "render": { "color": "#f7dfad" }
+    },
+    {
+      "id": "landscape_central_greenbelt",
+      "name": "中央绿化隔离带",
+      "kind": "greenbelt",
+      "rect": { "x": 33, "y": 16, "width": 2, "height": 8 },
+      "heightLevel": "low",
+      "description": "位于广场和东侧主路之间的景观隔离带。",
+      "cartPassable": false,
+      "pedestrianPassable": true,
+      "reserveUse": "trees",
+      "render": { "color": "#a7d8b1", "treeCount": 4 }
+    },
+    {
+      "id": "landscape_south_trees",
+      "name": "南侧景观口袋绿地",
+      "kind": "landscape",
+      "rect": { "x": 22, "y": 27, "width": 10, "height": 4 },
+      "heightLevel": "low",
+      "description": "南侧预留给树木、花境和慢行空间的绿地。",
+      "cartPassable": false,
+      "pedestrianPassable": true,
+      "reserveUse": "trees",
+      "render": { "color": "#b7e1c0", "treeCount": 5 }
+    },
+    {
+      "id": "space_dispatch_parking",
+      "name": "调度停车预留区",
+      "kind": "parking",
+      "rect": { "x": 22, "y": 37, "width": 10, "height": 5 },
+      "heightLevel": "low",
+      "description": "未来停放待命小车、临停车辆和扩展车位的区域。",
+      "cartPassable": true,
+      "pedestrianPassable": true,
+      "reserveUse": "parking",
+      "render": { "color": "#f0df9b" }
+    },
+    {
+      "id": "space_logistics_apron",
+      "name": "快递中心装卸作业区",
+      "kind": "logistics_apron",
+      "rect": { "x": 46, "y": 14, "width": 2, "height": 7 },
+      "heightLevel": "low",
+      "description": "快递服务中心左侧的装卸和小车接驳区域。",
+      "cartPassable": true,
+      "pedestrianPassable": false,
+      "reserveUse": "logistics",
+      "render": { "color": "#d3eefb" }
+    }
+  ],
+  "roads": [
+    { "id": "road_vertical_west", "name": "西侧纵向主路", "direction": "vertical", "rect": { "x": 17, "y": 0, "width": 4, "height": 45 } },
+    { "id": "road_vertical_east", "name": "东侧纵向主路", "direction": "vertical", "rect": { "x": 35, "y": 0, "width": 4, "height": 45 } },
+    { "id": "road_horizontal_north", "name": "北侧横向主路", "direction": "horizontal", "rect": { "x": 0, "y": 10, "width": 60, "height": 4 } },
+    { "id": "road_horizontal_mid_west", "name": "中央横向主路西段", "direction": "horizontal", "rect": { "x": 0, "y": 21, "width": 24, "height": 4 } },
+    { "id": "road_horizontal_mid_east", "name": "中央横向主路东段", "direction": "horizontal", "rect": { "x": 35, "y": 21, "width": 25, "height": 4 } },
+    { "id": "road_horizontal_south", "name": "南侧横向主路", "direction": "horizontal", "rect": { "x": 0, "y": 33, "width": 60, "height": 4 } },
+    { "id": "road_residential_north", "name": "北侧住宅服务车道", "direction": "horizontal", "rect": { "x": 0, "y": 9, "width": 18, "height": 2 } },
+    { "id": "road_residential_mid", "name": "中部住宅服务车道", "direction": "horizontal", "rect": { "x": 0, "y": 21, "width": 18, "height": 2 } },
+    { "id": "road_residential_south", "name": "南侧住宅服务车道", "direction": "horizontal", "rect": { "x": 0, "y": 31, "width": 18, "height": 2 } },
+    { "id": "road_residential_bottom", "name": "底部住宅服务车道", "direction": "horizontal", "rect": { "x": 0, "y": 43, "width": 18, "height": 2 } },
+    { "id": "road_public_north", "name": "北侧公共建筑门前车道", "direction": "horizontal", "rect": { "x": 39, "y": 9, "width": 21, "height": 2 } },
+    { "id": "road_public_mid", "name": "中部公共建筑门前车道", "direction": "horizontal", "rect": { "x": 39, "y": 21, "width": 21, "height": 2 } },
+    { "id": "road_public_south", "name": "南侧公共建筑门前车道", "direction": "horizontal", "rect": { "x": 39, "y": 24, "width": 21, "height": 2 } },
+    { "id": "road_logistics_apron", "name": "快递中心装卸作业车道", "direction": "logistics", "rect": { "x": 46, "y": 14, "width": 2, "height": 7 } },
+    { "id": "road_utility_front", "name": "发电间门前车道", "direction": "horizontal", "rect": { "x": 52, "y": 41, "width": 8, "height": 2 } },
+    { "id": "road_utility_access", "name": "发电间接入车道", "direction": "vertical", "rect": { "x": 58, "y": 36, "width": 2, "height": 6 } }
+  ],
+  "servicePoints": [
+    { "id": "gate_north", "name": "北门岗", "type": "gate", "point": { "x": 19, "y": 1 }, "role": "主入口和访客出入点", "aliases": ["北门", "北门岗"], "render": { "markerColor": "#7dd3fc" } },
+    { "id": "gate_south", "name": "南门岗", "type": "gate", "point": { "x": 37, "y": 43 }, "role": "南侧入口和车辆离场点", "aliases": ["南门", "南门岗"], "render": { "markerColor": "#7dd3fc" } },
+    { "id": "hub_dispatch_loading", "name": "快递装货口", "type": "hub", "point": { "x": 47, "y": 17 }, "role": "小车统一装货点", "aliases": ["装货口", "快递装货口"], "targetZoneId": "hub_express_main", "render": { "markerColor": "#34d399" } },
+    { "id": "marker_express_pickup", "name": "快递出件口", "type": "pickup", "point": { "x": 46, "y": 19 }, "role": "快递从仓配区发出的业务起点", "aliases": ["出件口", "快递站出件口"], "targetZoneId": "hub_express_main", "render": { "markerColor": "#22d3ee" } },
+    { "id": "hub_dispatch_waiting", "name": "调度等待区", "type": "parking", "point": { "x": 26, "y": 39 }, "role": "空闲小车停车和待命区域", "aliases": ["等待区", "调度等待区", "停车等待区"], "render": { "markerColor": "#fbbf24" } },
+    { "id": "marker_residential_1_dropoff", "name": "1栋住宅楼收件点", "type": "delivery", "point": { "x": 6, "y": 9 }, "role": "1栋楼下统一收件点", "aliases": ["1栋楼下", "1栋收件点"], "targetZoneId": "building_residential_1" },
+    { "id": "marker_residential_2_dropoff", "name": "2栋住宅楼收件点", "type": "delivery", "point": { "x": 12, "y": 9 }, "role": "2栋楼下统一收件点", "aliases": ["2栋楼下", "2栋收件点"], "targetZoneId": "building_residential_2" },
+    { "id": "marker_residential_3_dropoff", "name": "3栋住宅楼收件点", "type": "delivery", "point": { "x": 6, "y": 21 }, "role": "3栋楼下统一收件点", "aliases": ["3栋楼下", "3栋收件点"], "targetZoneId": "building_residential_3" },
+    { "id": "marker_residential_4_dropoff", "name": "4栋住宅楼收件点", "type": "delivery", "point": { "x": 12, "y": 21 }, "role": "4栋楼下统一收件点", "aliases": ["4栋楼下", "4栋收件点"], "targetZoneId": "building_residential_4" },
+    { "id": "marker_residential_5_dropoff", "name": "5栋住宅楼收件点", "type": "delivery", "point": { "x": 6, "y": 31 }, "role": "5栋楼下统一收件点", "aliases": ["5栋楼下", "5栋收件点"], "targetZoneId": "building_residential_5" },
+    { "id": "marker_residential_6_dropoff", "name": "6栋住宅楼收件点", "type": "delivery", "point": { "x": 12, "y": 31 }, "role": "6栋楼下统一收件点", "aliases": ["6栋楼下", "6栋收件点"], "targetZoneId": "building_residential_6" },
+    { "id": "marker_residential_7_dropoff", "name": "7栋住宅楼收件点", "type": "delivery", "point": { "x": 6, "y": 43 }, "role": "7栋楼下统一收件点", "aliases": ["7栋楼下", "7栋收件点"], "targetZoneId": "building_residential_7" },
+    { "id": "marker_residential_8_dropoff", "name": "8栋住宅楼收件点", "type": "delivery", "point": { "x": 12, "y": 43 }, "role": "8栋楼下统一收件点", "aliases": ["8栋楼下", "8栋收件点"], "targetZoneId": "building_residential_8" },
+    { "id": "marker_resident_service_dropoff", "name": "住户服务大楼收件点", "type": "delivery", "point": { "x": 43, "y": 9 }, "role": "住户服务大楼门前收件点", "aliases": ["住户服务大楼门口", "住户服务中心收件点"], "targetZoneId": "building_resident_service" },
+    { "id": "marker_party_center_dropoff", "name": "党群服务中心收件点", "type": "delivery", "point": { "x": 52, "y": 9 }, "role": "党群服务中心门前收件点", "aliases": ["党群服务中心门口", "党群中心收件点"], "targetZoneId": "building_party_center" },
+    { "id": "marker_property_center_dropoff", "name": "物业管理中心收件点", "type": "delivery", "point": { "x": 43, "y": 21 }, "role": "物业管理中心门前收件点", "aliases": ["物业中心门口", "物业管理中心收件点"], "targetZoneId": "building_property_center" },
+    { "id": "marker_sports_center_dropoff", "name": "运动健身中心收件点", "type": "delivery", "point": { "x": 44, "y": 25 }, "role": "运动健身中心门前收件点", "aliases": ["运动健身中心门口", "健身中心收件点"], "targetZoneId": "building_sports_center" },
+    { "id": "marker_comprehensive_dropoff", "name": "综合楼收件点", "type": "delivery", "point": { "x": 54, "y": 25 }, "role": "综合楼门前收件点", "aliases": ["综合楼门口", "综合楼收件点"], "targetZoneId": "building_comprehensive" },
+    { "id": "marker_power_room_dropoff", "name": "发电间收件点", "type": "delivery", "point": { "x": 56, "y": 41 }, "role": "发电间门前低频收件点", "aliases": ["发电间门口", "设备保障房收件点"], "targetZoneId": "building_power_room" },
+    { "id": "obstacle_barrier_01", "name": "南侧路障", "type": "barrier", "point": { "x": 30, "y": 34 }, "role": "南侧主路的演示路障和特殊事件提醒点", "aliases": ["南侧路障"], "render": { "markerColor": "#f97316" } }
+  ],
+  "pointObstacles": [
+    { "id": "obstacle_barrier_01", "name": "南侧路障", "point": { "x": 30, "y": 34 } }
+  ],
+  "defaultCarts": [
+    { "id": 1, "name": "Cart-1", "x": 19, "y": 2 },
+    { "id": 2, "name": "Cart-2", "x": 19, "y": 8 },
+    { "id": 3, "name": "Cart-3", "x": 19, "y": 14 },
+    { "id": 4, "name": "Cart-4", "x": 19, "y": 20 },
+    { "id": 5, "name": "Cart-5", "x": 19, "y": 28 },
+    { "id": 6, "name": "Cart-6", "x": 19, "y": 34 },
+    { "id": 7, "name": "Cart-7", "x": 26, "y": 39 },
+    { "id": 8, "name": "Cart-8", "x": 28, "y": 39 },
+    { "id": 9, "name": "Cart-9", "x": 30, "y": 39 },
+    { "id": 10, "name": "Cart-10", "x": 37, "y": 7 },
+    { "id": 11, "name": "Cart-11", "x": 37, "y": 18 },
+    { "id": 12, "name": "Cart-12", "x": 37, "y": 33 }
+  ],
+  "simulation": {
+    "pickupPointIds": ["hub_dispatch_loading", "marker_express_pickup"],
+    "deliveryPointIds": [
+      "marker_residential_1_dropoff",
+      "marker_residential_2_dropoff",
+      "marker_residential_3_dropoff",
+      "marker_residential_4_dropoff",
+      "marker_residential_5_dropoff",
+      "marker_residential_6_dropoff",
+      "marker_residential_7_dropoff",
+      "marker_residential_8_dropoff",
+      "marker_resident_service_dropoff",
+      "marker_party_center_dropoff",
+      "marker_property_center_dropoff",
+      "marker_sports_center_dropoff",
+      "marker_comprehensive_dropoff",
+      "marker_power_room_dropoff"
+    ]
+  },
+  "demoOrders": {
+    "one": [
+      {
+        "startPointId": "marker_express_pickup",
+        "endPointId": "marker_comprehensive_dropoff",
+        "remark": "一单演示：完整展示订单创建、调度、取件、配送和完成。"
+      }
+    ],
+    "five": [
+      {
+        "startPointId": "marker_express_pickup",
+        "endPointId": "marker_comprehensive_dropoff",
+        "remark": "五单演示：公共服务区配送任务。"
+      },
+      {
+        "startPointId": "marker_express_pickup",
+        "endPointId": "marker_residential_1_dropoff",
+        "remark": "五单演示：北侧住宅区配送任务。"
+      },
+      {
+        "startPointId": "marker_express_pickup",
+        "endPointId": "marker_residential_5_dropoff",
+        "remark": "五单演示：南侧住宅区配送任务。"
+      },
+      {
+        "startPointId": "hub_dispatch_loading",
+        "endPointId": "marker_resident_service_dropoff",
+        "remark": "五单演示：住户服务大楼配送任务。"
+      },
+      {
+        "startPointId": "hub_dispatch_loading",
+        "endPointId": "marker_sports_center_dropoff",
+        "remark": "五单演示：运动健身中心配送任务。"
+      }
+    ]
+  },
+  "scaleRules": {
+    "roadWidthTiles": 4,
+    "serviceRoadWidthTiles": 2,
+    "buildingHeightHint": {
+      "low": "1 层到 2 层体块感，主要用于设备房和景观配套",
+      "mid": "3 层到 5 层体块感，主要用于公共服务建筑",
+      "high": "6 层到 8 层体块感，主要用于住宅楼"
+    },
+    "vehicleRelativeSize": "小车宽度约为单车道宽度的三分之一"
+  }
+}

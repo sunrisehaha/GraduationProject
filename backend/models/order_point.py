@@ -28,6 +28,10 @@ class OrderPoint(db.Model):
     # 纵坐标：园区网格中的 y。
     y = db.Column(db.Integer, nullable=False)
 
+    # 点位文本：保存“1栋101室、综合楼、快递出件口”这类人类可读地点名。
+    # 第一版先把它直接挂在点位上，既能保留用户输入，也不需要额外建新表。
+    label_text = db.Column(db.String(120), nullable=True)
+
     # 顺序号：用于控制多个点位的先后顺序。
     sequence = db.Column(db.Integer, nullable=False, default=0)
 

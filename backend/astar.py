@@ -18,14 +18,28 @@ def reconstruct_path(came_from, current):
     return path
 
 
-def find_path(start, end, obstacles=None, width=40, height=35):
+def find_path(start, end, obstacles=None, width=None, height=None, accessible_points=None):
     """在二维网格上用 A* 算法寻找路径。"""
     if obstacles is None:
         obstacles = []
 
+    # 默认沿用运行时地图尺寸，避免后面改大地图后遗漏调用参数。
+    if width is None or height is None:
+        from backend.runtime import MAP_HEIGHT, MAP_WIDTH
+
+        width = MAP_WIDTH if width is None else width
+        height = MAP_HEIGHT if height is None else height
+
+    # 默认沿用运行时可行车区域，避免路径穿过建筑、树木和广场。
+    if accessible_points is None:
+        from backend.runtime import VEHICLE_ACCESSIBLE_POINTS
+
+        accessible_points = VEHICLE_ACCESSIBLE_POINTS
+
     start_pos = (start["x"], start["y"])
     end_pos = (end["x"], end["y"])
     obstacle_set = {(item["x"], item["y"]) for item in obstacles}
+    accessible_set = set(accessible_points)
 
     def in_bounds(position):
         """判断坐标是否还在地图边界内。"""
@@ -36,6 +50,9 @@ def find_path(start, end, obstacles=None, width=40, height=35):
         return []
 
     if start_pos in obstacle_set or end_pos in obstacle_set:
+        return []
+
+    if start_pos not in accessible_set or end_pos not in accessible_set:
         return []
 
     if start_pos == end_pos:
@@ -63,7 +80,7 @@ def find_path(start, end, obstacles=None, width=40, height=35):
         for dx, dy in directions:
             neighbor = (current[0] + dx, current[1] + dy)
 
-            if not in_bounds(neighbor) or neighbor in obstacle_set:
+            if not in_bounds(neighbor) or neighbor in obstacle_set or neighbor not in accessible_set:
                 continue
 
             tentative_g_score = current_cost + 1

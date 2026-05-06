@@ -1,7 +1,18 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { fetchCarts } from '../api/carts'
+import {
+  createFiveDemoOrders,
+  createOneDemoOrder,
+  fetchDemoState,
+  resetDemoScene,
+  setDemoMode,
+} from '../api/demo'
 import { createOrder, fetchOrderDetail, fetchOrderEvents, fetchOrders } from '../api/orders'
-import { campusBusinessMap } from './campusBusinessMap'
+import {
+  campusBusinessMap,
+  findDeliveryTargetByText,
+  getServicePointById,
+} from './campusBusinessMap'
 
 // 看板轮询间隔：让页面保持实时感，但不要快到影响演示体验。
 const refreshIntervalMs = 1000
@@ -48,9 +59,30 @@ function formatPoint(point) {
   return `(${point.x}, ${point.y})`
 }
 
+// 地点格式化：优先展示“1栋101室、综合楼”这类人类可读地点，同时保留坐标方便解释。
+function formatPlace(point, label) {
+  if (!point && !label) {
+    return '-'
+  }
+
+  if (label && point) {
+    return `${label} · ${formatPoint(point)}`
+  }
+
+  return label || formatPoint(point)
+}
+
 // 订单来源翻译：区分手动订单和仿真订单。
 function getSourceText(source) {
-  return source === 'simulated' ? '仿真订单' : '手动订单'
+  if (source === 'simulated') {
+    return '仿真订单'
+  }
+
+  if (source === 'demo') {
+    return '演示订单'
+  }
+
+  return '手动订单'
 }
 
 // 当前任务阶段说明：给当前任务卡片配一段更像人话的描述。
@@ -85,11 +117,46 @@ function buildOrderView(order) {
     ...order,
     displayId: `#${order.id}`,
     displayOrderNo: order.order_no || `ORD-${order.id}`,
-    startText: formatPoint(order.start_point),
-    endText: formatPoint(order.end_point),
+    startText: formatPlace(order.start_point, order.start_label),
+    endText: formatPlace(order.end_point, order.end_label),
     statusText: getStatusText(order.status),
     sourceText: getSourceText(order.source),
   }
+}
+
+// 手动下单起点：第一版保留为可选的固定业务点，优先让用户直接从真实地点发单。
+const manualOrderStartOrder = ['marker_express_pickup', 'hub_dispatch_loading', 'gate_north', 'gate_south']
+
+const manualOrderStartOptions = campusBusinessMap.servicePoints
+  .filter((point) => ['pickup', 'hub', 'gate'].includes(point.type))
+  .map((point) => ({
+    value: point.id,
+    label: point.name,
+    hint: point.role,
+  }))
+  .sort(
+    (left, right) =>
+      manualOrderStartOrder.indexOf(left.value) - manualOrderStartOrder.indexOf(right.value)
+  )
+
+// 地点建议：输入框用 datalist 给出常见楼栋和地址示例，先做简单可用版本。
+const manualOrderPlaceSuggestions = Array.from(
+  new Set(
+    campusBusinessMap.deliveryTargets.flatMap((target) => [
+      target.name,
+      ...target.addressExamples.slice(0, 2),
+    ])
+  )
+)
+
+function buildDestinationLabel(rawText, target) {
+  const input = String(rawText || '').trim()
+
+  if (!input) {
+    return target.name
+  }
+
+  return /室|单元|门口|前台|大厅|值班|办公室/.test(input) ? input : target.name
 }
 
 // 当前主订单挑选规则：优先展示正在配送的订单，其次是已分配、待调度。
@@ -114,6 +181,13 @@ export function useDashboardData() {
   // 基础数据：后端轮询回来的原始小车和订单。
   const carts = ref([])
   const orders = ref([])
+  const demoState = ref({
+    demo_mode_enabled: false,
+    simulation_paused: false,
+    current_demo_order_ids: [],
+    current_demo_order_count: 0,
+    active_orders: 0,
+  })
 
   // 历史面板状态：当前筛选条件、选中的订单，以及它的详情和事件。
   const orderFilter = ref('all')
@@ -201,14 +275,16 @@ export function useDashboardData() {
       errorMessage.value = ''
 
       const previousOrders = orders.value.slice()
-      const [latestCarts, latestOrders] = await Promise.all([
+      const [latestCarts, latestOrders, latestDemoState] = await Promise.all([
         fetchCarts(),
         fetchOrders('all', orderFetchLimit),
+        fetchDemoState(),
       ])
 
       processOrderChanges(previousOrders, latestOrders)
       carts.value = latestCarts
       orders.value = latestOrders
+      demoState.value = latestDemoState
 
       const selectedStillExists = latestOrders.some((order) => order.id === selectedOrderId.value)
       const fallbackOrder = pickDefaultSelectedOrder(latestOrders)
@@ -229,23 +305,89 @@ export function useDashboardData() {
   // 创建订单：成功后主动把新订单设成历史面板当前选中项。
   async function submitOrder(formData) {
     try {
+      const startPoint = getServicePointById(formData.startPointId)
+      if (!startPoint?.point) {
+        return { ok: false, message: '起点地点无效，请重新选择。' }
+      }
+
+      const endTarget = findDeliveryTargetByText(formData.endPlaceText)
+      if (!endTarget?.deliveryPoint) {
+        return { ok: false, message: '未找到对应地点，请输入楼栋名或示例地址。' }
+      }
+
+      const startLabel = startPoint.name
+      const endLabel = buildDestinationLabel(formData.endPlaceText, endTarget)
       const createdOrder = await createOrder({
         start_point: {
-          x: Number(formData.startX),
-          y: Number(formData.startY),
+          x: startPoint.point.x,
+          y: startPoint.point.y,
+          label_text: startLabel,
         },
         end_point: {
-          x: Number(formData.endX),
-          y: Number(formData.endY),
+          x: endTarget.deliveryPoint.x,
+          y: endTarget.deliveryPoint.y,
+          label_text: endLabel,
         },
       })
 
       selectedOrderId.value = createdOrder.id
-      addLog('手动订单创建成功，后台将自动调度最近空闲小车。')
+      addLog(`手动订单创建成功：${startLabel} -> ${endLabel}。`)
       await refreshData()
       return { ok: true }
     } catch (error) {
       addLog(`手动订单创建失败：${error.message}`)
+      return { ok: false, message: error.message }
+    }
+  }
+
+  // 演示重置：清空订单和任务，把小车放回默认待命点。
+  async function handleResetDemo() {
+    try {
+      demoState.value = await resetDemoScene()
+      selectedOrderId.value = null
+      selectedOrderDetail.value = null
+      selectedOrderEvents.value = []
+      addLog('演示场景已重置，自动仿真已暂停。')
+      await refreshData()
+      return { ok: true }
+    } catch (error) {
+      addLog(`演示重置失败：${error.message}`)
+      return { ok: false, message: error.message }
+    }
+  }
+
+  // 演示订单创建：复用同一套反馈和选中逻辑。
+  async function handleCreateDemoOrders(createAction, successText) {
+    try {
+      const result = await createAction()
+      demoState.value = result
+      selectedOrderId.value = result.orders?.[0]?.id || null
+      addLog(successText)
+      await refreshData()
+      return { ok: true }
+    } catch (error) {
+      addLog(`演示订单创建失败：${error.message}`)
+      return { ok: false, message: error.message }
+    }
+  }
+
+  function handleCreateOneDemoOrder() {
+    return handleCreateDemoOrders(createOneDemoOrder, '已创建 1 单标准演示订单。')
+  }
+
+  function handleCreateFiveDemoOrders() {
+    return handleCreateDemoOrders(createFiveDemoOrders, '已创建 5 单标准演示订单。')
+  }
+
+  // 恢复自动仿真：关闭演示模式，让后台继续按节奏生成订单。
+  async function handleRestoreAutoSimulation() {
+    try {
+      demoState.value = await setDemoMode(false)
+      addLog('已恢复自动仿真订单生成。')
+      await refreshData()
+      return { ok: true }
+    } catch (error) {
+      addLog(`恢复自动仿真失败：${error.message}`)
       return { ok: false, message: error.message }
     }
   }
@@ -374,8 +516,8 @@ export function useDashboardData() {
     return {
       id: order ? `#${order.id}` : '暂无',
       orderNo: order?.order_no || '-',
-      start: formatPoint(order?.start_point),
-      end: formatPoint(order?.end_point),
+      start: formatPlace(order?.start_point, order?.start_label),
+      end: formatPlace(order?.end_point, order?.end_label),
       status: order ? getStatusText(order.status) : '无任务',
       cart: assignedCart?.name || (order ? '待分配' : '-'),
       source: order ? getSourceText(order.source) : '-',
@@ -441,6 +583,15 @@ export function useDashboardData() {
     }
   })
 
+  // 演示控制面板状态：把后端字段转成页面直接能展示的中文。
+  const demoControl = computed(() => ({
+    simulationText: demoState.value.simulation_paused ? '暂停' : '运行中',
+    modeText: demoState.value.demo_mode_enabled ? '演示模式' : '自动仿真',
+    demoOrderCount: demoState.value.current_demo_order_count || 0,
+    activeOrderCount: demoState.value.active_orders || 0,
+    isDemoMode: demoState.value.demo_mode_enabled,
+  }))
+
   // 生命周期：组件挂载时立即拉一次数据，然后开始轮询。
   onMounted(async () => {
     await refreshData()
@@ -459,12 +610,15 @@ export function useDashboardData() {
     currentCartView,
     currentPath,
     currentTask,
+    demoControl,
     errorMessage,
     fleet,
     fleetSummary,
     filteredOrders,
     logs,
     mapInfo,
+    manualOrderPlaceSuggestions,
+    manualOrderStartOptions,
     orderFilter,
     orderFilterOptions,
     orders,
@@ -474,6 +628,10 @@ export function useDashboardData() {
     selectedOrderView,
     setOrderFilter,
     stats,
+    handleCreateFiveDemoOrders,
+    handleCreateOneDemoOrder,
+    handleResetDemo,
+    handleRestoreAutoSimulation,
     submitOrder,
     topBar,
     lastUpdatedText,

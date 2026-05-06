@@ -12,6 +12,13 @@ from backend.runtime import MAP_HEIGHT, MAP_WIDTH, OBSTACLES, state_lock
 from backend.scheduler import start_background_workers
 from backend.services.bootstrap_service import init_database
 from backend.services.cart_service import list_carts
+from backend.services.demo_service import (
+    create_five_demo_orders,
+    create_one_demo_order,
+    get_current_demo_state,
+    reset_demo_scene,
+    set_demo_enabled,
+)
 from backend.services.order_service import (
     create_order,
     get_order_by_id,
@@ -125,17 +132,54 @@ def register_routes(app):
 
         start_point = data.get("start_point")
         end_point = data.get("end_point")
+        remark = data.get("remark")
 
         if not start_point or not end_point:
             return jsonify({"error": "start_point and end_point are required"}), 400
 
         with state_lock:
             try:
-                order = create_order(start_point, end_point, source="manual")
+                order = create_order(start_point, end_point, source="manual", remark=remark)
             except ValueError as error:
                 return jsonify({"error": str(error)}), 400
 
             return jsonify(serialize_order(order)), 201
+
+    @app.route("/api/demo", methods=["GET"])
+    def get_demo():
+        """返回演示控制状态。"""
+        ensure_workers_started(app)
+        with state_lock:
+            return jsonify(get_current_demo_state())
+
+    @app.route("/api/demo/mode", methods=["POST"])
+    def set_demo_mode_view():
+        """切换演示模式：演示模式会暂停自动仿真订单。"""
+        ensure_workers_started(app)
+        data = request.get_json() or {}
+        with state_lock:
+            return jsonify(set_demo_enabled(bool(data.get("enabled"))))
+
+    @app.route("/api/demo/reset", methods=["POST"])
+    def reset_demo():
+        """重置演示场景：清空订单并让小车回到默认待命点。"""
+        ensure_workers_started(app)
+        with state_lock:
+            return jsonify(reset_demo_scene())
+
+    @app.route("/api/demo/order-one", methods=["POST"])
+    def add_one_demo_order():
+        """创建一单标准演示订单。"""
+        ensure_workers_started(app)
+        with state_lock:
+            return jsonify(create_one_demo_order()), 201
+
+    @app.route("/api/demo/order-five", methods=["POST"])
+    def add_five_demo_orders():
+        """创建五单标准演示订单。"""
+        ensure_workers_started(app)
+        with state_lock:
+            return jsonify(create_five_demo_orders()), 201
 
     @app.route("/api/path", methods=["POST"])
     def get_path():
