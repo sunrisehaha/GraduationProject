@@ -1,239 +1,230 @@
 # 智慧园区快递配送系统
 
-一个面向毕业设计场景的园区配送演示项目：左侧是 2.5D 园区地图，右侧是订单历史与交互面板，后台持续模拟订单生成、自动调度小车、推进配送过程，并把状态通过 ORM 和数据库保留下来。
+这是一个面向毕业设计展示的智慧园区快递配送系统。
 
-## 导航
-- [项目亮点](#项目亮点)
-- [界面预览](#界面预览)
-- [技术栈](#技术栈)
-- [项目结构](#项目结构)
-- [核心业务流](#核心业务流)
-- [从零构建理解路线](#从零构建理解路线)
-- [快速启动](#快速启动)
-- [数据库与迁移](#数据库与迁移)
-- [重要文件导航](#重要文件导航)
-- [后续可扩展方向](#后续可扩展方向)
+项目用一个可视化看板串起完整业务链：用户创建配送订单，后端根据园区道路和小车位置自动调度车辆，通过 A* 算法规划路径，再持续推进小车移动，并把订单状态、调度过程和事件历史记录到数据库中。
 
-## 项目亮点
-- 园区地图不只是静态背景，而是会随着订单、小车、路径一起刷新。
-- 订单不再只是“当前状态”，还记录了事件时间线，便于回看配送过程。
-- 前端界面聚焦“一屏看全局”，减少长侧栏滚动，把地图放回主视觉。
-- 后端已经走 ORM 路线，后续新增表、字段、事件记录都更顺。
+![系统界面预览](./frontend/public/preview/dashboard.png)
 
-## 界面预览
-当前界面分成三块：
+## 项目现在能做什么
 
-1. 顶部总览区  
-   展示系统状态、刷新时间、订单和小车的整体统计。
+- 展示 3D 风格园区地图，地图上能看到道路、建筑、业务点位和配送小车。
+- 支持手动创建订单，选择真实园区业务点作为起点，输入楼栋或地址作为终点。
+- 后台自动扫描待配送订单，把订单分配给最近且可达的空闲小车。
+- 使用 A* 算法在园区网格中规划路径，避开建筑和禁行区。
+- 小车会沿路径逐步移动，订单状态会从待调度推进到已分配、配送中、已完成。
+- 记录订单事件时间线，方便在订单历史中回看配送过程。
+- 提供演示控制面板，答辩时可以重置场景、创建 1 单演示或 5 单并行演示。
+- 展示调度解释，说明系统为什么选择某辆小车，而不是只给一个分配结果。
 
-2. 左侧主区  
-   [园区配送地图](./frontend/src/components/map/ParkMap.vue) 负责承接主视觉，旁边和下方配合当前任务与车队状态。
+## 核心业务流程
 
-3. 右侧交互区  
-   [创建订单卡片](./frontend/src/components/panels/CreateOrderCard.vue)、[订单历史卡片](./frontend/src/components/panels/OrderHistoryCard.vue)、[系统日志卡片](./frontend/src/components/panels/SystemLogCard.vue) 负责输入、回看和反馈。
+```text
+创建订单
+  ↓
+保存订单、起终点和订单事件
+  ↓
+调度器扫描待处理订单
+  ↓
+计算每辆空闲小车到取件点的路径
+  ↓
+选择最近且可达的小车
+  ↓
+规划完整配送路径
+  ↓
+后台线程推动小车移动
+  ↓
+订单状态和事件持续更新
+  ↓
+前端轮询接口并刷新看板
+```
 
-整体风格走的是“清爽的浅色科技看板”，希望保留一点园区调度中心的精密感，但不让人长时间盯着页面时觉得压抑。
+这条链路是项目的主线。页面效果、数据库设计和调度逻辑都是围绕它展开的。
 
 ## 技术栈
+
 ### 前端
+
 - Vue 3
 - Vite
 - Composition API
-- Canvas 2D / Three.js 园区地图展示
+- Three.js
 
 ### 后端
+
 - Flask
 - Flask-SQLAlchemy
 - Flask-Migrate
 
-### 数据层
+### 数据库
+
 - SQLite
-- Alembic 迁移
+- Alembic 数据库迁移
 
 ## 项目结构
+
 ```text
 GraduationProject/
-├── app.py                     # 根启动入口，保持 python app.py 的使用方式
+├── app.py                         # 根启动入口，保留 python app.py 的启动方式
 ├── backend/
-│   ├── app.py                 # Flask 应用入口、接口注册、前端资源托管
-│   ├── astar.py               # A* 路径规划
-│   ├── config.py              # 数据库配置
-│   ├── extensions.py          # db / migrate 扩展初始化
-│   ├── runtime.py             # 地图尺寸、障碍物、线程锁
-│   ├── scheduler.py           # 后台线程循环入口
-│   ├── models/                # ORM 模型定义
-│   └── services/              # 业务服务层
+│   ├── app.py                     # Flask 应用、接口注册、前端资源托管
+│   ├── astar.py                   # A* 路径规划
+│   ├── campus_rules.py            # 读取统一园区规则
+│   ├── runtime.py                 # 运行时地图规则、锁和演示状态
+│   ├── scheduler.py               # 后台调度线程入口
+│   ├── models/                    # ORM 模型
+│   └── services/                  # 订单、调度、小车和演示业务逻辑
 ├── frontend/
-│   ├── src/views/             # 页面视图
-│   ├── src/components/        # 布局、地图、卡片组件
-│   ├── src/composables/       # 页面状态与地图渲染逻辑
-│   └── src/styles/            # 全局样式
-├── migrations/                # 数据库迁移记录
-└── data/                      # 本地数据库与示例数据
+│   ├── src/views/                 # 页面入口
+│   ├── src/components/            # 地图、看板卡片和布局组件
+│   ├── src/composables/           # 前端状态、地图渲染和业务数据整理
+│   ├── src/api/                   # 后端接口封装
+│   └── public/scene/              # 3D 场景和地图静态资源
+├── shared/
+│   └── campus_rules.json          # 前后端共用的园区世界规则
+├── migrations/                    # 数据库迁移文件
+└── requirements.txt               # Python 依赖
 ```
 
-## 核心业务流
-### 1. 创建订单
-用户在 [创建订单卡片](./frontend/src/components/panels/CreateOrderCard.vue) 输入起点和终点，前端调用 [订单接口模块](./frontend/src/api/orders.js)，后端再通过 [订单服务](./backend/services/order_service.py) 写入订单主表、点位表和事件表。
+## 关键设计
 
-### 2. 自动调度
-[调度线程](./backend/scheduler.py) 会持续运行，真正的调度决策写在 [dispatch_service.py](./backend/services/dispatch_service.py)：
-- 找待调度订单
-- 计算每辆空闲小车的路径长度
-- 按最近原则分配小车
+### 1. 园区规则统一
 
-### 3. 路径规划
-[astar.py](./backend/astar.py) 用 A* 算法在 20 x 12 的地图网格上规划路径，避开障碍物区域。
+园区地图不是前端和后端各写一份。
 
-### 4. 状态回放
-订单状态变化会写入 [订单事件表](./backend/models/order_event.py)，前端在历史卡片中直接展示这些事件，形成一条“配送时间线”。
+[shared/campus_rules.json](./shared/campus_rules.json) 统一保存地图尺寸、建筑禁行区、道路、业务点位、默认小车和演示订单。后端通过 [campus_rules.py](./backend/campus_rules.py) 读取这份规则，前端也基于同一套规则展示业务地图。
 
-## 从零构建理解路线
-如果从零开始做这个项目，最稳的顺序不是先做页面，而是先做业务闭环：
+这样做的好处是：地图展示、路径规划和演示订单不会互相打架。
 
-```text
-地图规则
-  ↓
-路径规划
-  ↓
-数据模型
-  ↓
-订单创建
-  ↓
-自动调度
-  ↓
-小车移动
-  ↓
-查询接口
-  ↓
-前端轮询
-  ↓
-看板展示
-  ↓
-地图视觉升级
-```
+### 2. 后端按业务分层
 
-### 1. 先定义世界规则
-先确定园区是一个 `20 x 12` 网格，哪些格子是障碍物，小车和订单点位都在这个网格里表达。
+路由层主要负责接收请求和返回 JSON，真正的业务逻辑放在 `backend/services/`：
 
-对应文件：[runtime.py](./backend/runtime.py)
+- [order_service.py](./backend/services/order_service.py)：订单创建、查询、状态更新、事件记录。
+- [dispatch_service.py](./backend/services/dispatch_service.py)：订单分配、小车推进、调度解释。
+- [cart_service.py](./backend/services/cart_service.py)：小车查询、重置和状态维护。
+- [demo_service.py](./backend/services/demo_service.py)：答辩演示场景控制。
 
-### 2. 再实现路径规划
-用 A* 根据起点、终点和障碍物算出一条路径。这里先不考虑订单和页面，只解决“怎么从 A 点走到 B 点”。
+这样比把所有逻辑塞进 Flask 路由函数里更清楚，也更方便讲解。
 
-对应文件：[astar.py](./backend/astar.py)
+### 3. 调度策略简单但可解释
 
-### 3. 再设计最小数据模型
-系统至少要记住订单、小车、订单点位和订单事件。订单负责业务状态，小车负责当前位置和当前路径。
+当前调度策略是“最近空闲车优先”：
 
-对应目录：[models](./backend/models/)
+1. 找出所有待调度订单。
+2. 遍历全部小车。
+3. 跳过正在执行任务的小车。
+4. 计算空闲小车到取件点的路径长度。
+5. 选择路径最短且可达的小车。
+6. 保存候选小车比较结果，供前端展示调度解释。
 
-### 4. 再做订单创建
-前端提交起点和终点，后端创建一条 `pending` 订单。此时系统只是能接收任务，还没有自动调度。
+这不是最复杂的算法，但适合毕业设计：规则清楚、结果可验证、容易扩展成多策略对比。
 
-对应文件：[order_service.py](./backend/services/order_service.py)
+### 4. 前端看板只展示整理后的状态
 
-### 5. 再做调度逻辑
-调度器扫描 `pending` 订单，找到空闲小车，计算完整路径，并把订单分给路径最短的小车。
+页面入口是 [DashboardView.vue](./frontend/src/views/DashboardView.vue)，但它不直接写复杂数据逻辑。
 
-对应文件：[dispatch_service.py](./backend/services/dispatch_service.py)
+主要状态收敛在 [useDashboardData.js](./frontend/src/composables/useDashboardData.js)：
 
-### 6. 再做后台推进
-后台线程定时做三件事：分配订单、推动小车前进一步、生成仿真订单。这样系统不用手动点击也能持续运行。
+- 每秒轮询订单、小车、演示状态和调度解释。
+- 整理顶部统计数字。
+- 选出当前最重要的任务。
+- 生成订单历史、车队状态和系统日志。
+- 把后端原始状态翻译成页面可读的中文。
 
-对应文件：[scheduler.py](./backend/scheduler.py)
-
-### 7. 再做后端接口
-前端需要通过接口拿到订单、小车和路径数据，所以 Flask 负责把业务服务包装成 HTTP 接口。
-
-对应文件：[backend/app.py](./backend/app.py)
-
-### 8. 再做前端数据中心
-前端每秒轮询后端，把原始订单和小车整理成当前任务、当前路径、统计数字和历史列表。
-
-对应文件：[useDashboardData.js](./frontend/src/composables/useDashboardData.js)
-
-### 9. 再做基础看板
-页面先把核心信息展示清楚：顶部统计、当前任务、订单创建、订单历史、车队状态和地图区域。
-
-对应文件：[DashboardView.vue](./frontend/src/views/DashboardView.vue)
-
-### 10. 最后做地图视觉升级
-地图只是展示层。业务数据已经跑通后，再从基础地图升级到 Three.js 场景，避免一开始就被视觉复杂度拖住。
-
-对应文件：[ParkMap.vue](./frontend/src/components/map/ParkMap.vue)、[useThreeMapScene.js](./frontend/src/composables/useThreeMapScene.js)
+地图组件 [ParkMap.vue](./frontend/src/components/map/ParkMap.vue) 只负责展示地图、小车和当前路径。
 
 ## 快速启动
-### 1. 安装依赖
+
+### 1. 安装后端依赖
+
 ```bash
 pip install -r requirements.txt
+```
+
+### 2. 安装并构建前端
+
+```bash
 cd frontend
 npm install
+npm run build
 cd ..
 ```
 
-### 2. 启动项目
+### 3. 启动项目
+
 ```bash
 python app.py
 ```
 
-默认会在本地启动 Flask 服务，并托管 `frontend/dist` 下的前端资源。
+访问地址：
 
-### 3. 前端开发构建
-如果你修改了 Vue 页面，需要重新打包：
+```text
+http://127.0.0.1:5001
+```
+
+## 开发时常用命令
+
+如果只改后端，直接重启：
+
+```bash
+python app.py
+```
+
+如果改了前端页面，需要重新构建：
 
 ```bash
 cd frontend
 npm run build
+cd ..
+python app.py
 ```
 
-## 数据库与迁移
-### ORM 模型入口
-- [订单主表模型](./backend/models/order.py)
-- [订单点位模型](./backend/models/order_point.py)
-- [订单事件模型](./backend/models/order_event.py)
-- [小车模型](./backend/models/cart.py)
+如果需要生成数据库迁移：
 
-### 常用迁移命令
 ```bash
 flask --app app db migrate -m "描述这次表结构变化"
 flask --app app db upgrade
 ```
 
-### 本地数据库文件
-数据库默认在：
+## 数据库说明
+
+项目默认使用 SQLite，数据库文件位于：
 
 ```text
 data/project.db
 ```
 
-如果只是提交代码，通常只需要提交模型和迁移，不需要提交数据库运行产物。
+主要模型：
 
-## 重要文件导航
-- [应用入口](./backend/app.py)
-- [调度循环](./backend/scheduler.py)
-- [订单服务](./backend/services/order_service.py)
-- [调度服务](./backend/services/dispatch_service.py)
-- [页面状态中心](./frontend/src/composables/useDashboardData.js)
-- [地图渲染模块](./frontend/src/composables/useMapScene.js)
-- [看板页面](./frontend/src/views/DashboardView.vue)
-- [项目协作说明](./AGENTS.md)
+- [Order](./backend/models/order.py)：订单主表，记录订单编号、状态、来源、分配小车和路径。
+- [OrderPoint](./backend/models/order_point.py)：订单起点和终点。
+- [OrderEvent](./backend/models/order_event.py)：订单事件时间线。
+- [Cart](./backend/models/cart.py)：配送小车状态、当前位置和当前路径。
 
-## 后续可扩展方向
-- 订单取消
-- 订单筛选接口进一步细化
-- 小车维护 / 离线状态
-- 订单详情独立页面
-- 多种调度策略对比
-- 历史统计图表
+数据库运行文件不应该提交到仓库，迁移文件和模型代码才是需要保留的内容。
 
----
+## 推荐阅读顺序
 
-如果你刚接触这个项目，最推荐的阅读顺序是：
+如果是第一次看这个项目，建议按这个顺序读：
 
-1. 先看 [README](./README.md)
-2. 再看 [DashboardView.vue](./frontend/src/views/DashboardView.vue)
-3. 然后看 [useDashboardData.js](./frontend/src/composables/useDashboardData.js)
-4. 最后回到后端的 [order_service.py](./backend/services/order_service.py) 和 [dispatch_service.py](./backend/services/dispatch_service.py)
+1. [shared/campus_rules.json](./shared/campus_rules.json)：先理解园区世界规则。
+2. [backend/astar.py](./backend/astar.py)：再看路径是怎么规划出来的。
+3. [backend/models/](./backend/models/)：理解系统需要保存哪些数据。
+4. [backend/services/order_service.py](./backend/services/order_service.py)：看订单如何创建和记录事件。
+5. [backend/services/dispatch_service.py](./backend/services/dispatch_service.py)：看小车如何接单和移动。
+6. [frontend/src/composables/useDashboardData.js](./frontend/src/composables/useDashboardData.js)：看前端如何整理后端数据。
+7. [frontend/src/views/DashboardView.vue](./frontend/src/views/DashboardView.vue)：最后看页面如何组织各个组件。
 
-这样会比一开始就扎进 ORM 或调度线程里更容易理解全局。
+## 后续可以扩展什么
+
+- 订单取消和重新调度。
+- 小车离线、维护、载重等状态。
+- 多种调度策略对比，例如最近距离、最少任务、优先级订单。
+- 订单统计图表，例如完成时长、每日订单量、小车利用率。
+- 独立订单详情页。
+- 更完整的权限和后台管理页面。
+
+## 一句话总结
+
+这个项目的重点不是堆页面，而是把“园区规则、订单创建、自动调度、路径规划、小车移动、状态回放”串成一条能运行、能展示、也能讲清楚的业务闭环。
