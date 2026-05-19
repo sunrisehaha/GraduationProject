@@ -27,7 +27,6 @@ export const campusSceneConfig = {
   },
   modelUrls: {
     campus: '/scene/campus/campus.glb?v=building-y-flip-road-rules-20260506',
-    vehicle: '/scene/bruno/vehicle/default.glb',
     oakTrees: '/scene/bruno/oakTrees/oakTreesVisual.glb',
     birchTrees: '/scene/bruno/birchTrees/birchTreesVisual.glb',
     cherryTrees: '/scene/bruno/cherryTrees/cherryTreesVisual.glb',

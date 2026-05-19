@@ -1,17 +1,17 @@
 <script setup>
 // 看板页：只负责组织页面结构，真正的数据和交互都放在 composable 里。
-import { useDashboardData } from '../composables/useDashboardData'
-import CollapsibleSection from '../components/layout/CollapsibleSection.vue'
-import TopBar from '../components/layout/TopBar.vue'
-import StatsBar from '../components/layout/StatsBar.vue'
-import ParkMap from '../components/map/ParkMap.vue'
-import CreateOrderCard from '../components/panels/CreateOrderCard.vue'
-import CurrentTaskCard from '../components/panels/CurrentTaskCard.vue'
-import DemoControlCard from '../components/panels/DemoControlCard.vue'
-import DispatchExplanationCard from '../components/panels/DispatchExplanationCard.vue'
-import FleetStatusCard from '../components/panels/FleetStatusCard.vue'
-import OrderHistoryCard from '../components/panels/OrderHistoryCard.vue'
-import SystemLogCard from '../components/panels/SystemLogCard.vue'
+import { useDashboardData } from './composables/useDashboardData'
+import CollapsibleSection from './components/layout/CollapsibleSection.vue'
+import TopBar from './components/layout/TopBar.vue'
+import StatsBar from './components/layout/StatsBar.vue'
+import ParkMap from './components/map/ParkMap.vue'
+import CreateOrderCard from './components/panels/CreateOrderCard.vue'
+import CurrentTaskCard from './components/panels/CurrentTaskCard.vue'
+import DemoControlCard from './components/panels/DemoControlCard.vue'
+import DispatchExplanationCard from './components/panels/DispatchExplanationCard.vue'
+import FleetStatusCard from './components/panels/FleetStatusCard.vue'
+import OrderHistoryCard from './components/panels/OrderHistoryCard.vue'
+import SystemLogCard from './components/panels/SystemLogCard.vue'
 
 const {
   carts,

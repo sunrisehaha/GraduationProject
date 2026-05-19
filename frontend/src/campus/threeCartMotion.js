@@ -92,18 +92,9 @@ function createFallbackVehicle() {
   return group
 }
 
-function createVehicleModel(state, helpers) {
-  const source = state.assets.vehicle
-
-  if (!source) {
-    return createFallbackVehicle()
-  }
-
-  const clone = source.clone(true)
-  helpers.markImportedAsset(clone)
-  helpers.fitToSize(clone, 1.45)
-  clone.rotation.y = Math.PI
-  return clone
+function createVehicleModel() {
+  // 使用项目自己的绿色配送车，避免开发端和后端托管页因为外部模型加载状态不同而显示不一致。
+  return createFallbackVehicle()
 }
 
 function ensureCartObject(state, cart, helpers) {
@@ -120,8 +111,23 @@ function ensureCartObject(state, cart, helpers) {
   ring.rotation.x = Math.PI / 2
   ring.position.y = 0.04
 
+  const activeHalo = new THREE.Mesh(
+    new THREE.TorusGeometry(1.02, 0.065, 12, 64),
+    helpers.createGlowMaterial('#34d399', 0.86)
+  )
+  activeHalo.rotation.x = Math.PI / 2
+  activeHalo.position.y = 0.08
+  activeHalo.visible = false
+
+  const statusColumn = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.42, 0.58, 1.15, 24, 1, true),
+    helpers.createGlowMaterial('#34d399', 0.14)
+  )
+  statusColumn.position.y = 0.7
+  statusColumn.visible = false
+
   const group = new THREE.Group()
-  group.add(model, ring)
+  group.add(model, ring, activeHalo, statusColumn)
   state.cartRoot.add(group)
 
   const wheels = []
@@ -135,6 +141,8 @@ function ensureCartObject(state, cart, helpers) {
   const entry = {
     group,
     ring,
+    activeHalo,
+    statusColumn,
     wheels,
     lastPosition: new THREE.Vector3(),
     routePathKey: null,
@@ -231,8 +239,11 @@ export function syncCartObjects(state, carts, activeCartId, helpers) {
     syncCartRoute(entry, cart, nextPosition)
     entry.group.userData.cartStatus = cart.status
     entry.group.userData.isActive = cart.id === activeCartId
-    entry.ring.material.color.set(cart.id === activeCartId ? '#34d399' : '#60a5fa')
-    entry.ring.material.opacity = cart.id === activeCartId ? 0.82 : 0.42
+    const isActiveCart = cart.id === activeCartId
+    entry.ring.material.color.set(isActiveCart ? '#34d399' : '#60a5fa')
+    entry.ring.material.opacity = isActiveCart ? 0.92 : 0.42
+    entry.activeHalo.visible = isActiveCart
+    entry.statusColumn.visible = isActiveCart
   })
 }
 
@@ -276,5 +287,16 @@ export function updateCartAnimations(state, delta) {
       })
       entry.lastPosition.copy(entry.group.position)
     }
+
+    if (entry.group.userData.isActive) {
+      const wave = Math.sin(performance.now() * 0.004)
+      const scale = 1 + (wave + 1) * 0.08
+      entry.activeHalo.scale.set(scale, scale, scale)
+      entry.activeHalo.material.opacity = 0.62 + (wave + 1) * 0.12
+      entry.statusColumn.material.opacity = 0.08 + (wave + 1) * 0.05
+      return
+    }
+
+    entry.activeHalo.scale.setScalar(1)
   })
 }

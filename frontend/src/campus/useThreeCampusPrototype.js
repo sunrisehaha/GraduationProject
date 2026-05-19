@@ -16,7 +16,7 @@ import {
 } from './threeCartMotion.js'
 const markerColors = {
   start: '#34d399',
-  end: '#fb7185',
+  end: '#f97316',
 }
 const anchorColors = {
   gate: '#7dd3fc',
@@ -256,18 +256,18 @@ function addAnchorEffects(state) {
     const color = anchorColors[anchor.type] || '#7dd3fc'
 
     const ring = new THREE.Mesh(
-      new THREE.RingGeometry(0.34, 0.48, 48),
-      createGlowMaterial(color, 0.48)
+      new THREE.RingGeometry(0.42, 0.6, 56),
+      createGlowMaterial(color, 0.5)
     )
     ring.rotation.x = -Math.PI / 2
-    ring.position.set(world.x, world.y + 0.02, world.z)
+    ring.position.set(world.x, world.y + 0.035, world.z)
     state.effectRoot.add(ring)
 
     const halo = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.12, 0.24, 1.5, 16, 1, true),
-      createGlowMaterial(color, 0.14)
+      new THREE.CylinderGeometry(0.14, 0.3, 1.8, 18, 1, true),
+      createGlowMaterial(color, 0.12)
     )
-    halo.position.set(world.x, world.y + 0.78, world.z)
+    halo.position.set(world.x, world.y + 0.94, world.z)
     state.effectRoot.add(halo)
 
     state.pulseObjects.push({
@@ -296,60 +296,155 @@ function createPathLine(points) {
   }
 
   const worldPoints = points.map((point) => {
-    const world = gridPointToWorld(point, campusSceneConfig.groundY + 0.06)
+    const world = gridPointToWorld(point, campusSceneConfig.groundY + 0.18)
     return new THREE.Vector3(world.x, world.y, world.z)
   })
 
-  const geometry = new THREE.BufferGeometry().setFromPoints(worldPoints)
-  const material = new THREE.LineDashedMaterial({
-    color: '#38bdf8',
-    dashSize: 0.34,
-    gapSize: 0.16,
+  const pathGroup = new THREE.Group()
+  const pathSegments = []
+  const pathMaterial = new THREE.MeshBasicMaterial({
+    color: '#0ea5e9',
     transparent: true,
-    opacity: 0.94,
+    opacity: 0.92,
+    depthWrite: false,
   })
-  const line = new THREE.Line(geometry, material)
-  line.computeLineDistances()
-  return line
+  const glowMaterial = createGlowMaterial('#38bdf8', 0.22)
+
+  for (let index = 0; index < worldPoints.length - 1; index += 1) {
+    const start = worldPoints[index]
+    const end = worldPoints[index + 1]
+    const direction = end.clone().sub(start)
+    const length = direction.length()
+
+    if (length <= 0.001) {
+      continue
+    }
+
+    const center = start.clone().add(end).multiplyScalar(0.5)
+    const rotation = new THREE.Quaternion().setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      direction.clone().normalize()
+    )
+
+    const segment = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.08, 0.08, length, 12),
+      pathMaterial
+    )
+    segment.position.copy(center)
+    segment.quaternion.copy(rotation)
+    segment.name = 'current_task_path_segment'
+    pathGroup.add(segment)
+    pathSegments.push(segment)
+
+    const glow = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.17, 0.17, length, 12),
+      glowMaterial
+    )
+    glow.position.copy(center)
+    glow.quaternion.copy(rotation)
+    glow.name = 'current_task_path_glow_segment'
+    pathGroup.add(glow)
+  }
+
+  worldPoints.forEach((position, index) => {
+    if (index % 2 !== 0 && index !== worldPoints.length - 1) {
+      return
+    }
+
+    const bead = new THREE.Mesh(
+      new THREE.SphereGeometry(0.12, 16, 12),
+      createGlowMaterial('#7dd3fc', 0.62)
+    )
+    bead.position.copy(position)
+    pathGroup.add(bead)
+  })
+
+  pathGroup.userData.pathGlowMaterial = glowMaterial
+  pathGroup.userData.pathMaterial = pathMaterial
+  pathGroup.userData.pathSegments = pathSegments
+  pathGroup.userData.pathBeads = pathGroup.children.filter((child) => !child.name.includes('path_'))
+  return pathGroup
+}
+
+function createMarkerLabel(text, color) {
+  const canvas = document.createElement('canvas')
+  canvas.width = 256
+  canvas.height = 96
+  const context = canvas.getContext('2d')
+  context.fillStyle = 'rgba(255, 255, 255, 0.88)'
+  context.strokeStyle = color
+  context.lineWidth = 5
+  context.roundRect(10, 16, 236, 58, 18)
+  context.fill()
+  context.stroke()
+  context.fillStyle = '#20313d'
+  context.font = '700 28px sans-serif'
+  context.textAlign = 'center'
+  context.textBaseline = 'middle'
+  context.fillText(text, 128, 45)
+
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  const sprite = new THREE.Sprite(
+    new THREE.SpriteMaterial({
+      map: texture,
+      transparent: true,
+      depthWrite: false,
+    })
+  )
+  sprite.scale.set(1.9, 0.72, 1)
+  sprite.position.y = 1.95
+  sprite.userData.labelTexture = texture
+  return sprite
 }
 
 function createMarker(point, type) {
   const color = markerColors[type]
+  const labelText = type === 'start' ? '取件点' : '配送终点'
   const marker = new THREE.Group()
   const world = gridPointToWorld(point, campusSceneConfig.groundY)
 
   const pillar = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.08, 0.12, 0.86, 18),
+    new THREE.CylinderGeometry(0.12, 0.18, 1.18, 24),
     new THREE.MeshStandardMaterial({
       color,
       emissive: color,
-      emissiveIntensity: 0.28,
-      roughness: 0.42,
-      metalness: 0.12,
+      emissiveIntensity: 0.46,
+      roughness: 0.36,
+      metalness: 0.1,
     })
   )
-  pillar.position.y = 0.47
+  pillar.position.y = 0.64
   pillar.castShadow = true
   pillar.receiveShadow = true
   marker.add(pillar)
 
   const ring = new THREE.Mesh(
-    new THREE.RingGeometry(0.28, 0.42, 36),
-    createGlowMaterial(color, 0.62)
+    new THREE.RingGeometry(0.48, 0.74, 56),
+    createGlowMaterial(color, 0.72)
   )
   ring.rotation.x = -Math.PI / 2
-  ring.position.y = 0.03
+  ring.position.y = 0.04
   marker.add(ring)
 
-  const orb = new THREE.Mesh(
-    new THREE.SphereGeometry(0.12, 20, 16),
-    createGlowMaterial(color, 0.95)
+  const glowColumn = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.22, 0.34, 1.7, 24, 1, true),
+    createGlowMaterial(color, 0.18)
   )
-  orb.position.y = 0.93
+  glowColumn.position.y = 0.92
+  marker.add(glowColumn)
+
+  const orb = new THREE.Mesh(
+    new THREE.SphereGeometry(0.18, 24, 18),
+    createGlowMaterial(color, 0.96)
+  )
+  orb.position.y = 1.28
   marker.add(orb)
 
+  marker.add(createMarkerLabel(labelText, color))
+
   marker.position.set(world.x, world.y, world.z)
-  marker.userData.pulseParts = [pillar, ring, orb]
+  marker.userData.pulseParts = [pillar, ring, glowColumn, orb]
   return marker
 }
 
@@ -359,6 +454,7 @@ function disposeObject(object) {
       return
     }
 
+    child.userData.labelTexture?.dispose()
     child.geometry?.dispose()
 
     if (child.material) {
@@ -449,9 +545,15 @@ function updateEnvironmentalAnimations(state, elapsedSeconds) {
     }
   })
 
-  if (state.pathLine?.material) {
-    state.pathLine.material.dashOffset = -elapsedSeconds * 1.6
-    state.pathLine.material.opacity = 0.74 + Math.sin(elapsedSeconds * 3.2) * 0.1
+  if (state.pathLine?.userData.pathSegments) {
+    const wave = Math.sin(elapsedSeconds * 3.2)
+    state.pathLine.userData.pathMaterial.opacity = 0.84 + (wave + 1) * 0.04
+    state.pathLine.userData.pathGlowMaterial.opacity = 0.16 + (wave + 1) * 0.05
+    state.pathLine.userData.pathBeads.forEach((bead, index) => {
+      const beadWave = Math.sin(elapsedSeconds * 4.2 + index * 0.8)
+      bead.scale.setScalar(1 + Math.max(0, beadWave) * 0.32)
+      bead.material.opacity = 0.42 + Math.max(0, beadWave) * 0.34
+    })
   }
 
   state.markerRoot.children.forEach((marker, index) => {

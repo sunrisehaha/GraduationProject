@@ -1,7 +1,7 @@
 <script setup>
 // 地图组件：接收当前任务、小车和订单数据，然后交给 Three.js 场景模块绘制。
 import { computed, ref } from 'vue'
-import { useThreeCampusPrototype } from '../../composables/useThreeCampusPrototype'
+import { useThreeCampusPrototype } from '../../../campus/useThreeCampusPrototype'
 
 const props = defineProps({
   mapInfo: {
@@ -35,7 +35,7 @@ const sceneData = computed(() => ({
   currentPath: props.currentPath,
 }))
 
-// 当前阶段先展示 Bruno 风格 Three.js 原型，业务数据稍后再重新接入。
+// 3D 场景接收实时业务数据，用于突出当前任务、路径和小车位置。
 const { interactionState } = useThreeCampusPrototype(sceneRef, sceneData)
 </script>
 
@@ -44,7 +44,7 @@ const { interactionState } = useThreeCampusPrototype(sceneRef, sceneData)
     <div class="panel-card__header">
       <div>
         <p class="panel-card__eyebrow">MAP OVERVIEW</p>
-        <h2>园区配送地图</h2>
+        <h2>智慧园区 3D 调度沙盘</h2>
       </div>
       <p class="panel-card__desc">{{ mapInfo.summary }}</p>
     </div>
@@ -77,6 +77,21 @@ const { interactionState } = useThreeCampusPrototype(sceneRef, sceneData)
         <p>订单状态：{{ currentTask.status }}</p>
         <p>执行小车：{{ currentTask.cart }}</p>
         <p>路径节点：{{ currentPath.length }}</p>
+      </div>
+
+      <div class="map-visual-legend" aria-hidden="true">
+        <span class="map-visual-legend__item">
+          <i class="map-visual-legend__dot map-visual-legend__dot--start"></i>绿色：取件点
+        </span>
+        <span class="map-visual-legend__item">
+          <i class="map-visual-legend__dot map-visual-legend__dot--end"></i>橙色：配送终点
+        </span>
+        <span class="map-visual-legend__item">
+          <i class="map-visual-legend__dot map-visual-legend__dot--path"></i>蓝色：规划路径
+        </span>
+        <span class="map-visual-legend__item">
+          <i class="map-visual-legend__dot map-visual-legend__dot--cart"></i>高亮小车：当前执行车辆
+        </span>
       </div>
 
       <div
