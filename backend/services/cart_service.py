@@ -23,6 +23,7 @@ def serialize_cart(cart):
         "current_order_id": cart.current_order_id,
         "current_path": _load_path(cart.current_path_json),
         "path_index": cart.path_index,
+        "battery_level": cart.battery_level,
     }
 
 

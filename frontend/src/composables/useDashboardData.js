@@ -322,6 +322,7 @@ export function useDashboardData() {
       ...currentCart.value,
       position: formatPoint(currentCart.value),
       status: getStatusText(currentCart.value.status),
+      batteryText: `${currentCart.value.battery_level ?? 100}%`,
     }
   })
 
@@ -434,6 +435,7 @@ export function useDashboardData() {
         name: cart.name,
         position: formatPoint(cart),
         status: getStatusText(cart.status),
+        batteryText: `${cart.battery_level ?? 100}%`,
         orderId: cart.current_order_id,
         isActive: cart.status !== 'idle',
       }))
@@ -486,8 +488,9 @@ export function useDashboardData() {
     if (!explanation?.order_id) {
       return {
         hasExplanation: false,
-        strategy: '最近空闲车优先',
+        strategy: '电量与车队均衡综合评分',
         summary: '还没有调度决策。',
+        scoreFormula: '',
         candidates: [],
       }
     }
@@ -500,6 +503,7 @@ export function useDashboardData() {
       selectedPathText: explanation.selected_path_length
         ? `${explanation.selected_path_length} 个路径节点`
         : '-',
+      scoreFormula: explanation.score_formula || '',
       candidates: (explanation.candidates || []).map((candidate) => ({
         ...candidate,
         statusText: getStatusText(candidate.status),
@@ -507,6 +511,22 @@ export function useDashboardData() {
           candidate.distance_to_pickup === null || candidate.distance_to_pickup === undefined
             ? '-'
             : `${candidate.distance_to_pickup} 格`,
+        batteryText:
+          candidate.battery_level === null || candidate.battery_level === undefined
+            ? '-'
+            : `${candidate.battery_level}%`,
+        estimatedBatteryText:
+          candidate.estimated_battery_usage === null || candidate.estimated_battery_usage === undefined
+            ? '-'
+            : `${candidate.estimated_battery_usage}%`,
+        recentTaskText:
+          candidate.recent_task_count === null || candidate.recent_task_count === undefined
+            ? '-'
+            : `${candidate.recent_task_count} 单`,
+        scoreText:
+          candidate.score === null || candidate.score === undefined
+            ? '-'
+            : String(candidate.score),
       })),
     }
   })

@@ -39,6 +39,9 @@ class Cart(db.Model):
     # 路径索引：表示当前已经走到路径数组的第几个节点。
     path_index = db.Column(db.Integer, nullable=False, default=0)
 
+    # 电量百分比：用于调度评分，电量越低越不适合继续接远距离任务。
+    battery_level = db.Column(db.Integer, nullable=False, default=100)
+
     # 最后心跳时间：用于以后扩展在线检测或异常监控。
     last_heartbeat_time = db.Column(db.DateTime, nullable=True)
 

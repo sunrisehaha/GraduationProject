@@ -61,6 +61,7 @@ def reset_demo_scene():
         cart.current_order_id = None
         cart.current_path_json = "[]"
         cart.path_index = 0
+        cart.battery_level = 100
 
     db.session.commit()
     set_demo_mode(True)

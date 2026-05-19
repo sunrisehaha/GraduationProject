@@ -128,6 +128,9 @@ defineProps({
                 <span class="history-event-item__time">{{ event.create_time || '-' }}</span>
               </div>
               <p class="history-event-item__desc">{{ event.event_desc }}</p>
+              <p v-if="event.extra?.dispatch_summary" class="history-event-item__extra">
+                {{ event.extra.dispatch_summary }}
+              </p>
             </article>
 
             <p v-if="!selectedOrder.events.length" class="empty-text">该订单暂时还没有事件记录。</p>

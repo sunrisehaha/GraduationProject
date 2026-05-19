@@ -27,6 +27,7 @@ def upgrade():
     sa.Column('current_order_id', sa.Integer(), nullable=True),
     sa.Column('current_path_json', sa.Text(), nullable=False),
     sa.Column('path_index', sa.Integer(), nullable=False),
+    sa.Column('battery_level', sa.Integer(), nullable=False),
     sa.Column('last_heartbeat_time', sa.DateTime(), nullable=True),
     sa.Column('create_time', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id'),

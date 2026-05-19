@@ -45,6 +45,10 @@ defineProps({
         <span class="info-row__label">运行状态</span>
         <span class="info-row__value info-row__value--badge">{{ currentCart?.status || '未知' }}</span>
       </div>
+      <div class="info-row">
+        <span class="info-row__label">当前电量</span>
+        <span class="info-row__value">{{ currentCart?.batteryText || '-' }}</span>
+      </div>
     </div>
 
     <ul class="mini-list mini-list--scroll">
@@ -56,6 +60,7 @@ defineProps({
           </span>
         </div>
         <p class="mini-list__meta">坐标：{{ cart.position }}</p>
+        <p class="mini-list__meta">电量：{{ cart.batteryText }}</p>
         <p class="mini-list__meta">任务：{{ cart.orderId ? `#${cart.orderId}` : '无' }}</p>
       </li>
     </ul>

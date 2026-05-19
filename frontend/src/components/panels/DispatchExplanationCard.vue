@@ -1,5 +1,5 @@
 <script setup>
-// 调度解释卡片：展示最近空闲车优先策略的候选车比较过程。
+// 调度解释卡片：展示电量、距离和车队均衡共同参与的候选车评分过程。
 defineProps({
   explanation: {
     type: Object,
@@ -22,6 +22,9 @@ defineProps({
       <div class="panel-note">
         <p class="panel-note__title">{{ explanation.strategy }}</p>
         <p class="panel-note__text">{{ explanation.summary }}</p>
+        <p v-if="explanation.scoreFormula" class="panel-note__text">
+          评分：{{ explanation.scoreFormula }}
+        </p>
       </div>
 
       <div class="info-stack">
@@ -45,7 +48,11 @@ defineProps({
             <tr>
               <th>小车</th>
               <th>状态</th>
-              <th>到取件点</th>
+              <th>空驶</th>
+              <th>电量</th>
+              <th>预计耗电</th>
+              <th>近期任务</th>
+              <th>综合分</th>
               <th>结果</th>
             </tr>
           </thead>
@@ -58,6 +65,10 @@ defineProps({
               <td>{{ candidate.cart_name }}</td>
               <td>{{ candidate.statusText }}</td>
               <td>{{ candidate.distanceText }}</td>
+              <td>{{ candidate.batteryText }}</td>
+              <td>{{ candidate.estimatedBatteryText }}</td>
+              <td>{{ candidate.recentTaskText }}</td>
+              <td>{{ candidate.scoreText }}</td>
               <td>{{ candidate.result }}</td>
             </tr>
           </tbody>

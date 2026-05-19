@@ -6,7 +6,7 @@
 
 import json
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from backend.campus_rules import CAMPUS_RULES, service_points_by_ids
 from backend.extensions import db
@@ -232,6 +232,15 @@ def get_pending_orders():
     return Order.query.filter_by(status="pending").order_by(Order.id.asc()).all()
 
 
+def count_recent_cart_assignments(cart_id, minutes=30):
+    """统计小车近期接单数：用于调度时做车队使用均衡。"""
+    since_time = datetime.utcnow() - timedelta(minutes=minutes)
+    return Order.query.filter(
+        Order.assigned_cart_id == cart_id,
+        Order.create_time >= since_time,
+    ).count()
+
+
 def count_active_orders():
     """统计活动订单数：仿真线程依赖它来控制新订单生成频率。"""
     return Order.query.filter(Order.status.in_(ACTIVE_ORDER_STATUSES)).count()
@@ -243,7 +252,7 @@ def get_order_start_end(order):
     return points.get("start"), points.get("end")
 
 
-def set_order_assignment(order, cart, path, status):
+def set_order_assignment(order, cart, path, status, dispatch_explanation=None):
     """写入订单分配结果：订单主表和事件表一起更新。"""
     order.assigned_cart_id = cart.id
     order.status = status
@@ -256,7 +265,12 @@ def set_order_assignment(order, cart, path, status):
         order,
         "assigned",
         f"订单已分配给小车 #{cart.id}",
-        extra={"cart_id": cart.id, "status": status},
+        extra={
+            "cart_id": cart.id,
+            "status": status,
+            "dispatch_summary": dispatch_explanation.get("summary") if dispatch_explanation else None,
+            "dispatch": dispatch_explanation,
+        },
     )
 
 

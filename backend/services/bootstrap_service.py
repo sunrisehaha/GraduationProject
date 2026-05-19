@@ -57,6 +57,22 @@ def ensure_order_point_label_column():
     db.session.remove()
 
 
+def ensure_cart_battery_level_column():
+    """补齐小车电量列：旧数据库升级后也能参与电量调度评分。"""
+    with db.engine.begin() as connection:
+        columns = {
+            row["name"]
+            for row in connection.execute(text("PRAGMA table_info(carts)")).mappings().all()
+        }
+
+        if "battery_level" not in columns:
+            connection.execute(text("ALTER TABLE carts ADD COLUMN battery_level INTEGER NOT NULL DEFAULT 100"))
+
+        connection.execute(text("UPDATE carts SET battery_level = 100 WHERE battery_level IS NULL"))
+
+    db.session.remove()
+
+
 def seed_carts():
     """注入默认小车：只有空库时才执行，避免重复写入。"""
     if Cart.query.first():
@@ -70,6 +86,7 @@ def seed_carts():
                 status="idle",
                 current_x=item["x"],
                 current_y=item["y"],
+                battery_level=100,
             )
         )
 
@@ -93,6 +110,7 @@ def init_database():
     """初始化数据库：先建表，再补默认小车和默认订单。"""
     db.create_all()
     ensure_order_point_label_column()
+    ensure_cart_battery_level_column()
 
     if should_reset_demo_data():
         reset_demo_data()
