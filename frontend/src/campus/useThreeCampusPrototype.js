@@ -173,7 +173,7 @@ function createBaseScene(state, container) {
 async function loadAssets(state) {
   const loader = new GLTFLoader()
   const dracoLoader = new DRACOLoader()
-  dracoLoader.setDecoderPath('/scene/bruno/draco/')
+  dracoLoader.setDecoderPath('/scene/draco/')
   loader.setDRACOLoader(dracoLoader)
 
   const entries = await Promise.all(
