@@ -92,9 +92,19 @@ function createFallbackVehicle() {
   return group
 }
 
-function createVehicleModel() {
-  // 使用项目自己的绿色配送车，避免开发端和后端托管页因为外部模型加载状态不同而显示不一致。
-  return createFallbackVehicle()
+function createVehicleModel(state, helpers) {
+  const { asset, targetSize, rotationY } = campusSceneConfig.cartModel
+  const source = asset ? state.assets?.[asset] : null
+
+  if (!source || !helpers) {
+    return createFallbackVehicle()
+  }
+
+  const model = source.clone(true)
+  helpers.markImportedAsset(model)
+  helpers.fitToSize(model, targetSize)
+  model.rotation.y = rotationY
+  return model
 }
 
 function ensureCartObject(state, cart, helpers) {

@@ -50,6 +50,7 @@ function createState() {
     effectRoot: null,
     pathLine: null,
     assets: {},
+    assetsReady: false,
     campusScene: null,
     cartObjects: new Map(),
     swayingObjects: [],
@@ -185,6 +186,7 @@ async function loadAssets(state) {
   )
 
   state.assets = Object.fromEntries(entries)
+  state.assetsReady = true
   dracoLoader.dispose()
 }
 
@@ -598,7 +600,7 @@ export function useThreeCampusPrototype(containerRef, sceneData) {
         currentPath: Array.isArray(value?.currentPath) ? value.currentPath : [],
       }
 
-      if (state.scene) {
+      if (state.scene && state.assetsReady) {
         updateSceneData(state)
       }
     },

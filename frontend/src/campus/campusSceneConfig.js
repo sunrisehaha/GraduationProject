@@ -35,6 +35,12 @@ export const campusSceneConfig = {
     campus: '/scene/campus/campus.glb?v=building-y-flip-road-rules-20260506',
     pixel_tree: '/scene/environment/pixel_tree.glb',
     realistic_tree: '/scene/environment/realistic_tree.glb',
+    delivery_bot: '/scene/vehicles/delivery_bot.glb',
+  },
+  cartModel: {
+    asset: 'delivery_bot',
+    targetSize: 1.46,
+    rotationY: -Math.PI / 2,
   },
   treeClusters: [
     { asset: 'pixel_tree', point: { x: 23, y: 6 }, targetSize: 5.6, rotation: 0.18 },
