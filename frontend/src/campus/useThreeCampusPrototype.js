@@ -8,6 +8,7 @@ import {
   applyCameraControls,
   bindCameraControls,
   createCameraControls,
+  updateCameraInertia,
 } from './threeCameraControls.js'
 import {
   normalizePathPoints,
@@ -576,6 +577,7 @@ function startLoop(state) {
     state.lastFrameTime = seconds
 
     updateCartAnimations(state, delta)
+    updateCameraInertia(state, delta)
     updateEnvironmentalAnimations(state, seconds)
     state.renderer.render(state.scene, state.camera)
     state.animationFrameId = requestAnimationFrame(render)

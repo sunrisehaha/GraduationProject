@@ -19,6 +19,12 @@ export const campusSceneConfig = {
       zoomStep: 0.12,
       dragRotateSpeed: 0.006,
       dragPitchSpeed: 0.004,
+      inertiaDamping: 0.86,
+      dragVelocityScale: 0.9,
+      wheelVelocityScale: 0.16,
+      dragIdleDelaySeconds: 0.04,
+      minVelocity: 0.0001,
+      maxInertiaSeconds: 0.45,
       minPitch: 0.34,
       maxPitch: 1.14,
       boundsPaddingTiles: 2,
@@ -27,8 +33,8 @@ export const campusSceneConfig = {
   },
   modelUrls: {
     campus: '/scene/campus/campus.glb?v=building-y-flip-road-rules-20260506',
-    pixel_tree: '/scene/vegetation/pixel_tree.glb',
-    realistic_tree: '/scene/vegetation/realistic_tree.glb',
+    pixel_tree: '/scene/environment/pixel_tree.glb',
+    realistic_tree: '/scene/environment/realistic_tree.glb',
   },
   treeClusters: [
     { asset: 'pixel_tree', point: { x: 23, y: 6 }, targetSize: 5.6, rotation: 0.18 },

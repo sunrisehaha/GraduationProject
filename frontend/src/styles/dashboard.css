@@ -1,14 +1,14 @@
 .screen-shell {
   position: relative;
-  max-width: 1840px;
+  max-width: 1920px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 18px;
 }
 
 .dashboard-layout {
   display: grid;
-  grid-template-columns: minmax(0, 2.35fr) minmax(360px, 0.72fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1.78fr) minmax(360px, 0.66fr);
+  gap: 16px;
   align-items: start;
 }
 
@@ -18,14 +18,31 @@
   gap: 22px;
 }
 
-.dashboard-side {
+.dashboard-module-column {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   align-content: start;
-  max-height: calc(100vh - 156px);
-  overflow-y: auto;
-  padding-right: 4px;
-  scrollbar-width: thin;
+  min-width: 0;
+}
+
+.dashboard-module-column--side:empty {
+  display: none;
+}
+
+.dashboard-module-overflow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+  align-items: start;
+}
+
+.dashboard-module-overflow .dashboard-module-measure--orderHistory {
+  grid-column: 1 / -1;
+}
+
+.dashboard-module-measure {
+  min-width: 0;
 }
 
 .dashboard-support-grid {
@@ -37,20 +54,23 @@
 .map-section {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 178px);
+  min-height: calc(100vh - 166px);
+  border-color: rgba(75, 111, 132, 0.2);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(241, 248, 251, 0.88)),
+    var(--panel);
 }
 
 .map-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
-.legend,
-.map-tags {
+.legend {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -58,24 +78,25 @@
 
 .canvas-wrap {
   position: relative;
+  display: flex;
   flex: 1;
-  min-height: clamp(680px, calc(100vh - 296px), 860px);
-  padding: 14px;
-  border-radius: 26px;
+  min-height: clamp(700px, calc(100vh - 284px), 920px);
+  flex-direction: column;
+  padding: 10px;
+  border-radius: 22px;
   background:
-    radial-gradient(circle at 24% 8%, rgba(84, 185, 217, 0.22), transparent 30%),
-    linear-gradient(180deg, rgba(236, 247, 250, 0.92), rgba(217, 230, 236, 0.88));
-  border: 1px solid rgba(84, 120, 138, 0.18);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72), 0 24px 54px rgba(76, 105, 120, 0.16);
+    linear-gradient(180deg, rgba(232, 244, 250, 0.94), rgba(214, 229, 237, 0.9));
+  border: 1px solid rgba(84, 120, 138, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76), 0 24px 54px rgba(54, 90, 112, 0.18);
 }
 
 .park-three-scene {
   display: block;
+  flex: 1 1 auto;
   width: 100%;
-  height: 100%;
-  min-height: 648px;
+  min-height: 0;
   overflow: hidden;
-  border-radius: 20px;
+  border-radius: 18px;
   background: #eaf4f5;
   cursor: grab;
   outline: none;
@@ -96,13 +117,13 @@
 
 .map-overlay {
   position: absolute;
-  top: 28px;
-  left: 28px;
+  top: 24px;
+  left: 24px;
   min-width: 220px;
   padding: 14px 16px;
   border-radius: 16px;
   border: 1px solid rgba(84, 120, 138, 0.16);
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.88);
   color: var(--text-muted);
   backdrop-filter: blur(10px);
   box-shadow: 0 16px 28px rgba(84, 120, 138, 0.08);
@@ -124,14 +145,14 @@
 
 .map-visual-legend {
   position: absolute;
-  right: 28px;
-  top: 28px;
+  right: 24px;
+  top: 24px;
   display: grid;
   gap: 8px;
   padding: 12px 14px;
   border-radius: 16px;
   border: 1px solid rgba(84, 120, 138, 0.16);
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.84);
   color: var(--text-muted);
   backdrop-filter: blur(10px);
   box-shadow: 0 16px 28px rgba(84, 120, 138, 0.08);
@@ -172,13 +193,13 @@
 
 .map-control-hint {
   position: absolute;
-  right: 30px;
-  bottom: 30px;
+  right: 26px;
+  bottom: 26px;
   max-width: 280px;
   padding: 14px 16px;
   border-radius: 16px;
   border: 1px solid rgba(84, 120, 138, 0.16);
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.86);
   color: var(--text-muted);
   backdrop-filter: blur(10px);
   box-shadow: 0 16px 28px rgba(84, 120, 138, 0.08);
@@ -224,15 +245,14 @@
     grid-template-columns: 1fr;
   }
 
-  .dashboard-side {
-    max-height: none;
-    overflow: visible;
-    padding-right: 0;
+  .dashboard-module-overflow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 980px) {
-  .dashboard-support-grid {
+  .dashboard-support-grid,
+  .dashboard-module-overflow {
     grid-template-columns: 1fr;
   }
 }
@@ -244,7 +264,8 @@
 
   .dashboard-layout,
   .dashboard-main,
-  .dashboard-side,
+  .dashboard-module-column,
+  .dashboard-module-overflow,
   .dashboard-support-grid {
     gap: 16px;
   }

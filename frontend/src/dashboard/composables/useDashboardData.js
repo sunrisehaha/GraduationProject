@@ -24,6 +24,7 @@ import {
 import {
   buildDestinationLabel,
   buildOrderView,
+  buildTaskProgressSteps,
   getTaskProgressText,
   getTopBarStatusText,
   orderFilterOptions,
@@ -355,10 +356,11 @@ export function useDashboardData() {
     const idleCarts = carts.value.filter((cart) => cart.status === 'idle').length
 
     return [
-      { label: '最近订单数', value: String(totalOrders), meta: '当前监控页最近拉取的订单' },
-      { label: '执行中订单', value: String(activeOrders), meta: '已分配或配送中的任务' },
-      { label: '已完成订单', value: String(completedOrders), meta: '已经完成闭环的配送任务' },
-      { label: '空闲小车', value: String(idleCarts), meta: '可立刻接单的小车数量' },
+      { label: '在线小车', value: String(carts.value.length), meta: `空闲 ${idleCarts} 台` },
+      { label: '执行中订单', value: String(activeOrders), meta: '分配或配送中' },
+      { label: '最近订单', value: String(totalOrders), meta: '当前拉取范围' },
+      { label: '已完成订单', value: String(completedOrders), meta: '完成闭环' },
+      { label: '当前路径节点', value: String(currentPath.value.length), meta: '主任务剩余路径' },
     ]
   })
 
@@ -370,11 +372,10 @@ export function useDashboardData() {
 
     return {
       statusText: getTopBarStatusText(activeOrders),
-      subtitle: '订单、车队、事件记录已经接入 ORM 与数据库，让演示页既能看调度，也能回看历史。',
     }
   })
 
-  // 地图摘要：给地图区顶部和标签区提供内容。
+  // 地图摘要：只保留顶部一句运行概况，减少地图区的重复信息。
   const mapInfo = computed(() => {
     const activeOrders = orders.value.filter((order) =>
       ['assigned', 'to_pickup', 'delivering'].includes(order.status)
@@ -383,14 +384,6 @@ export function useDashboardData() {
 
     return {
       summary: `当前园区共有 ${carts.value.length} 台小车在线，执行中订单 ${activeOrders} 个，已完成 ${completedOrders} 个。`,
-      tags: [
-        `地图规模 ${campusBusinessMap.gridCols} x ${campusBusinessMap.gridRows}`,
-        `建筑/禁行区 ${campusBusinessMap.zones.length} 处`,
-        `业务点位 ${campusBusinessMap.servicePoints.length} 个`,
-        `主路走廊 ${campusBusinessMap.roads.length} 条`,
-        `在线小车 ${carts.value.length} 台`,
-        `当前路径 ${currentPath.value.length} 个节点`,
-      ],
     }
   })
 
@@ -412,6 +405,7 @@ export function useDashboardData() {
       pathNodes: order?.path?.length || 0,
       createdAt: order?.create_time || '-',
       progressText: getTaskProgressText(order),
+      progressSteps: buildTaskProgressSteps(order),
     }
   })
 

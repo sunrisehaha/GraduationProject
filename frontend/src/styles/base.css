@@ -1,9 +1,9 @@
 :root {
-  --bg: #eef4f6;
-  --bg-accent: #dfecef;
+  --bg: #edf6fa;
+  --bg-accent: #e4f0f5;
   --panel: rgba(255, 255, 255, 0.88);
   --panel-strong: rgba(255, 255, 255, 0.96);
-  --panel-border: rgba(84, 120, 138, 0.12);
+  --panel-border: rgba(84, 120, 138, 0.16);
   --text: #20313d;
   --text-muted: #60798a;
   --accent: #54b9d9;
@@ -29,10 +29,7 @@ body {
   margin: 0;
   font-family: "Avenir Next", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   color: var(--text);
-  background:
-    radial-gradient(circle at top left, rgba(120, 196, 220, 0.22), transparent 26%),
-    radial-gradient(circle at top right, rgba(255, 255, 255, 0.78), transparent 24%),
-    linear-gradient(180deg, #f4f9fb 0%, #edf4f6 46%, #e8f0f3 100%);
+  background: linear-gradient(135deg, #eef7fb 0%, #f8fbfd 45%, #eaf4f8 100%);
 }
 
 body::before {
@@ -44,7 +41,7 @@ body::before {
     linear-gradient(rgba(58, 124, 165, 0.04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(58, 124, 165, 0.04) 1px, transparent 1px);
   background-size: 34px 34px;
-  opacity: 0.45;
+  opacity: 0.5;
 }
 
 button,

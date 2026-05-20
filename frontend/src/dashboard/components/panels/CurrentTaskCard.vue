@@ -23,6 +23,18 @@ defineProps({
       <p class="panel-note__text">{{ task.progressText }}</p>
     </div>
 
+    <ol class="task-progress">
+      <li
+        v-for="(step, index) in task.progressSteps"
+        :key="step.label"
+        class="task-progress__item"
+        :class="`task-progress__item--${step.state}`"
+      >
+        <span class="task-progress__index">{{ index + 1 }}</span>
+        <span class="task-progress__label">{{ step.label }}</span>
+      </li>
+    </ol>
+
     <div class="info-stack">
       <div class="info-row">
         <span class="info-row__label">订单编号</span>

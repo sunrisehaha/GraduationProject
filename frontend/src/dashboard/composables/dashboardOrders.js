@@ -25,6 +25,23 @@ export function getTaskProgressText(order) {
   return progressMap[order.status] || '当前任务状态已更新。'
 }
 
+export function buildTaskProgressSteps(order) {
+  const steps = ['等待订单', '分配小车', '路径规划', '配送执行', '任务完成']
+  const activeIndexMap = {
+    pending: 1,
+    assigned: 2,
+    to_pickup: 2,
+    delivering: 3,
+    completed: 4,
+  }
+  const activeIndex = order ? activeIndexMap[order.status] ?? 1 : 0
+
+  return steps.map((label, index) => ({
+    label,
+    state: index < activeIndex ? 'done' : index === activeIndex ? 'active' : 'waiting',
+  }))
+}
+
 export function getTopBarStatusText(activeOrderCount) {
   return activeOrderCount > 0 ? '系统正在自动配送' : '系统待命中'
 }

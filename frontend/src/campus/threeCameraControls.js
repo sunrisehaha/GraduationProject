@@ -31,6 +31,14 @@ export function createCameraControls() {
     dragMode: null,
     pointerId: null,
     lastPointer: null,
+    yawVelocity: 0,
+    pitchVelocity: 0,
+    panVelocityX: 0,
+    panVelocityZ: 0,
+    zoomVelocity: 0,
+    lastMoveTime: 0,
+    inertiaElapsedSeconds: 0,
+    dragIdleSeconds: 0,
     bounds: {
       minX: -halfWidth + padding,
       maxX: halfWidth - padding,
@@ -81,26 +89,36 @@ function panCameraTarget(state, lateralDistance, forwardDistance) {
   applyCameraControls(state)
 }
 
-function panCameraByPointer(state, deltaX, deltaY) {
+function getWorldUnitsPerPixel(state) {
   if (!state.container || !state.cameraControls || !state.camera) {
-    return
+    return 0
   }
 
   const viewportHeight = Math.max(state.container.clientHeight, 1)
   const cameraFovRadians = THREE.MathUtils.degToRad(state.camera.fov)
-  const worldUnitsPerPixel =
-    (2 * Math.tan(cameraFovRadians / 2) * state.cameraControls.distance) / viewportHeight
-
-  panCameraTarget(state, -deltaX * worldUnitsPerPixel, deltaY * worldUnitsPerPixel)
+  return (2 * Math.tan(cameraFovRadians / 2) * state.cameraControls.distance) / viewportHeight
 }
 
-function zoomCamera(state, wheelDeltaY) {
+function panCameraByPointer(state, deltaX, deltaY) {
+  const worldUnitsPerPixel = getWorldUnitsPerPixel(state)
+
+  if (!worldUnitsPerPixel) {
+    return { lateralDistance: 0, forwardDistance: 0 }
+  }
+
+  const lateralDistance = -deltaX * worldUnitsPerPixel
+  const forwardDistance = deltaY * worldUnitsPerPixel
+
+  panCameraTarget(state, lateralDistance, forwardDistance)
+  return { lateralDistance, forwardDistance }
+}
+
+function zoomCameraByScale(state, scale) {
   if (!state.cameraControls) {
     return
   }
 
   const { controls } = campusSceneConfig.camera
-  const scale = wheelDeltaY > 0 ? 1 + controls.zoomStep : 1 / (1 + controls.zoomStep)
 
   state.cameraControls.distance = clamp(
     state.cameraControls.distance * scale,
@@ -113,18 +131,139 @@ function zoomCamera(state, wheelDeltaY) {
 // 左键拖拽旋转：只改变观察角度，不改变观察中心。
 function rotateCameraByPointer(state, deltaX, deltaY) {
   if (!state.cameraControls) {
-    return
+    return { yawDelta: 0, pitchDelta: 0 }
   }
 
   const { controls } = campusSceneConfig.camera
-  state.cameraControls.yaw -= deltaX * controls.dragRotateSpeed
-  state.cameraControls.pitch = clamp(
+  const yawDelta = -deltaX * controls.dragRotateSpeed
+  const nextPitch = clamp(
     state.cameraControls.pitch + deltaY * controls.dragPitchSpeed,
+    controls.minPitch,
+    controls.maxPitch
+  )
+  const pitchDelta = nextPitch - state.cameraControls.pitch
+
+  state.cameraControls.yaw += yawDelta
+  state.cameraControls.pitch = clamp(
+    nextPitch,
     controls.minPitch,
     controls.maxPitch
   )
 
   applyCameraControls(state)
+  return { yawDelta, pitchDelta }
+}
+
+function clearTinyVelocity(controls) {
+  const { minVelocity } = campusSceneConfig.camera.controls
+
+  if (Math.abs(controls.yawVelocity) < minVelocity) {
+    controls.yawVelocity = 0
+  }
+
+  if (Math.abs(controls.pitchVelocity) < minVelocity) {
+    controls.pitchVelocity = 0
+  }
+
+  if (Math.abs(controls.panVelocityX) < minVelocity) {
+    controls.panVelocityX = 0
+  }
+
+  if (Math.abs(controls.panVelocityZ) < minVelocity) {
+    controls.panVelocityZ = 0
+  }
+
+  if (Math.abs(controls.zoomVelocity) < minVelocity) {
+    controls.zoomVelocity = 0
+  }
+}
+
+function hasCameraVelocity(controls) {
+  return (
+    controls.yawVelocity ||
+    controls.pitchVelocity ||
+    controls.panVelocityX ||
+    controls.panVelocityZ ||
+    controls.zoomVelocity
+  )
+}
+
+function dampVelocity(value, dampingFactor) {
+  return value * dampingFactor
+}
+
+// 每帧消耗鼠标输入留下的速度，让旋转、平移和缩放带一点轻微惯性。
+export function updateCameraInertia(state, deltaSeconds) {
+  const controlsState = state.cameraControls
+
+  if (!controlsState || !state.camera) {
+    return
+  }
+
+  const { controls } = campusSceneConfig.camera
+  const frameScale = Math.min(deltaSeconds * 60, 3)
+  const dampingFactor = Math.pow(controls.inertiaDamping, frameScale)
+  const canApplyDragInertia =
+    !controlsState.isDragging || controlsState.dragIdleSeconds > controls.dragIdleDelaySeconds
+  let shouldApplyCamera = false
+
+  if (controlsState.isDragging) {
+    controlsState.dragIdleSeconds += deltaSeconds
+  } else {
+    controlsState.dragIdleSeconds = 0
+  }
+
+  if (canApplyDragInertia) {
+    controlsState.inertiaElapsedSeconds += deltaSeconds
+  } else {
+    controlsState.inertiaElapsedSeconds = 0
+  }
+
+  if (controlsState.inertiaElapsedSeconds > controls.maxInertiaSeconds) {
+    controlsState.yawVelocity = 0
+    controlsState.pitchVelocity = 0
+    controlsState.panVelocityX = 0
+    controlsState.panVelocityZ = 0
+  }
+
+  if (canApplyDragInertia) {
+    if (controlsState.yawVelocity || controlsState.pitchVelocity) {
+      controlsState.yaw += controlsState.yawVelocity * frameScale
+      controlsState.pitch = clamp(
+        controlsState.pitch + controlsState.pitchVelocity * frameScale,
+        controls.minPitch,
+        controls.maxPitch
+      )
+      shouldApplyCamera = true
+    }
+
+    if (controlsState.panVelocityX || controlsState.panVelocityZ) {
+      panCameraTarget(
+        state,
+        controlsState.panVelocityX * frameScale,
+        controlsState.panVelocityZ * frameScale
+      )
+      shouldApplyCamera = false
+    }
+  }
+
+  if (controlsState.zoomVelocity) {
+    const zoomScale = 1 + controlsState.zoomVelocity * frameScale
+    zoomCameraByScale(state, clamp(zoomScale, 0.82, 1.18))
+    shouldApplyCamera = false
+  }
+
+  controlsState.yawVelocity = dampVelocity(controlsState.yawVelocity, dampingFactor)
+  controlsState.pitchVelocity = dampVelocity(controlsState.pitchVelocity, dampingFactor)
+  controlsState.panVelocityX = dampVelocity(controlsState.panVelocityX, dampingFactor)
+  controlsState.panVelocityZ = dampVelocity(controlsState.panVelocityZ, dampingFactor)
+  controlsState.zoomVelocity = dampVelocity(controlsState.zoomVelocity, dampingFactor)
+  clearTinyVelocity(controlsState)
+
+  if (shouldApplyCamera || hasCameraVelocity(controlsState)) {
+    clampCameraTarget(controlsState)
+    applyCameraControls(state)
+  }
 }
 
 // 绑定鼠标控制事件，清理函数统一放进 state.cleanupHandlers。
@@ -163,6 +302,13 @@ export function bindCameraControls(state, container) {
       x: event.clientX,
       y: event.clientY,
     }
+    state.cameraControls.yawVelocity = 0
+    state.cameraControls.pitchVelocity = 0
+    state.cameraControls.panVelocityX = 0
+    state.cameraControls.panVelocityZ = 0
+    state.cameraControls.lastMoveTime = event.timeStamp
+    state.cameraControls.inertiaElapsedSeconds = 0
+    state.cameraControls.dragIdleSeconds = 0
     state.interactionState.activeDragMode = dragMode
     container.setPointerCapture?.(event.pointerId)
   })
@@ -187,12 +333,22 @@ export function bindCameraControls(state, container) {
     }
 
     if (state.cameraControls.dragMode === 'rotate') {
-      rotateCameraByPointer(state, deltaX, deltaY)
+      const { yawDelta, pitchDelta } = rotateCameraByPointer(state, deltaX, deltaY)
+      state.cameraControls.yawVelocity = yawDelta * controls.dragVelocityScale
+      state.cameraControls.pitchVelocity = pitchDelta * controls.dragVelocityScale
+      state.cameraControls.lastMoveTime = event.timeStamp
+      state.cameraControls.inertiaElapsedSeconds = 0
+      state.cameraControls.dragIdleSeconds = 0
       return
     }
 
     if (state.cameraControls.dragMode === 'pan') {
-      panCameraByPointer(state, deltaX, deltaY)
+      const { lateralDistance, forwardDistance } = panCameraByPointer(state, deltaX, deltaY)
+      state.cameraControls.panVelocityX = lateralDistance * controls.dragVelocityScale
+      state.cameraControls.panVelocityZ = forwardDistance * controls.dragVelocityScale
+      state.cameraControls.lastMoveTime = event.timeStamp
+      state.cameraControls.inertiaElapsedSeconds = 0
+      state.cameraControls.dragIdleSeconds = 0
     }
   })
 
@@ -215,12 +371,13 @@ export function bindCameraControls(state, container) {
     container,
     'wheel',
     (event) => {
-      if (!controls.mouseEnabled) {
+      if (!controls.mouseEnabled || !state.cameraControls) {
         return
       }
 
       event.preventDefault()
-      zoomCamera(state, event.deltaY)
+      const direction = event.deltaY > 0 ? 1 : -1
+      state.cameraControls.zoomVelocity += direction * controls.zoomStep * controls.wheelVelocityScale
     },
     { passive: false }
   )

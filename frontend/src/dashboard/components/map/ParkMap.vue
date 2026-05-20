@@ -57,10 +57,6 @@ const { interactionState } = useThreeCampusPrototype(sceneRef, sceneData)
         <span class="legend__item"><i class="legend__swatch legend__swatch--start"></i>起点</span>
         <span class="legend__item"><i class="legend__swatch legend__swatch--end"></i>终点</span>
       </div>
-
-      <div class="map-tags">
-        <span v-for="tag in mapInfo.tags" :key="tag" class="tag">{{ tag }}</span>
-      </div>
     </div>
 
     <div class="canvas-wrap">
