@@ -1,4 +1,6 @@
-"""演示控制服务：负责答辩时的场景重置和标准订单创建。"""
+"""演示控制服务：负责答辩时的场景重置和随机演示订单创建。"""
+
+import random
 
 from backend.business.order import count_active_orders, create_order, serialize_order
 from backend.campus.rules import CAMPUS_RULES, DEFAULT_CARTS, service_point_payload
@@ -14,15 +16,27 @@ from backend.system.runtime import (
 
 
 def build_demo_order_templates(demo_key):
-    """从统一规则生成演示订单，避免演示点位和地图规则分叉。"""
-    return [
-        {
-            "start_point": service_point_payload(item["startPointId"]),
-            "end_point": service_point_payload(item["endPointId"]),
-            "remark": item["remark"],
-        }
-        for item in CAMPUS_RULES["demoOrders"][demo_key]
-    ]
+    """随机生成演示订单：取件点从快递站/装货口中随机选取，送货点从全部业务收件点中随机选取。
+
+    每次调用都会产生不同的组合，避免答辩演示时每次都是同一组固定订单。
+    demo_key 决定生成数量：'one' 生成 1 单，其余情况生成 5 单。
+    """
+    pickup_ids = CAMPUS_RULES["simulation"]["pickupPointIds"]
+    delivery_ids = CAMPUS_RULES["simulation"]["deliveryPointIds"]
+    count = 1 if demo_key == "one" else 5
+
+    templates = []
+    for _ in range(count):
+        start_id = random.choice(pickup_ids)
+        end_id = random.choice(delivery_ids)
+        start_point = service_point_payload(start_id)
+        end_point = service_point_payload(end_id)
+        templates.append({
+            "start_point": start_point,
+            "end_point": end_point,
+            "remark": f"随机演示：{start_point['label_text']} → {end_point['label_text']}",
+        })
+    return templates
 
 
 def get_current_demo_state():
