@@ -111,7 +111,7 @@ function runSpeedChange(speed) {
       </button>
       <button
         type="button"
-        class="demo-button demo-button--secondary"
+        class="demo-button demo-button--reset"
         :disabled="Boolean(runningAction)"
         @click="runAction('reset', resetDemo, '演示场景已重置。')"
       >

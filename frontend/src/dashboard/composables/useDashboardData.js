@@ -248,7 +248,7 @@ export function useDashboardData() {
     }
   }
 
-  // 创建订单：成功后主动把新订单设成历史面板当前选中项。
+  // 手动派单：成功后主动把新订单设成历史面板当前选中项。
   async function submitOrder(formData) {
     try {
       const startPoint = getServicePointById(formData.startPointId)

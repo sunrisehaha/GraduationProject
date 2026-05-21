@@ -54,7 +54,7 @@ async function handleSubmit() {
     <div class="panel-card__header">
       <div>
         <p class="panel-card__eyebrow">MANUAL ORDER</p>
-        <h2>新订单</h2>
+        <h2>手动派单</h2>
       </div>
     </div>
 

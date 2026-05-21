@@ -75,8 +75,8 @@
 - 页面风格保持浅色科技感：清爽、轻盈、现代，不做大面积深色压迫感背景。
 - 驾驶舱模块围绕地图主视觉组织：
   - 右侧：当前任务、演示控制
-  - 底部：车队状态、系统日志、调度解释、订单历史、新订单
-- 模块可以收起、展开、显示隐藏；布局由 [DashboardView.vue](/Users/sunkezan/Desktop/GraduationProject/frontend/src/dashboard/DashboardView.vue) 和 [LayoutSettingsDrawer.vue](/Users/sunkezan/Desktop/GraduationProject/frontend/src/dashboard/components/layout/LayoutSettingsDrawer.vue) 组织。
+  - 底部：车队状态、系统日志、调度解释、订单历史、手动派单
+- 模块可以收起、展开；布局由 [DashboardView.vue](/Users/sunkezan/Desktop/GraduationProject/frontend/src/dashboard/DashboardView.vue) 组织。
 - 桌面端优先保证地图占主区，右侧只放高频任务和控制模块。
 - 窄屏端不要挤压地图，模块自然排到下方。
 - 组件命名要直观，例如 `CurrentTaskCard.vue`、`OrderHistoryCard.vue`、`DashboardModuleShell.vue`。

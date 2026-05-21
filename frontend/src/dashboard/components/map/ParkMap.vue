@@ -47,9 +47,21 @@ const { interactionState } = useThreeCampusPrototype(sceneRef, sceneData)
 <template>
   <section class="map-section panel-card">
     <div class="panel-card__header">
-      <div>
-        <p class="panel-card__eyebrow">MAP OVERVIEW</p>
-        <h2>智慧园区 3D 调度沙盘</h2>
+      <div class="map-title-block">
+        <span class="map-title-block__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M4 18l5-3l6 3l5-3" />
+            <path d="M4 8l5-3l6 3l5-3v10l-5 3l-6-3l-5 3z" />
+            <path d="M9 5v10" />
+            <path d="M15 8v10" />
+            <path d="M7 12h4" />
+            <path d="M13 13h5" />
+          </svg>
+        </span>
+        <span class="map-title-block__text">
+          <p class="panel-card__eyebrow">MAP OVERVIEW</p>
+          <h2>智慧园区 3D 调度沙盘</h2>
+        </span>
       </div>
       <p class="panel-card__desc">{{ mapInfo.summary }}</p>
     </div>

@@ -1,9 +1,8 @@
 <script setup>
 // 看板页：只负责组织页面结构，真正的数据和交互都放在 composable 里。
-import { computed, markRaw, ref, watch } from 'vue'
+import { computed, markRaw, ref } from 'vue'
 import { useDashboardData } from './composables/useDashboardData'
 import DashboardModuleShell from './components/layout/DashboardModuleShell.vue'
-import LayoutSettingsDrawer from './components/layout/LayoutSettingsDrawer.vue'
 import TopBar from './components/layout/TopBar.vue'
 import ParkMap from './components/map/ParkMap.vue'
 import CreateOrderCard from './components/panels/CreateOrderCard.vue'
@@ -32,7 +31,6 @@ const {
   orders,
   orderFilter,
   orderFilterOptions,
-  refreshData,
   stats,
   handleCreateFiveDemoOrders,
   handleCreateOneDemoOrder,
@@ -48,19 +46,15 @@ const {
   lastUpdatedText,
 } = useDashboardData()
 
-const moduleVisibilityStorageKey = 'smart-park-dashboard-module-visibility-v1'
-const isLayoutEditing = ref(false)
-const isLayoutSettingsOpen = ref(false)
-
 // 模块定义：地图优先，右侧只放高频控制，底部承接辅助信息。
 const moduleDefinitions = [
-  { id: 'currentTask', eyebrow: 'CURRENT TASK', title: '当前任务', defaultOpen: true, region: 'side' },
-  { id: 'demoControl', eyebrow: 'DEMO CONTROL', title: '演示控制', defaultOpen: true, region: 'side' },
-  { id: 'fleetStatus', eyebrow: 'FLEET', title: '小车状态', defaultOpen: true, region: 'bottom' },
-  { id: 'systemLog', eyebrow: 'LOG', title: '事件日志', defaultOpen: true, region: 'bottom' },
-  { id: 'dispatchExplanation', eyebrow: 'DISPATCH REASON', title: '调度解释', defaultOpen: true, region: 'bottom' },
-  { id: 'orderHistory', eyebrow: 'HISTORY', title: '订单历史', defaultOpen: true, region: 'bottom' },
-  { id: 'createOrder', eyebrow: 'ORDER', title: '新订单', defaultOpen: false, region: 'bottom' },
+  { id: 'currentTask', eyebrow: 'CURRENT TASK', title: '当前任务', icon: 'task', defaultOpen: true, region: 'side' },
+  { id: 'demoControl', eyebrow: 'DEMO CONTROL', title: '演示控制', icon: 'control', defaultOpen: true, region: 'side' },
+  { id: 'fleetStatus', eyebrow: 'FLEET', title: '小车状态', icon: 'fleet', defaultOpen: true, region: 'bottom' },
+  { id: 'systemLog', eyebrow: 'LOG', title: '事件日志', icon: 'log', defaultOpen: true, region: 'bottom' },
+  { id: 'dispatchExplanation', eyebrow: 'DISPATCH REASON', title: '调度解释', icon: 'dispatch', defaultOpen: true, region: 'bottom' },
+  { id: 'orderHistory', eyebrow: 'HISTORY', title: '订单历史', icon: 'history', defaultOpen: true, region: 'bottom' },
+  { id: 'createOrder', eyebrow: 'ORDER', title: '手动派单', icon: 'order', defaultOpen: false, region: 'bottom' },
 ]
 
 const moduleComponentMap = {
@@ -74,40 +68,7 @@ const moduleComponentMap = {
 }
 
 const defaultOpenState = Object.fromEntries(moduleDefinitions.map((module) => [module.id, module.defaultOpen]))
-const defaultVisibleState = Object.fromEntries(moduleDefinitions.map((module) => [module.id, true]))
 const moduleOpenState = ref({ ...defaultOpenState })
-const moduleVisibleState = ref(readVisibleState())
-
-function readVisibleState() {
-  if (typeof window === 'undefined') {
-    return { ...defaultVisibleState }
-  }
-
-  try {
-    const savedState = JSON.parse(window.localStorage.getItem(moduleVisibilityStorageKey) || '{}')
-
-    return Object.fromEntries(
-      moduleDefinitions.map((module) => [
-        module.id,
-        typeof savedState[module.id] === 'boolean' ? savedState[module.id] : true,
-      ])
-    )
-  } catch {
-    return { ...defaultVisibleState }
-  }
-}
-
-function persistVisibleState() {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  try {
-    window.localStorage.setItem(moduleVisibilityStorageKey, JSON.stringify(moduleVisibleState.value))
-  } catch {
-    // 本地存储不可用时不影响驾驶舱本身运行。
-  }
-}
 
 function getModuleSummary(moduleId) {
   const summaryMap = {
@@ -119,7 +80,7 @@ function getModuleSummary(moduleId) {
     fleetStatus: `${fleetSummary.value.total} 辆 · ${fleetSummary.value.active} 忙碌 · ${fleetSummary.value.idle} 空闲`,
     systemLog: `${logs.value.length} 条事件`,
     orderHistory: `${filteredOrders.value.length} 条记录`,
-    createOrder: '手动派单',
+    createOrder: '',
   }
 
   return summaryMap[moduleId] || ''
@@ -191,61 +152,23 @@ function toggleModule(moduleId) {
   }
 }
 
-function setModuleVisible(moduleId, isVisible) {
-  if (!moduleViewMap.value[moduleId]) {
-    return
-  }
-
-  moduleVisibleState.value = {
-    ...moduleVisibleState.value,
-    [moduleId]: Boolean(isVisible),
-  }
-}
-
-function resetModuleLayout() {
-  moduleVisibleState.value = { ...defaultVisibleState }
-  moduleOpenState.value = { ...defaultOpenState }
-}
-
-function toggleLayoutEditing() {
-  isLayoutEditing.value = !isLayoutEditing.value
-  isLayoutSettingsOpen.value = isLayoutEditing.value
-}
-
-function closeLayoutEditor() {
-  isLayoutEditing.value = false
-  isLayoutSettingsOpen.value = false
-}
-
-function saveLayout() {
-  persistVisibleState()
-  closeLayoutEditor()
-}
-
 function getModulesByRegion(region) {
   return moduleDefinitions
     .filter((module) => module.region === region)
     .map((module) => moduleViewMap.value[module.id])
-    .filter((module) => module && moduleVisibleState.value[module.id] !== false)
+    .filter(Boolean)
 }
 
 const sideModules = computed(() => getModulesByRegion('side'))
 const bottomModules = computed(() => getModulesByRegion('bottom'))
-const settingModules = computed(() => moduleDefinitions.map((module) => moduleViewMap.value[module.id]).filter(Boolean))
-
-watch(moduleVisibleState, persistVisibleState, { deep: true })
 </script>
 
 <template>
-  <div class="screen-shell" :class="{ 'screen-shell--layout-editing': isLayoutEditing }">
+  <div class="screen-shell">
     <TopBar
-      :is-layout-editing="isLayoutEditing"
       :status-text="topBar.statusText"
       :stats="stats"
       :last-updated-text="lastUpdatedText"
-      @toggle-layout-editing="toggleLayoutEditing"
-      @open-layout-settings="isLayoutSettingsOpen = true"
-      @refresh="refreshData"
     />
 
     <main class="dashboard-workspace">
@@ -266,7 +189,6 @@ watch(moduleVisibleState, persistVisibleState, { deep: true })
           :key="module.id"
           :module="module"
           :is-open="moduleOpenState[module.id]"
-          :is-editing="isLayoutEditing"
           :class="`dashboard-module--${module.id}`"
           @toggle="toggleModule"
         >
@@ -282,22 +204,11 @@ watch(moduleVisibleState, persistVisibleState, { deep: true })
         :key="module.id"
         :module="module"
         :is-open="moduleOpenState[module.id]"
-        :is-editing="isLayoutEditing"
         :class="`dashboard-module--${module.id}`"
         @toggle="toggleModule"
       >
         <component :is="module.component" v-bind="module.props" />
       </DashboardModuleShell>
     </section>
-
-    <LayoutSettingsDrawer
-      :is-open="isLayoutSettingsOpen"
-      :modules="settingModules"
-      :visible-state="moduleVisibleState"
-      @close="isLayoutSettingsOpen = false"
-      @reset-layout="resetModuleLayout"
-      @save-layout="saveLayout"
-      @set-visible="setModuleVisible"
-    />
   </div>
 </template>
