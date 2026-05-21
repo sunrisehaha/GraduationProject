@@ -49,13 +49,13 @@ const { interactionState } = useThreeCampusPrototype(sceneRef, sceneData)
     <div class="panel-card__header">
       <div class="map-title-block">
         <span class="map-title-block__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" focusable="false">
-            <path d="M4 18l5-3l6 3l5-3" />
-            <path d="M4 8l5-3l6 3l5-3v10l-5 3l-6-3l-5 3z" />
-            <path d="M9 5v10" />
-            <path d="M15 8v10" />
-            <path d="M7 12h4" />
-            <path d="M13 13h5" />
+          <svg viewBox="0 0 48 48" focusable="false">
+            <path class="map-icon__ground" d="M6 29L20 11l22 8l-14 20z" />
+            <path class="map-icon__road" d="M12 29l13-16" />
+            <path class="map-icon__road" d="M20 36l15-19" />
+            <path class="map-icon__route" d="M13 27c4.8 2.2 8.2 2.5 12 0.5c3-1.6 5-4 9.5-3.6" />
+            <path class="map-icon__pin" d="M34 26.5a4.6 4.6 0 0 1 4.6 4.6c0 3.4-4.6 7-4.6 7s-4.6-3.6-4.6-7a4.6 4.6 0 0 1 4.6-4.6z" />
+            <circle class="map-icon__pin-dot" cx="34" cy="31" r="1.4" />
           </svg>
         </span>
         <span class="map-title-block__text">

@@ -203,6 +203,12 @@
   stroke-linejoin: round;
 }
 
+.dashboard-module__icon--fleet svg {
+  width: 23px;
+  height: 23px;
+  stroke-width: 1.65;
+}
+
 .dashboard-module__title-wrap {
   display: flex;
   min-width: 0;
