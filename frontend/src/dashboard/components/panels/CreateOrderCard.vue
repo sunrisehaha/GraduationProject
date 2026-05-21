@@ -50,24 +50,18 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <section class="panel-card">
+  <section class="panel-card create-order-card">
     <div class="panel-card__header">
       <div>
         <p class="panel-card__eyebrow">MANUAL ORDER</p>
-        <h2>创建订单</h2>
+        <h2>新订单</h2>
       </div>
-      <p class="panel-card__desc">直接输入楼栋或房间号，系统会自动映射到对应收件点并发起调度。</p>
     </div>
 
-    <div class="panel-note">
-      <p class="panel-note__title">第一版规则</p>
-      <p class="panel-note__text">房间号先映射到楼下统一收件点，例如“1栋101室”会落到 1 栋收件点。</p>
-    </div>
-
-    <form class="order-form" @submit.prevent="handleSubmit">
-      <div class="form-grid">
+    <form class="order-form order-form--compact" @submit.prevent="handleSubmit">
+      <div class="form-grid form-grid--compact">
         <label>
-          <span>起点地点</span>
+          <span>起点</span>
           <select v-model="form.startPointId" required>
             <option v-for="item in startOptions" :key="item.value" :value="item.value">
               {{ item.label }}
@@ -75,12 +69,12 @@ async function handleSubmit() {
           </select>
         </label>
         <label>
-          <span>终点地点</span>
+          <span>终点</span>
           <input
             v-model="form.endPlaceText"
             list="delivery-place-suggestions"
             type="text"
-            placeholder="例如：1栋101室、综合楼"
+            placeholder="1栋101室 / 综合楼"
             required
           />
           <datalist id="delivery-place-suggestions">
@@ -93,7 +87,7 @@ async function handleSubmit() {
         </label>
       </div>
 
-      <p class="panel-note__text">可直接输入楼栋名、房间号或公共楼名称，例如“5栋302室”“住户服务大楼”。</p>
+      <p class="order-form__hint">输入楼栋、房间号或公共建筑名，系统自动映射收件点。</p>
 
       <p
         v-if="feedbackText"
@@ -104,7 +98,7 @@ async function handleSubmit() {
       </p>
 
       <button type="submit" :disabled="submitting">
-        {{ submitting ? '提交中...' : '创建订单' }}
+        {{ submitting ? '提交中...' : '创建' }}
       </button>
     </form>
   </section>

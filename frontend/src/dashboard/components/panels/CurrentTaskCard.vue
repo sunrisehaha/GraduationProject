@@ -9,21 +9,25 @@ defineProps({
 </script>
 
 <template>
-  <section class="panel-card panel-card--compact">
+  <section class="panel-card panel-card--compact current-task-card">
     <div class="panel-card__header">
       <div>
         <p class="panel-card__eyebrow">CURRENT TASK</p>
         <h2>当前任务</h2>
       </div>
-      <p class="panel-card__desc">这里聚焦系统此刻最重要的一条执行任务。</p>
     </div>
 
-    <div class="panel-note">
-      <p class="panel-note__title">任务进度</p>
-      <p class="panel-note__text">{{ task.progressText }}</p>
+    <div class="current-task-hero">
+      <div>
+        <strong>{{ task.id }}</strong>
+        <span>{{ task.orderNo }}</span>
+      </div>
+      <span class="info-row__value info-row__value--badge">{{ task.status }}</span>
     </div>
 
-    <ol class="task-progress">
+    <p class="current-task-progress-text">{{ task.progressText }}</p>
+
+    <ol class="task-progress task-progress--compact">
       <li
         v-for="(step, index) in task.progressSteps"
         :key="step.label"
@@ -35,15 +39,7 @@ defineProps({
       </li>
     </ol>
 
-    <div class="info-stack">
-      <div class="info-row">
-        <span class="info-row__label">订单编号</span>
-        <span class="info-row__value">{{ task.id }}</span>
-      </div>
-      <div class="info-row">
-        <span class="info-row__label">业务单号</span>
-        <span class="info-row__value">{{ task.orderNo }}</span>
-      </div>
+    <div class="info-stack info-stack--compact">
       <div class="info-row">
         <span class="info-row__label">起点</span>
         <span class="info-row__value">{{ task.start }}</span>
@@ -53,24 +49,20 @@ defineProps({
         <span class="info-row__value">{{ task.end }}</span>
       </div>
       <div class="info-row">
-        <span class="info-row__label">订单状态</span>
-        <span class="info-row__value info-row__value--badge">{{ task.status }}</span>
-      </div>
-      <div class="info-row">
-        <span class="info-row__label">执行小车</span>
+        <span class="info-row__label">小车</span>
         <span class="info-row__value">{{ task.cart }}</span>
       </div>
       <div class="info-row">
-        <span class="info-row__label">任务来源</span>
+        <span class="info-row__label">路径</span>
+        <span class="info-row__value">{{ task.pathNodes }} 节点</span>
+      </div>
+      <div class="info-row">
+        <span class="info-row__label">来源</span>
         <span class="info-row__value">{{ task.source }}</span>
       </div>
       <div class="info-row">
-        <span class="info-row__label">创建时间</span>
+        <span class="info-row__label">创建</span>
         <span class="info-row__value">{{ task.createdAt }}</span>
-      </div>
-      <div class="info-row">
-        <span class="info-row__label">路径节点</span>
-        <span class="info-row__value">{{ task.pathNodes }}</span>
       </div>
     </div>
   </section>

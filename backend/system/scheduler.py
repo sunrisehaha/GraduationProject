@@ -12,7 +12,7 @@ from backend.business.dispatch import (
     create_simulation_order_if_needed,
     dispatch_pending_orders,
 )
-from backend.system.runtime import is_demo_simulation_paused, state_lock
+from backend.system.runtime import get_demo_speed, is_demo_simulation_paused, state_lock
 
 DISPATCH_INTERVAL = 1.0         # 每 1 秒尝试分配订单
 MOVE_INTERVAL = 0.8             # 每 0.8 秒推动小车移动一步
@@ -28,12 +28,18 @@ def run_with_app_context(app, loop_func):
         loop_func()
 
 
+def sleep_by_demo_speed(base_interval):
+    """按演示倍速缩短循环等待时间，让答辩演示节奏可控。"""
+    speed = max(get_demo_speed(), 0.5)
+    sleep(base_interval / speed)
+
+
 def scheduler_loop():
     """持续分配待调度订单。"""
     while True:
         with state_lock:
             dispatch_pending_orders()
-        sleep(DISPATCH_INTERVAL)
+        sleep_by_demo_speed(DISPATCH_INTERVAL)
 
 
 def movement_loop():
@@ -41,7 +47,7 @@ def movement_loop():
     while True:
         with state_lock:
             advance_carts()
-        sleep(MOVE_INTERVAL)
+        sleep_by_demo_speed(MOVE_INTERVAL)
 
 
 def simulation_loop():
@@ -50,7 +56,7 @@ def simulation_loop():
         with state_lock:
             if not is_demo_simulation_paused():
                 create_simulation_order_if_needed(MAX_ACTIVE_ORDERS)
-        sleep(SIMULATION_INTERVAL)
+        sleep_by_demo_speed(SIMULATION_INTERVAL)
 
 
 def start_background_workers(app):

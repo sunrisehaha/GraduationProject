@@ -31,6 +31,10 @@ const props = defineProps({
     type: Function,
     required: true,
   },
+  setDemoSpeed: {
+    type: Function,
+    required: true,
+  },
 })
 
 const runningAction = ref('')
@@ -52,81 +56,75 @@ async function runAction(actionName, action, successText) {
   feedbackType.value = 'error'
   feedbackText.value = result?.message || '演示控制执行失败。'
 }
+
+function runSpeedChange(speed) {
+  return runAction(`speed-${speed}`, () => props.setDemoSpeed(speed), `演示倍速已切换为 ${speed}x。`)
+}
 </script>
 
 <template>
-  <section class="panel-card demo-control-card">
+  <section class="panel-card demo-control-card demo-control-card--dense">
     <div class="panel-card__header">
       <div>
         <p class="panel-card__eyebrow">DEMO CONTROL</p>
-        <h2>调度控制台</h2>
+        <h2>演示控制</h2>
       </div>
     </div>
 
-    <div class="demo-control-group">
-      <h3 class="demo-control-group__title">当前调度状态</h3>
-      <div class="demo-status-grid">
-        <article class="demo-status-item">
-          <span class="demo-status-item__label">当前模式</span>
-          <strong>{{ demoControl.modeText }}</strong>
-        </article>
-        <article class="demo-status-item">
-          <span class="demo-status-item__label">活动订单</span>
-          <strong>{{ demoControl.activeOrderCount }} 单</strong>
-        </article>
-        <article class="demo-status-item">
-          <span class="demo-status-item__label">在线小车</span>
-          <strong>{{ onlineCartCount }} 台</strong>
-        </article>
-        <article class="demo-status-item">
-          <span class="demo-status-item__label">系统状态</span>
-          <strong>{{ systemStatusText }}</strong>
-        </article>
-      </div>
+    <div class="demo-status-strip">
+      <span class="demo-status-pill">{{ demoControl.modeText }}</span>
+      <span>{{ demoControl.activeOrderCount }} 单</span>
+      <span>{{ onlineCartCount }} 车</span>
+      <span>{{ systemStatusText }}</span>
     </div>
 
-    <div class="demo-control-group">
-      <h3 class="demo-control-group__title">主要操作</h3>
-      <div class="demo-control-actions demo-control-actions--primary">
-        <button
-          type="button"
-          class="demo-button"
-          :disabled="Boolean(runningAction)"
-          @click="runAction('one', createOneDemoOrder, '已创建 1 单演示。')"
-        >
-          {{ runningAction === 'one' ? '创建中...' : '创建 1 单演示' }}
-        </button>
-        <button
-          type="button"
-          class="demo-button"
-          :disabled="Boolean(runningAction)"
-          @click="runAction('five', createFiveDemoOrders, '已创建 5 单演示。')"
-        >
-          {{ runningAction === 'five' ? '创建中...' : '创建 5 单演示' }}
-        </button>
-      </div>
+    <div class="demo-speed-row demo-speed-row--compact">
+      <button
+        v-for="speed in [0.5, 1, 2, 4]"
+        :key="speed"
+        type="button"
+        class="demo-speed-button"
+        :class="{ 'demo-speed-button--active': Number(demoControl.speed) === speed }"
+        :disabled="Boolean(runningAction)"
+        @click="runSpeedChange(speed)"
+      >
+        {{ runningAction === `speed-${speed}` ? '...' : `${speed}x` }}
+      </button>
     </div>
 
-    <div class="demo-control-group">
-      <h3 class="demo-control-group__title">辅助操作</h3>
-      <div class="demo-control-actions demo-control-actions--secondary">
-        <button
-          type="button"
-          class="demo-button demo-button--secondary"
-          :disabled="Boolean(runningAction)"
-          @click="runAction('reset', resetDemo, '演示场景已重置。')"
-        >
-          {{ runningAction === 'reset' ? '重置中...' : '重置演示' }}
-        </button>
-        <button
-          type="button"
-          class="demo-button demo-button--ghost"
-          :disabled="Boolean(runningAction)"
-          @click="runAction('restore', restoreAutoSimulation, '已恢复自动仿真。')"
-        >
-          {{ runningAction === 'restore' ? '恢复中...' : '恢复自动仿真' }}
-        </button>
-      </div>
+    <div class="demo-control-actions demo-control-actions--quick">
+      <button
+        type="button"
+        class="demo-button"
+        :disabled="Boolean(runningAction)"
+        @click="runAction('one', createOneDemoOrder, '已创建 1 单演示。')"
+      >
+        {{ runningAction === 'one' ? '...' : '1 单' }}
+      </button>
+      <button
+        type="button"
+        class="demo-button"
+        :disabled="Boolean(runningAction)"
+        @click="runAction('five', createFiveDemoOrders, '已创建 5 单演示。')"
+      >
+        {{ runningAction === 'five' ? '...' : '5 单' }}
+      </button>
+      <button
+        type="button"
+        class="demo-button demo-button--secondary"
+        :disabled="Boolean(runningAction)"
+        @click="runAction('reset', resetDemo, '演示场景已重置。')"
+      >
+        {{ runningAction === 'reset' ? '...' : '重置' }}
+      </button>
+      <button
+        type="button"
+        class="demo-button demo-button--ghost"
+        :disabled="Boolean(runningAction)"
+        @click="runAction('restore', restoreAutoSimulation, '已恢复自动仿真。')"
+      >
+        {{ runningAction === 'restore' ? '...' : '自动' }}
+      </button>
     </div>
 
     <p

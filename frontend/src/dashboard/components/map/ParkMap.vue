@@ -24,6 +24,10 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  demoSpeed: {
+    type: Number,
+    default: 1,
+  },
 })
 
 const sceneRef = ref(null)
@@ -33,6 +37,7 @@ const sceneData = computed(() => ({
   carts: props.carts,
   orders: props.orders,
   currentPath: props.currentPath,
+  demoSpeed: props.demoSpeed,
 }))
 
 // 3D 场景接收实时业务数据，用于突出当前任务、路径和小车位置。

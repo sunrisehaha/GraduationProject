@@ -1,6 +1,6 @@
 <script setup>
-// 小车状态卡片：展示主小车状态和整个车队概况。
-defineProps({
+// 小车状态卡片：用紧凑列表展示车队状态，减少占用空间。
+const props = defineProps({
   fleet: {
     type: Array,
     required: true
@@ -23,35 +23,16 @@ defineProps({
         <p class="panel-card__eyebrow">FLEET STATUS</p>
         <h2>小车状态</h2>
       </div>
-      <p class="panel-card__desc">这里展示主监控小车以及当前全部车队的实时状态。</p>
     </div>
 
-    <div class="summary-strip">
-      <span class="summary-strip__item">总数 {{ fleetSummary.total }}</span>
-      <span class="summary-strip__item">执行中 {{ fleetSummary.active }}</span>
-      <span class="summary-strip__item">空闲 {{ fleetSummary.idle }}</span>
+    <div class="fleet-summary-row">
+      <span>总数 <strong>{{ fleetSummary.total }}</strong></span>
+      <span>执行 <strong>{{ fleetSummary.active }}</strong></span>
+      <span>空闲 <strong>{{ fleetSummary.idle }}</strong></span>
+      <span>主车 <strong>{{ currentCart?.name || '暂无' }}</strong></span>
     </div>
 
-    <div class="info-stack">
-      <div class="info-row">
-        <span class="info-row__label">主小车名称</span>
-        <span class="info-row__value">{{ currentCart?.name || '暂无' }}</span>
-      </div>
-      <div class="info-row">
-        <span class="info-row__label">当前位置</span>
-        <span class="info-row__value">{{ currentCart?.position || '-' }}</span>
-      </div>
-      <div class="info-row">
-        <span class="info-row__label">运行状态</span>
-        <span class="info-row__value info-row__value--badge">{{ currentCart?.status || '未知' }}</span>
-      </div>
-      <div class="info-row">
-        <span class="info-row__label">当前电量</span>
-        <span class="info-row__value">{{ currentCart?.batteryText || '-' }}</span>
-      </div>
-    </div>
-
-    <ul class="mini-list mini-list--scroll">
+    <ul class="fleet-card-list">
       <li v-for="cart in fleet" :key="cart.id" class="mini-list__item">
         <div class="mini-list__head">
           <p class="mini-list__title">{{ cart.name }}</p>
@@ -59,9 +40,10 @@ defineProps({
             {{ cart.status }}
           </span>
         </div>
-        <p class="mini-list__meta">坐标：{{ cart.position }}</p>
-        <p class="mini-list__meta">电量：{{ cart.batteryText }}</p>
-        <p class="mini-list__meta">任务：{{ cart.orderId ? `#${cart.orderId}` : '无' }}</p>
+        <div class="cart-battery">
+          <span :style="{ width: cart.batteryText }"></span>
+        </div>
+        <p class="mini-list__meta">{{ cart.batteryText }} · {{ cart.orderId ? `#${cart.orderId}` : '无任务' }} · {{ cart.position }}</p>
       </li>
     </ul>
   </section>

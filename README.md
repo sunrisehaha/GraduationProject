@@ -10,7 +10,7 @@
 
 - 展示智慧园区 3D 调度沙盘，地图上能看到道路、建筑、业务点位、配送小车和当前路径。
 - 地图是页面主视觉，顶部是紧凑系统状态栏，右侧模块放不下时会自动流到地图下方。
-- 调度控制台、当前任务、调度解释、车队状态、系统日志、订单历史、创建订单都支持收起、展开和拖拽排序。
+- 调度控制台、当前任务、调度解释、车队状态、系统日志、订单历史、新订单都支持收起、展开和显示隐藏。
 - 支持手动创建订单，选择真实园区业务点作为起点，输入楼栋或地址作为终点。
 - 提供演示控制能力，答辩时可以重置场景、创建 1 单演示、创建 5 单并行演示、恢复自动仿真。
 - 后台自动扫描待配送订单，按综合成本为订单分配小车。
@@ -137,23 +137,16 @@ GraduationProject/
 
 这个策略的优点是规则清楚、结果可验证，也比单纯距离排序更符合“车队调度”的业务表达。
 
-### 4. 驾驶舱模块是一个统一列表
+### 4. 驾驶舱模块围绕地图组织
 
 页面入口是 [frontend/src/dashboard/DashboardView.vue](./frontend/src/dashboard/DashboardView.vue)。
 
-当前驾驶舱不再人为区分“右侧区”和“底部区”。所有模块只维护一个全局顺序：
+当前驾驶舱优先保证地图主视觉：地图占主区，右侧只保留高频的当前任务和演示控制，底部承接辅助信息。
 
-- 调度控制台
-- 当前任务
-- 调度解释
-- 车队状态
-- 系统日志
-- 订单历史
-- 创建订单
+- 右侧：当前任务、演示控制。
+- 底部：车队状态、系统日志、调度解释、订单历史、新订单。
 
-[useDashboardModuleLayout.js](./frontend/src/dashboard/composables/useDashboardModuleLayout.js) 会根据地图卡片高度自动计算模块位置：桌面端优先放到地图右侧，右侧放不下的模块自动流到地图下方；窄屏端全部自然排到地图下方。
-
-模块外壳由 [DashboardModuleShell.vue](./frontend/src/dashboard/components/layout/DashboardModuleShell.vue) 统一负责标题、摘要、收起展开和拖拽排序。模块顺序和展开状态会保存到 `localStorage`，刷新后仍然保留。
+模块外壳由 [DashboardModuleShell.vue](./frontend/src/dashboard/components/layout/DashboardModuleShell.vue) 统一负责标题、摘要和收起展开；布局设置由 [LayoutSettingsDrawer.vue](./frontend/src/dashboard/components/layout/LayoutSettingsDrawer.vue) 负责模块显示隐藏，并保存到 `localStorage`。
 
 ### 5. 前端数据先整理再展示
 
@@ -272,9 +265,8 @@ data/project.db
 4. [backend/business/order.py](./backend/business/order.py)：看订单如何创建和记录事件。
 5. [backend/business/dispatch.py](./backend/business/dispatch.py)：看小车如何接单、评分和移动。
 6. [frontend/src/dashboard/composables/useDashboardData.js](./frontend/src/dashboard/composables/useDashboardData.js)：看前端如何整理后端数据。
-7. [frontend/src/dashboard/composables/useDashboardModuleLayout.js](./frontend/src/dashboard/composables/useDashboardModuleLayout.js)：看驾驶舱模块如何自动布局和拖拽排序。
+7. [frontend/src/dashboard/DashboardView.vue](./frontend/src/dashboard/DashboardView.vue)：看页面如何组织地图、右侧模块和底部模块。
 8. [frontend/src/campus/useThreeCampusPrototype.js](./frontend/src/campus/useThreeCampusPrototype.js)：看 3D 场景如何创建和更新。
-9. [frontend/src/dashboard/DashboardView.vue](./frontend/src/dashboard/DashboardView.vue)：最后看页面如何组织各个模块。
 
 ## 后续可以扩展什么
 

@@ -9,6 +9,10 @@ export function setDemoMode(enabled) {
   return postJson('/api/demo/mode', { enabled }, '演示控制请求失败')
 }
 
+export function setDemoSpeed(speed) {
+  return postJson('/api/demo/speed', { speed }, '演示倍速设置失败')
+}
+
 export function resetDemoScene() {
   return postAction('/api/demo/reset', '演示控制请求失败')
 }
