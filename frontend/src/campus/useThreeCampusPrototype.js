@@ -39,6 +39,7 @@ function createState() {
     camera: null,
     renderer: null,
     resizeObserver: null,
+    resizeFrameId: 0,
     animationFrameId: 0,
     lastFrameTime: 0,
     ambientLight: null,
@@ -132,7 +133,12 @@ function createBaseScene(state, container) {
   state.scene.background = new THREE.Color('#f3fbff')
   state.scene.fog = null
 
-  state.camera = new THREE.PerspectiveCamera(34, 1, 0.1, 120)
+  state.camera = new THREE.PerspectiveCamera(
+    34,
+    1,
+    cameraConfig.near || 0.1,
+    cameraConfig.far || 120
+  )
   applyCameraControls(state)
 
   state.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
@@ -626,7 +632,17 @@ export function useThreeCampusPrototype(containerRef, sceneData) {
     resizeRenderer(state, container)
     startLoop(state)
 
-    state.resizeObserver = new ResizeObserver(() => resizeRenderer(state, container))
+    // ResizeObserver 在回调里同步 setSize 容易触发浏览器的 loop 提示，推迟到下一帧处理更稳。
+    state.resizeObserver = new ResizeObserver(() => {
+      if (state.resizeFrameId) {
+        cancelAnimationFrame(state.resizeFrameId)
+      }
+
+      state.resizeFrameId = requestAnimationFrame(() => {
+        state.resizeFrameId = 0
+        resizeRenderer(state, container)
+      })
+    })
     state.resizeObserver.observe(container)
   })
 
@@ -636,6 +652,9 @@ export function useThreeCampusPrototype(containerRef, sceneData) {
     }
 
     state.resizeObserver?.disconnect()
+    if (state.resizeFrameId) {
+      cancelAnimationFrame(state.resizeFrameId)
+    }
     state.cleanupHandlers.forEach((cleanup) => cleanup())
     state.cleanupHandlers = []
 

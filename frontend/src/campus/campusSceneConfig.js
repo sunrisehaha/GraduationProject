@@ -2,20 +2,28 @@
 
 import { campusBusinessMap, getServicePointById } from './campusBusinessMap.js'
 
+const visualGridCols = 100
+const visualGridRows = 90
+
 export const campusSceneConfig = {
-  gridCols: campusBusinessMap.gridCols,
-  gridRows: campusBusinessMap.gridRows,
-  tileSize: 0.82,
+  // 静态 Blender 底座是 100 x 90；后端业务规则仍是 60 x 45。
+  gridCols: visualGridCols,
+  gridRows: visualGridRows,
+  businessGridCols: campusBusinessMap.gridCols,
+  businessGridRows: campusBusinessMap.gridRows,
+  tileSize: 0.6,
   groundY: 0.22,
   camera: {
-    position: { x: 32, y: 38, z: 36 },
-    lookAt: { x: 0, y: 0, z: 4 },
-    fogNear: 42,
-    fogFar: 92,
-    shadowExtent: 32,
+    position: { x: 38, y: 54, z: 48 },
+    lookAt: { x: 0, y: 0, z: 0 },
+    near: 0.1,
+    far: 220,
+    fogNear: 56,
+    fogFar: 124,
+    shadowExtent: 58,
     controls: {
-      minDistance: 24,
-      maxDistance: 72,
+      minDistance: 30,
+      maxDistance: 120,
       zoomStep: 0.12,
       dragRotateSpeed: 0.006,
       dragPitchSpeed: 0.004,
@@ -27,35 +35,20 @@ export const campusSceneConfig = {
       maxInertiaSeconds: 0.45,
       minPitch: 0.34,
       maxPitch: 1.14,
-      boundsPaddingTiles: 2,
+      boundsPaddingTiles: 6,
       mouseEnabled: true,
     },
   },
   modelUrls: {
-    campus: '/scene/campus/campus.glb?v=building-y-flip-road-rules-20260506',
-    pixel_tree: '/scene/environment/pixel_tree.glb',
-    realistic_tree: '/scene/environment/realistic_tree.glb',
+    campus: '/scene/world_rules_static_scene.glb?v=svg-layout-south-facing-20260521c',
     delivery_bot: '/scene/vehicles/delivery_bot.glb',
   },
   cartModel: {
     asset: 'delivery_bot',
-    targetSize: 1.46,
+    targetSize: 1.12,
     rotationY: -Math.PI / 2,
   },
-  treeClusters: [
-    { asset: 'pixel_tree', point: { x: 23, y: 6 }, targetSize: 5.6, rotation: 0.18 },
-    { asset: 'pixel_tree', point: { x: 27, y: 6 }, targetSize: 5.0, rotation: -0.28 },
-    { asset: 'pixel_tree', point: { x: 30, y: 7 }, targetSize: 4.8, rotation: 0.32 },
-    { asset: 'pixel_tree', point: { x: 34, y: 17 }, targetSize: 4.6, rotation: 0.52 },
-    { asset: 'pixel_tree', point: { x: 34, y: 20 }, targetSize: 4.4, rotation: 0.46 },
-    { asset: 'pixel_tree', point: { x: 23, y: 28 }, targetSize: 5.8, rotation: -0.14 },
-    { asset: 'pixel_tree', point: { x: 27, y: 29 }, targetSize: 4.8, rotation: 0.38 },
-    { asset: 'pixel_tree', point: { x: 30, y: 29 }, targetSize: 5.0, rotation: -0.22 },
-    { asset: 'pixel_tree', point: { x: 15, y: 18 }, targetSize: 3.4, rotation: 0.26 },
-    { asset: 'pixel_tree', point: { x: 15, y: 20 }, targetSize: 3.2, rotation: -0.28 },
-    { asset: 'pixel_tree', point: { x: 15, y: 30 }, targetSize: 3.4, rotation: 0.22 },
-    { asset: 'pixel_tree', point: { x: 15, y: 32 }, targetSize: 3.6, rotation: -0.18 },
-  ],
+  treeClusters: [],
   // 业务锚点：优先展示门岗、快递中心、住宅区、公共服务区和停车待命区。
   businessAnchors: [
     {
@@ -127,13 +120,16 @@ export const campusSceneConfig = {
   ],
 }
 
-// 网格转 Three.js 世界坐标：保持后端 60 x 45 业务坐标和园区模型对齐。
+// 网格转 Three.js 世界坐标：业务点仍来自 60 x 45，先按比例投射到 100 x 90 视觉底座。
+// 下一阶段重写 shared/campus_rules.json 后，这里就可以直接使用同源坐标。
 export function gridPointToWorld(point, height = 0) {
-  const { gridCols, gridRows, tileSize } = campusSceneConfig
+  const { gridCols, gridRows, businessGridCols, businessGridRows, tileSize } = campusSceneConfig
+  const visualX = (point.x / (businessGridCols - 1)) * (gridCols - 1)
+  const visualY = (point.y / (businessGridRows - 1)) * (gridRows - 1)
 
   return {
-    x: (point.x - (gridCols - 1) / 2) * tileSize,
+    x: (visualX - (gridCols - 1) / 2) * tileSize,
     y: height,
-    z: (point.y - (gridRows - 1) / 2) * tileSize,
+    z: (visualY - (gridRows - 1) / 2) * tileSize,
   }
 }

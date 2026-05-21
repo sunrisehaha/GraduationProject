@@ -115,14 +115,14 @@ function ensureCartObject(state, cart, helpers) {
 
   const model = createVehicleModel(state, helpers)
   const ring = new THREE.Mesh(
-    new THREE.TorusGeometry(0.76, 0.04, 10, 52),
+    new THREE.TorusGeometry(0.56, 0.035, 10, 52),
     helpers.createGlowMaterial('#5eead4', 0.72)
   )
   ring.rotation.x = Math.PI / 2
   ring.position.y = 0.04
 
   const activeHalo = new THREE.Mesh(
-    new THREE.TorusGeometry(1.02, 0.065, 12, 64),
+    new THREE.TorusGeometry(0.78, 0.05, 12, 64),
     helpers.createGlowMaterial('#34d399', 0.86)
   )
   activeHalo.rotation.x = Math.PI / 2
@@ -130,10 +130,10 @@ function ensureCartObject(state, cart, helpers) {
   activeHalo.visible = false
 
   const statusColumn = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.42, 0.58, 1.15, 24, 1, true),
+    new THREE.CylinderGeometry(0.3, 0.42, 0.92, 24, 1, true),
     helpers.createGlowMaterial('#34d399', 0.14)
   )
-  statusColumn.position.y = 0.7
+  statusColumn.position.y = 0.58
   statusColumn.visible = false
 
   const group = new THREE.Group()
