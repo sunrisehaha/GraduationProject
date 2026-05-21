@@ -50,12 +50,17 @@ const { interactionState } = useThreeCampusPrototype(sceneRef, sceneData)
       <div class="map-title-block">
         <span class="map-title-block__icon" aria-hidden="true">
           <svg viewBox="0 0 48 48" focusable="false">
-            <path class="map-icon__ground" d="M6 29L20 11l22 8l-14 20z" />
-            <path class="map-icon__road" d="M12 29l13-16" />
-            <path class="map-icon__road" d="M20 36l15-19" />
-            <path class="map-icon__route" d="M13 27c4.8 2.2 8.2 2.5 12 0.5c3-1.6 5-4 9.5-3.6" />
-            <path class="map-icon__pin" d="M34 26.5a4.6 4.6 0 0 1 4.6 4.6c0 3.4-4.6 7-4.6 7s-4.6-3.6-4.6-7a4.6 4.6 0 0 1 4.6-4.6z" />
-            <circle class="map-icon__pin-dot" cx="34" cy="31" r="1.4" />
+            <path class="map-icon__side-left" d="M7.5 29.2v3.4l19.6 7.6v-3.3z" />
+            <path class="map-icon__side-right" d="M27.1 36.9v3.3l13.4-9.1v-3.4z" />
+            <path class="map-icon__surface" d="M7.5 29.2l14.2-9.2l18.8 7.7l-13.4 9.2z" />
+            <path class="map-icon__grid" d="M13.6 25.3l19 7.5" />
+            <path class="map-icon__grid" d="M19.3 21.5l18.8 7.5" />
+            <path class="map-icon__grid" d="M15.2 32.2l13.8-9.2" />
+            <path class="map-icon__route-shadow" d="M18 31.4c4.6 2 5.7-4.9 10-3.4c3.2 1.1 2.2 5.1-2.4 5.7" />
+            <path class="map-icon__route" d="M18 31.4c4.6 2 5.7-4.9 10-3.4c3.2 1.1 2.2 5.1-2.4 5.7" />
+            <circle class="map-icon__start" cx="18" cy="31.4" r="2.2" />
+            <path class="map-icon__pin" d="M30.8 13.5a4.9 4.9 0 0 1 4.9 4.9c0 3.8-4.9 8.1-4.9 8.1s-4.9-4.3-4.9-8.1a4.9 4.9 0 0 1 4.9-4.9z" />
+            <circle class="map-icon__pin-dot" cx="30.8" cy="18.4" r="1.55" />
           </svg>
         </span>
         <span class="map-title-block__text">

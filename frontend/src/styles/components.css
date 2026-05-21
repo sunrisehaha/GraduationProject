@@ -204,9 +204,50 @@
 }
 
 .dashboard-module__icon--fleet svg {
+  width: 25px;
+  height: 25px;
+  stroke-width: 1.75;
+}
+
+.dashboard-module__icon--fleet path:first-child {
+  fill: rgba(240, 250, 255, 0.9);
+  stroke: #2b8ddd;
+}
+
+.dashboard-module__icon--fleet path:nth-child(5) {
+  fill: #f39a22;
+  stroke: #f39a22;
+}
+
+.dashboard-module__icon--fleet path:nth-child(6) {
+  fill: rgba(255, 255, 255, 0.72);
+  stroke: #2b8ddd;
+}
+
+.dashboard-module__icon--history svg {
   width: 23px;
   height: 23px;
-  stroke-width: 1.65;
+  stroke-width: 1.75;
+}
+
+.dashboard-module__icon--dispatch svg {
+  width: 21px;
+  height: 21px;
+  stroke-width: 1.8;
+}
+
+.dashboard-module__icon--dispatch path:first-child {
+  fill: rgba(47, 130, 173, 0.14);
+}
+
+.dashboard-module__icon--dispatch path:nth-child(3),
+.dashboard-module__icon--dispatch path:nth-child(5) {
+  opacity: 0.45;
+}
+
+.dashboard-module__icon--dispatch path:nth-child(4) {
+  fill: #de9658;
+  stroke: #de9658;
 }
 
 .dashboard-module__title-wrap {
