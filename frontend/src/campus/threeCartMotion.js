@@ -257,10 +257,13 @@ export function syncCartObjects(state, carts, activeCartId, helpers) {
   })
 }
 
-export function updateCartAnimations(state, delta) {
+export function updateCartAnimations(state, delta, speedMultiplier = 1) {
+  const speed = Number(speedMultiplier)
+  const visualSpeed = Number.isFinite(speed) ? clamp(speed, 0.5, 4) : 1
+
   state.cartObjects.forEach((entry) => {
     // 小车按完整路径队列匀速前进，避免直接追服务端整数坐标造成跳格和斜穿。
-    let remainingDistance = campusSceneConfig.tileSize * 1.25 * delta
+    let remainingDistance = campusSceneConfig.tileSize * 1.25 * visualSpeed * delta
 
     while (remainingDistance > 0 && entry.routePoints.length > 0) {
       const targetPosition = entry.routePoints[0]

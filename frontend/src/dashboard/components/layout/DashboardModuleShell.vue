@@ -1,5 +1,5 @@
 <script setup>
-// 驾驶舱模块外壳：统一负责模块拖拽、收起展开和标题展示。
+// 驾驶舱模块外壳：统一负责模块标题、摘要和收起展开。
 defineProps({
   module: {
     type: Object,
@@ -9,13 +9,13 @@ defineProps({
     type: Boolean,
     required: true,
   },
-  isDragging: {
+  isEditing: {
     type: Boolean,
     default: false,
   },
 })
 
-const emit = defineEmits(['toggle', 'drag-start', 'drag-over', 'drag-end', 'drop'])
+const emit = defineEmits(['toggle'])
 </script>
 
 <template>
@@ -23,19 +23,10 @@ const emit = defineEmits(['toggle', 'drag-start', 'drag-over', 'drag-end', 'drop
     class="dashboard-module"
     :class="{
       'dashboard-module--closed': !isOpen,
-      'dashboard-module--dragging': isDragging,
+      'dashboard-module--editing': isEditing,
     }"
-    @dragover.prevent="emit('drag-over', module.id, $event)"
-    @drop.prevent="emit('drop', module.id, $event)"
   >
-    <header
-      class="dashboard-module__header"
-      draggable="true"
-      @dragstart="emit('drag-start', module.id, $event)"
-      @dragend="emit('drag-end')"
-    >
-      <span class="dashboard-module__drag-handle" aria-hidden="true"></span>
-
+    <header class="dashboard-module__header">
       <span class="dashboard-module__title-wrap">
         <span class="dashboard-module__eyebrow">{{ module.eyebrow }}</span>
         <span class="dashboard-module__title">{{ module.title }}</span>
@@ -48,9 +39,7 @@ const emit = defineEmits(['toggle', 'drag-start', 'drag-over', 'drag-end', 'drop
         class="dashboard-module__toggle"
         :aria-expanded="isOpen"
         :aria-label="isOpen ? `收起${module.title}` : `展开${module.title}`"
-        draggable="false"
         @click.stop="emit('toggle', module.id)"
-        @dragstart.stop.prevent
       >
         <span aria-hidden="true"></span>
       </button>

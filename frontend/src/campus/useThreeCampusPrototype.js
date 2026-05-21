@@ -64,6 +64,7 @@ function createState() {
       carts: [],
       orders: [],
       currentPath: [],
+      demoSpeed: 1,
     },
   }
 }
@@ -578,7 +579,7 @@ function startLoop(state) {
     const delta = state.lastFrameTime ? Math.min(seconds - state.lastFrameTime, 0.05) : 1 / 60
     state.lastFrameTime = seconds
 
-    updateCartAnimations(state, delta)
+    updateCartAnimations(state, delta, state.currentSceneData.demoSpeed)
     updateCameraInertia(state, delta)
     updateEnvironmentalAnimations(state, seconds)
     state.renderer.render(state.scene, state.camera)
@@ -598,6 +599,7 @@ export function useThreeCampusPrototype(containerRef, sceneData) {
         carts: Array.isArray(value?.carts) ? value.carts : [],
         orders: Array.isArray(value?.orders) ? value.orders : [],
         currentPath: Array.isArray(value?.currentPath) ? value.currentPath : [],
+        demoSpeed: Number.isFinite(Number(value?.demoSpeed)) ? Number(value.demoSpeed) : 1,
       }
 
       if (state.scene && state.assetsReady) {

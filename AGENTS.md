@@ -73,16 +73,11 @@
 
 - 地图是页面主视觉，不能被右侧或底部模块挤成普通后台卡片。
 - 页面风格保持浅色科技感：清爽、轻盈、现代，不做大面积深色压迫感背景。
-- 驾驶舱模块遵循“单一模块流”：
-  - 调度控制台
-  - 当前任务
-  - 调度解释
-  - 车队状态
-  - 系统日志
-  - 订单历史
-  - 创建订单
-- 模块可以收起、展开、拖拽排序；布局由 [useDashboardModuleLayout.js](/Users/sunkezan/Desktop/GraduationProject/frontend/src/dashboard/composables/useDashboardModuleLayout.js) 统一计算。
-- 桌面端优先把模块放在地图右侧，右侧按地图高度放不下的模块自动流到地图下方。
+- 驾驶舱模块围绕地图主视觉组织：
+  - 右侧：当前任务、演示控制
+  - 底部：车队状态、系统日志、调度解释、订单历史、新订单
+- 模块可以收起、展开、显示隐藏；布局由 [DashboardView.vue](/Users/sunkezan/Desktop/GraduationProject/frontend/src/dashboard/DashboardView.vue) 和 [LayoutSettingsDrawer.vue](/Users/sunkezan/Desktop/GraduationProject/frontend/src/dashboard/components/layout/LayoutSettingsDrawer.vue) 组织。
+- 桌面端优先保证地图占主区，右侧只放高频任务和控制模块。
 - 窄屏端不要挤压地图，模块自然排到下方。
 - 组件命名要直观，例如 `CurrentTaskCard.vue`、`OrderHistoryCard.vue`、`DashboardModuleShell.vue`。
 - 状态整理优先放进 composable，例如 [useDashboardData.js](/Users/sunkezan/Desktop/GraduationProject/frontend/src/dashboard/composables/useDashboardData.js)。
@@ -190,9 +185,8 @@ npm run dev
 5. [backend/business/order.py](/Users/sunkezan/Desktop/GraduationProject/backend/business/order.py)
 6. [backend/business/dispatch.py](/Users/sunkezan/Desktop/GraduationProject/backend/business/dispatch.py)
 7. [frontend/src/dashboard/composables/useDashboardData.js](/Users/sunkezan/Desktop/GraduationProject/frontend/src/dashboard/composables/useDashboardData.js)
-8. [frontend/src/dashboard/composables/useDashboardModuleLayout.js](/Users/sunkezan/Desktop/GraduationProject/frontend/src/dashboard/composables/useDashboardModuleLayout.js)
+8. [frontend/src/dashboard/DashboardView.vue](/Users/sunkezan/Desktop/GraduationProject/frontend/src/dashboard/DashboardView.vue)
 9. [frontend/src/campus/useThreeCampusPrototype.js](/Users/sunkezan/Desktop/GraduationProject/frontend/src/campus/useThreeCampusPrototype.js)
-10. [frontend/src/dashboard/DashboardView.vue](/Users/sunkezan/Desktop/GraduationProject/frontend/src/dashboard/DashboardView.vue)
 
 ## 11. 最重要的一句话
 

@@ -75,6 +75,7 @@ demo_mode_enabled = False
 simulation_paused = False
 current_demo_order_ids = []
 last_dispatch_explanation = None
+demo_speed_multiplier = 1.0
 
 
 def is_demo_simulation_paused():
@@ -101,6 +102,27 @@ def set_current_demo_order_ids(order_ids):
     current_demo_order_ids = list(order_ids)
 
 
+def set_demo_speed(multiplier):
+    """设置演示倍速：只影响后台调度循环的节奏，不改订单和小车数据结构。"""
+    global demo_speed_multiplier
+    allowed_speeds = {0.5, 1.0, 2.0, 4.0}
+
+    try:
+        next_speed = float(multiplier)
+    except (TypeError, ValueError):
+        next_speed = 1.0
+
+    if next_speed not in allowed_speeds:
+        next_speed = 1.0
+
+    demo_speed_multiplier = next_speed
+
+
+def get_demo_speed():
+    """读取演示倍速，供接口和后台循环使用。"""
+    return demo_speed_multiplier
+
+
 def get_demo_state(active_orders=0):
     """返回演示状态快照：避免路由层直接拼全局变量。"""
     return {
@@ -109,6 +131,7 @@ def get_demo_state(active_orders=0):
         "current_demo_order_ids": current_demo_order_ids,
         "current_demo_order_count": len(current_demo_order_ids),
         "active_orders": active_orders,
+        "speed_multiplier": demo_speed_multiplier,
     }
 
 

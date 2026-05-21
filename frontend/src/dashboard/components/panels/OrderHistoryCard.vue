@@ -39,7 +39,6 @@ defineProps({
         <p class="panel-card__eyebrow">ORDER HISTORY</p>
         <h2>订单历史</h2>
       </div>
-      <p class="panel-card__desc">这里不只看当前任务，还能回看订单详情和状态流转过程。</p>
     </div>
 
     <div class="history-filter-row">
@@ -79,14 +78,13 @@ defineProps({
       <div class="history-detail">
         <template v-if="selectedOrder">
           <div class="history-detail__hero">
-            <p class="history-detail__eyebrow">DETAIL</p>
             <h3>{{ selectedOrder.displayOrderNo }}</h3>
             <p class="history-detail__desc">{{ selectedOrder.statusText }} · {{ selectedOrder.sourceText }}</p>
           </div>
 
-          <div class="info-stack">
+          <div class="info-stack info-stack--compact">
             <div class="info-row">
-              <span class="info-row__label">数据库编号</span>
+              <span class="info-row__label">编号</span>
               <span class="info-row__value">{{ selectedOrder.displayId }}</span>
             </div>
             <div class="info-row">
@@ -98,28 +96,26 @@ defineProps({
               <span class="info-row__value">{{ selectedOrder.endText }}</span>
             </div>
             <div class="info-row">
-              <span class="info-row__label">分配小车</span>
+              <span class="info-row__label">小车</span>
               <span class="info-row__value">{{ selectedOrder.assignedCartText }}</span>
             </div>
             <div class="info-row">
-              <span class="info-row__label">创建时间</span>
+              <span class="info-row__label">创建</span>
               <span class="info-row__value">{{ selectedOrder.create_time || '-' }}</span>
             </div>
             <div class="info-row">
-              <span class="info-row__label">完成时间</span>
+              <span class="info-row__label">完成</span>
               <span class="info-row__value">{{ selectedOrder.complete_time || '-' }}</span>
             </div>
             <div class="info-row">
-              <span class="info-row__label">路径节点</span>
+              <span class="info-row__label">路径</span>
               <span class="info-row__value">{{ selectedOrder.pathNodes }}</span>
             </div>
           </div>
 
           <div class="history-events">
-            <p class="panel-note__title">事件时间线</p>
-
             <article
-              v-for="event in selectedOrder.events"
+              v-for="event in selectedOrder.events.slice(0, 5)"
               :key="event.id"
               class="history-event-item"
             >

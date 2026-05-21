@@ -9,6 +9,7 @@ from backend.business.demo import (
     get_current_demo_state,
     reset_demo_scene,
     set_demo_enabled,
+    set_demo_speed_multiplier,
 )
 from backend.system.runtime import state_lock
 
@@ -30,6 +31,14 @@ def register_demo_api(app):
         data = request.get_json() or {}
         with state_lock:
             return jsonify(set_demo_enabled(bool(data.get("enabled"))))
+
+    @app.route("/api/demo/speed", methods=["POST"])
+    def set_demo_speed_view():
+        """切换演示倍速：影响调度、小车移动和自动仿真循环节奏。"""
+        ensure_workers_started(app)
+        data = request.get_json() or {}
+        with state_lock:
+            return jsonify(set_demo_speed_multiplier(data.get("speed", 1)))
 
     @app.route("/api/demo/reset", methods=["POST"])
     def reset_demo():

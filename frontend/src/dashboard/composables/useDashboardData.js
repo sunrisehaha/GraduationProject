@@ -7,6 +7,7 @@ import {
   fetchDemoState,
   resetDemoScene,
   setDemoMode,
+  setDemoSpeed,
 } from '../../api/demo'
 import { createOrder, fetchOrderDetail, fetchOrderEvents, fetchOrders } from '../../api/orders'
 import {
@@ -34,6 +35,7 @@ import {
 
 // 看板轮询间隔：让页面保持实时感，但不要快到影响演示体验。
 const refreshIntervalMs = 1000
+const minimumRefreshIntervalMs = 250
 const historyListLimit = 60
 const orderFetchLimit = 120
 
@@ -72,6 +74,7 @@ export function useDashboardData() {
     current_demo_order_ids: [],
     current_demo_order_count: 0,
     active_orders: 0,
+    speed_multiplier: 1,
   })
   const dispatchExplanationState = ref(null)
 
@@ -93,6 +96,49 @@ export function useDashboardData() {
   const errorMessage = ref('')
   const isLoading = ref(false)
   let timerId = null
+  let isDashboardMounted = false
+  let refreshRequestId = 0
+  let refreshTimerVersion = 0
+
+  function getDemoSpeedValue() {
+    const speed = Number(demoState.value.speed_multiplier)
+
+    if (!Number.isFinite(speed) || speed <= 0) {
+      return 1
+    }
+
+    return speed
+  }
+
+  function getRefreshIntervalMs() {
+    return Math.max(minimumRefreshIntervalMs, refreshIntervalMs / getDemoSpeedValue())
+  }
+
+  function clearRefreshTimer() {
+    if (!timerId) {
+      return
+    }
+
+    window.clearTimeout(timerId)
+    timerId = null
+    refreshTimerVersion += 1
+  }
+
+  function scheduleNextRefresh() {
+    if (!isDashboardMounted) {
+      return
+    }
+
+    clearRefreshTimer()
+    const timerVersion = ++refreshTimerVersion
+    timerId = window.setTimeout(async () => {
+      timerId = null
+      await refreshData()
+      if (timerVersion === refreshTimerVersion) {
+        scheduleNextRefresh()
+      }
+    }, getRefreshIntervalMs())
+  }
 
   // 日志写入器：避免连续插入完全重复的消息。
   function addLog(text) {
@@ -156,6 +202,8 @@ export function useDashboardData() {
 
   // 主刷新函数：轮询时统一更新总览数据、历史选中项和详情内容。
   async function refreshData() {
+    const requestId = ++refreshRequestId
+
     try {
       isLoading.value = true
       errorMessage.value = ''
@@ -167,6 +215,10 @@ export function useDashboardData() {
         fetchDemoState(),
         fetchDispatchExplanation(),
       ])
+
+      if (requestId !== refreshRequestId) {
+        return
+      }
 
       processOrderChanges(previousOrders, latestOrders)
       carts.value = latestCarts
@@ -183,10 +235,16 @@ export function useDashboardData() {
 
       lastUpdatedText.value = `最近刷新时间：${formatTime()}`
     } catch (error) {
+      if (requestId !== refreshRequestId) {
+        return
+      }
+
       errorMessage.value = error.message
       addLog(`数据刷新失败：${error.message}`)
     } finally {
-      isLoading.value = false
+      if (requestId === refreshRequestId) {
+        isLoading.value = false
+      }
     }
   }
 
@@ -276,6 +334,19 @@ export function useDashboardData() {
       return { ok: true }
     } catch (error) {
       addLog(`恢复自动仿真失败：${error.message}`)
+      return { ok: false, message: error.message }
+    }
+  }
+
+  async function handleSetDemoSpeed(speed) {
+    try {
+      refreshRequestId += 1
+      demoState.value = await setDemoSpeed(speed)
+      addLog(`演示倍速已切换为 ${speed}x。`)
+      scheduleNextRefresh()
+      return { ok: true }
+    } catch (error) {
+      addLog(`演示倍速切换失败：${error.message}`)
       return { ok: false, message: error.message }
     }
   }
@@ -473,6 +544,7 @@ export function useDashboardData() {
     demoOrderCount: demoState.value.current_demo_order_count || 0,
     activeOrderCount: demoState.value.active_orders || 0,
     isDemoMode: demoState.value.demo_mode_enabled,
+    speed: demoState.value.speed_multiplier || 1,
   }))
 
   // 调度解释：把后端候选车比较结果转成页面可读文本。
@@ -527,15 +599,15 @@ export function useDashboardData() {
 
   // 生命周期：组件挂载时立即拉一次数据，然后开始轮询。
   onMounted(async () => {
+    isDashboardMounted = true
     await refreshData()
-    timerId = window.setInterval(refreshData, refreshIntervalMs)
+    scheduleNextRefresh()
   })
 
   // 生命周期：组件卸载时关闭轮询，避免留下多余定时器。
   onBeforeUnmount(() => {
-    if (timerId) {
-      window.clearInterval(timerId)
-    }
+    isDashboardMounted = false
+    clearRefreshTimer()
   })
 
   return {
@@ -566,6 +638,7 @@ export function useDashboardData() {
     handleCreateOneDemoOrder,
     handleResetDemo,
     handleRestoreAutoSimulation,
+    handleSetDemoSpeed,
     submitOrder,
     topBar,
     lastUpdatedText,

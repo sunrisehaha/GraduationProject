@@ -11,6 +11,7 @@ from backend.system.runtime import (
     get_demo_state,
     set_current_demo_order_ids,
     set_demo_mode,
+    set_demo_speed,
     set_simulation_paused,
 )
 
@@ -51,6 +52,12 @@ def set_demo_enabled(enabled):
     if not enabled:
         set_simulation_paused(False)
 
+    return get_current_demo_state()
+
+
+def set_demo_speed_multiplier(multiplier):
+    """切换演示倍速：前端只传倍率，状态快照仍走统一出口。"""
+    set_demo_speed(multiplier)
     return get_current_demo_state()
 
 

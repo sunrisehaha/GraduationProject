@@ -1,11 +1,10 @@
 <script setup>
 // 看板页：只负责组织页面结构，真正的数据和交互都放在 composable 里。
-import { computed, markRaw } from 'vue'
+import { computed, markRaw, ref, watch } from 'vue'
 import { useDashboardData } from './composables/useDashboardData'
-import { useDashboardModuleLayout } from './composables/useDashboardModuleLayout'
 import DashboardModuleShell from './components/layout/DashboardModuleShell.vue'
+import LayoutSettingsDrawer from './components/layout/LayoutSettingsDrawer.vue'
 import TopBar from './components/layout/TopBar.vue'
-import StatsBar from './components/layout/StatsBar.vue'
 import ParkMap from './components/map/ParkMap.vue'
 import CreateOrderCard from './components/panels/CreateOrderCard.vue'
 import CurrentTaskCard from './components/panels/CurrentTaskCard.vue'
@@ -33,11 +32,13 @@ const {
   orders,
   orderFilter,
   orderFilterOptions,
+  refreshData,
   stats,
   handleCreateFiveDemoOrders,
   handleCreateOneDemoOrder,
   handleResetDemo,
   handleRestoreAutoSimulation,
+  handleSetDemoSpeed,
   selectOrder,
   selectedOrderId,
   selectedOrderView,
@@ -47,20 +48,19 @@ const {
   lastUpdatedText,
 } = useDashboardData()
 
-const moduleStorageKey = 'smart-park-dashboard-modules-v2'
-const moduleStorageVersion = 2
-const desktopModuleBreakpoint = 1320
-const moduleGapPx = 12
+const moduleVisibilityStorageKey = 'smart-park-dashboard-module-visibility-v1'
+const isLayoutEditing = ref(false)
+const isLayoutSettingsOpen = ref(false)
 
-// 模块定义：只维护一个全局顺序，布局再根据高度自动分配到右侧或下方。
+// 模块定义：地图优先，右侧只放高频控制，底部承接辅助信息。
 const moduleDefinitions = [
-  { id: 'demoControl', eyebrow: 'DEMO CONTROL', title: '调度控制台', defaultOpen: true, estimateHeight: 344 },
-  { id: 'currentTask', eyebrow: 'CURRENT TASK', title: '当前任务', defaultOpen: true, estimateHeight: 430 },
-  { id: 'dispatchExplanation', eyebrow: 'DISPATCH REASON', title: '调度解释', defaultOpen: true, estimateHeight: 420 },
-  { id: 'fleetStatus', eyebrow: 'FLEET', title: '车队状态', defaultOpen: true, estimateHeight: 520 },
-  { id: 'systemLog', eyebrow: 'LOG', title: '系统日志', defaultOpen: true, estimateHeight: 360 },
-  { id: 'orderHistory', eyebrow: 'HISTORY', title: '订单历史', defaultOpen: false, estimateHeight: 820 },
-  { id: 'createOrder', eyebrow: 'ORDER', title: '创建订单', defaultOpen: false, estimateHeight: 380 },
+  { id: 'currentTask', eyebrow: 'CURRENT TASK', title: '当前任务', defaultOpen: true, region: 'side' },
+  { id: 'demoControl', eyebrow: 'DEMO CONTROL', title: '演示控制', defaultOpen: true, region: 'side' },
+  { id: 'fleetStatus', eyebrow: 'FLEET', title: '小车状态', defaultOpen: true, region: 'bottom' },
+  { id: 'systemLog', eyebrow: 'LOG', title: '事件日志', defaultOpen: true, region: 'bottom' },
+  { id: 'dispatchExplanation', eyebrow: 'DISPATCH REASON', title: '调度解释', defaultOpen: true, region: 'bottom' },
+  { id: 'orderHistory', eyebrow: 'HISTORY', title: '订单历史', defaultOpen: true, region: 'bottom' },
+  { id: 'createOrder', eyebrow: 'ORDER', title: '新订单', defaultOpen: false, region: 'bottom' },
 ]
 
 const moduleComponentMap = {
@@ -73,24 +73,41 @@ const moduleComponentMap = {
   createOrder: markRaw(CreateOrderCard),
 }
 
-const {
-  allocatedModuleIds,
-  draggingModuleId,
-  handleModuleDragOver,
-  handleModuleDragStart,
-  handleModuleDrop,
-  mapColumnRef,
-  moduleOpenState,
-  moveDraggingModuleToEnd,
-  setModuleElement,
-  toggleModule,
-} = useDashboardModuleLayout({
-  moduleDefinitions,
-  storageKey: moduleStorageKey,
-  storageVersion: moduleStorageVersion,
-  desktopBreakpoint: desktopModuleBreakpoint,
-  moduleGapPx,
-})
+const defaultOpenState = Object.fromEntries(moduleDefinitions.map((module) => [module.id, module.defaultOpen]))
+const defaultVisibleState = Object.fromEntries(moduleDefinitions.map((module) => [module.id, true]))
+const moduleOpenState = ref({ ...defaultOpenState })
+const moduleVisibleState = ref(readVisibleState())
+
+function readVisibleState() {
+  if (typeof window === 'undefined') {
+    return { ...defaultVisibleState }
+  }
+
+  try {
+    const savedState = JSON.parse(window.localStorage.getItem(moduleVisibilityStorageKey) || '{}')
+
+    return Object.fromEntries(
+      moduleDefinitions.map((module) => [
+        module.id,
+        typeof savedState[module.id] === 'boolean' ? savedState[module.id] : true,
+      ])
+    )
+  } catch {
+    return { ...defaultVisibleState }
+  }
+}
+
+function persistVisibleState() {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  try {
+    window.localStorage.setItem(moduleVisibilityStorageKey, JSON.stringify(moduleVisibleState.value))
+  } catch {
+    // 本地存储不可用时不影响驾驶舱本身运行。
+  }
+}
 
 function getModuleSummary(moduleId) {
   const summaryMap = {
@@ -102,7 +119,7 @@ function getModuleSummary(moduleId) {
     fleetStatus: `${fleetSummary.value.total} 辆 · ${fleetSummary.value.active} 忙碌 · ${fleetSummary.value.idle} 空闲`,
     systemLog: `${logs.value.length} 条事件`,
     orderHistory: `${filteredOrders.value.length} 条记录`,
-    createOrder: '手动输入地点时展开',
+    createOrder: '手动派单',
   }
 
   return summaryMap[moduleId] || ''
@@ -118,6 +135,7 @@ function getModuleProps(moduleId) {
       createOneDemoOrder: handleCreateOneDemoOrder,
       createFiveDemoOrders: handleCreateFiveDemoOrders,
       restoreAutoSimulation: handleRestoreAutoSimulation,
+      setDemoSpeed: handleSetDemoSpeed,
     },
     currentTask: {
       task: currentTask.value,
@@ -166,89 +184,120 @@ const moduleViewMap = computed(() =>
   )
 )
 
-const sideModules = computed(() =>
-  allocatedModuleIds.value.side.map((moduleId) => moduleViewMap.value[moduleId]).filter(Boolean)
-)
-const overflowModules = computed(() =>
-  allocatedModuleIds.value.overflow.map((moduleId) => moduleViewMap.value[moduleId]).filter(Boolean)
-)
+function toggleModule(moduleId) {
+  moduleOpenState.value = {
+    ...moduleOpenState.value,
+    [moduleId]: !moduleOpenState.value[moduleId],
+  }
+}
+
+function setModuleVisible(moduleId, isVisible) {
+  if (!moduleViewMap.value[moduleId]) {
+    return
+  }
+
+  moduleVisibleState.value = {
+    ...moduleVisibleState.value,
+    [moduleId]: Boolean(isVisible),
+  }
+}
+
+function resetModuleLayout() {
+  moduleVisibleState.value = { ...defaultVisibleState }
+  moduleOpenState.value = { ...defaultOpenState }
+}
+
+function toggleLayoutEditing() {
+  isLayoutEditing.value = !isLayoutEditing.value
+  isLayoutSettingsOpen.value = isLayoutEditing.value
+}
+
+function closeLayoutEditor() {
+  isLayoutEditing.value = false
+  isLayoutSettingsOpen.value = false
+}
+
+function saveLayout() {
+  persistVisibleState()
+  closeLayoutEditor()
+}
+
+function getModulesByRegion(region) {
+  return moduleDefinitions
+    .filter((module) => module.region === region)
+    .map((module) => moduleViewMap.value[module.id])
+    .filter((module) => module && moduleVisibleState.value[module.id] !== false)
+}
+
+const sideModules = computed(() => getModulesByRegion('side'))
+const bottomModules = computed(() => getModulesByRegion('bottom'))
+const settingModules = computed(() => moduleDefinitions.map((module) => moduleViewMap.value[module.id]).filter(Boolean))
+
+watch(moduleVisibleState, persistVisibleState, { deep: true })
 </script>
 
 <template>
-  <div class="screen-shell">
-    <TopBar />
-    <StatsBar
-      :stats="stats"
+  <div class="screen-shell" :class="{ 'screen-shell--layout-editing': isLayoutEditing }">
+    <TopBar
+      :is-layout-editing="isLayoutEditing"
       :status-text="topBar.statusText"
+      :stats="stats"
       :last-updated-text="lastUpdatedText"
+      @toggle-layout-editing="toggleLayoutEditing"
+      @open-layout-settings="isLayoutSettingsOpen = true"
+      @refresh="refreshData"
     />
 
-    <main class="dashboard-layout">
-      <section ref="mapColumnRef" class="dashboard-main">
+    <main class="dashboard-workspace">
+      <section class="dashboard-map-stage">
         <ParkMap
           :map-info="mapInfo"
           :current-task="currentTask"
           :current-path="currentPath"
           :carts="carts"
           :orders="orders"
+          :demo-speed="demoControl.speed"
         />
       </section>
 
-      <aside
-        class="dashboard-module-column dashboard-module-column--side"
-        @dragover.prevent
-        @drop.prevent="moveDraggingModuleToEnd"
-      >
-        <div
+      <aside class="dashboard-side-stack">
+        <DashboardModuleShell
           v-for="module in sideModules"
           :key="module.id"
-          :ref="(element) => setModuleElement(module.id, element)"
-          class="dashboard-module-measure"
-          :class="`dashboard-module-measure--${module.id}`"
+          :module="module"
+          :is-open="moduleOpenState[module.id]"
+          :is-editing="isLayoutEditing"
+          :class="`dashboard-module--${module.id}`"
+          @toggle="toggleModule"
         >
-          <DashboardModuleShell
-            :module="module"
-            :is-open="moduleOpenState[module.id]"
-            :is-dragging="draggingModuleId === module.id"
-            @toggle="toggleModule"
-            @drag-start="handleModuleDragStart"
-            @drag-over="handleModuleDragOver"
-            @drag-end="draggingModuleId = ''"
-            @drop="handleModuleDrop"
-          >
-            <component :is="module.component" v-bind="module.props" />
-          </DashboardModuleShell>
-        </div>
+          <component :is="module.component" v-bind="module.props" />
+        </DashboardModuleShell>
         <p v-if="errorMessage" class="view-error">{{ errorMessage }}</p>
       </aside>
     </main>
 
-    <section
-      v-if="overflowModules.length"
-      class="dashboard-module-overflow"
-      @dragover.prevent
-      @drop.prevent="moveDraggingModuleToEnd"
-    >
-      <div
-        v-for="module in overflowModules"
+    <section class="dashboard-bottom-grid">
+      <DashboardModuleShell
+        v-for="module in bottomModules"
         :key="module.id"
-        :ref="(element) => setModuleElement(module.id, element)"
-        class="dashboard-module-measure"
-        :class="`dashboard-module-measure--${module.id}`"
+        :module="module"
+        :is-open="moduleOpenState[module.id]"
+        :is-editing="isLayoutEditing"
+        :class="`dashboard-module--${module.id}`"
+        @toggle="toggleModule"
       >
-        <DashboardModuleShell
-          :module="module"
-          :is-open="moduleOpenState[module.id]"
-          :is-dragging="draggingModuleId === module.id"
-          @toggle="toggleModule"
-          @drag-start="handleModuleDragStart"
-          @drag-over="handleModuleDragOver"
-          @drag-end="draggingModuleId = ''"
-          @drop="handleModuleDrop"
-        >
-          <component :is="module.component" v-bind="module.props" />
-        </DashboardModuleShell>
-      </div>
+        <component :is="module.component" v-bind="module.props" />
+      </DashboardModuleShell>
     </section>
+
+    <LayoutSettingsDrawer
+      :is-open="isLayoutSettingsOpen"
+      :modules="settingModules"
+      :visible-state="moduleVisibleState"
+      @close="isLayoutSettingsOpen = false"
+      @reset-layout="resetModuleLayout"
+      @save-layout="saveLayout"
+      @set-visible="setModuleVisible"
+    />
   </div>
 </template>

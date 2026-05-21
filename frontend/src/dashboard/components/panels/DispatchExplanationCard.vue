@@ -15,32 +15,19 @@ defineProps({
         <p class="panel-card__eyebrow">DISPATCH REASON</p>
         <h2>调度解释</h2>
       </div>
-      <p class="panel-card__desc">说明系统为什么把当前订单分配给这辆小车。</p>
     </div>
 
     <template v-if="explanation.hasExplanation">
-      <div class="panel-note">
-        <p class="panel-note__title">{{ explanation.strategy }}</p>
-        <p class="panel-note__text">{{ explanation.summary }}</p>
-        <p v-if="explanation.scoreFormula" class="panel-note__text">
-          评分：{{ explanation.scoreFormula }}
-        </p>
+      <div class="dispatch-summary-row">
+        <span>{{ explanation.strategy }}</span>
+        <span>{{ explanation.orderText }}</span>
+        <span>选中 {{ explanation.selectedCartText }}</span>
+        <span>{{ explanation.selectedPathText }}</span>
       </div>
-
-      <div class="info-stack">
-        <div class="info-row">
-          <span class="info-row__label">订单</span>
-          <span class="info-row__value">{{ explanation.orderText }}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-row__label">选中小车</span>
-          <span class="info-row__value">{{ explanation.selectedCartText }}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-row__label">完整路径</span>
-          <span class="info-row__value">{{ explanation.selectedPathText }}</span>
-        </div>
-      </div>
+      <p class="dispatch-summary-text">
+        {{ explanation.summary }}
+        <span v-if="explanation.scoreFormula"> · 评分：{{ explanation.scoreFormula }}</span>
+      </p>
 
       <div class="dispatch-table-wrap">
         <table class="dispatch-table">
@@ -76,6 +63,6 @@ defineProps({
       </div>
     </template>
 
-    <p v-else class="empty-text">还没有调度决策。创建演示订单后，这里会展示候选小车比较过程。</p>
+    <p v-else class="empty-text">暂无调度决策。</p>
   </section>
 </template>
