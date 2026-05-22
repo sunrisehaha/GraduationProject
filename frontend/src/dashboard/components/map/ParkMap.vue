@@ -64,21 +64,10 @@ const { interactionState } = useThreeCampusPrototype(sceneRef, sceneData)
           </svg>
         </span>
         <span class="map-title-block__text">
-          <p class="panel-card__eyebrow">MAP OVERVIEW</p>
-          <h2>智慧园区 3D 调度沙盘</h2>
+          <h2>智慧园区 3D 沙盘</h2>
         </span>
       </div>
       <p class="panel-card__desc">{{ mapInfo.summary }}</p>
-    </div>
-
-    <div class="map-toolbar">
-      <div class="legend">
-        <span class="legend__item"><i class="legend__swatch legend__swatch--cart"></i>空闲小车</span>
-        <span class="legend__item"><i class="legend__swatch legend__swatch--busy"></i>执行中小车</span>
-        <span class="legend__item"><i class="legend__swatch legend__swatch--obstacle"></i>建筑 / 障碍物</span>
-        <span class="legend__item"><i class="legend__swatch legend__swatch--start"></i>起点</span>
-        <span class="legend__item"><i class="legend__swatch legend__swatch--end"></i>终点</span>
-      </div>
     </div>
 
     <div class="canvas-wrap">

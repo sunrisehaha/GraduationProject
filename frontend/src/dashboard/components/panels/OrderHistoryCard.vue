@@ -36,7 +36,7 @@ defineProps({
   <section class="panel-card history-panel">
     <div class="panel-card__header">
       <div>
-        <p class="panel-card__eyebrow">ORDER HISTORY</p>
+        <p class="panel-card__eyebrow">订单历史</p>
         <h2>订单历史</h2>
       </div>
     </div>

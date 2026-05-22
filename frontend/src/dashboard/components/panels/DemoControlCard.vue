@@ -66,7 +66,7 @@ function runSpeedChange(speed) {
   <section class="panel-card demo-control-card demo-control-card--dense">
     <div class="panel-card__header">
       <div>
-        <p class="panel-card__eyebrow">DEMO CONTROL</p>
+        <p class="panel-card__eyebrow">演示控制</p>
         <h2>演示控制</h2>
       </div>
     </div>

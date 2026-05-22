@@ -12,7 +12,7 @@ defineProps({
   <section class="panel-card panel-card--compact current-task-card">
     <div class="panel-card__header">
       <div>
-        <p class="panel-card__eyebrow">CURRENT TASK</p>
+        <p class="panel-card__eyebrow">当前任务</p>
         <h2>当前任务</h2>
       </div>
     </div>

@@ -53,7 +53,7 @@ async function handleSubmit() {
   <section class="panel-card create-order-card">
     <div class="panel-card__header">
       <div>
-        <p class="panel-card__eyebrow">MANUAL ORDER</p>
+        <p class="panel-card__eyebrow">手动派单</p>
         <h2>手动派单</h2>
       </div>
     </div>
@@ -74,7 +74,7 @@ async function handleSubmit() {
             v-model="form.endPlaceText"
             list="delivery-place-suggestions"
             type="text"
-            placeholder="1栋101室 / 综合楼"
+            placeholder="东区别墅 B5 / 日本料理"
             required
           />
           <datalist id="delivery-place-suggestions">

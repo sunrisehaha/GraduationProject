@@ -29,13 +29,12 @@ const iconPaths = {
     'M16 14h3',
   ],
   fleet: [
-    'M3.6 13c0-3.4 2.7-5.9 6.2-5.9h5.1c3 0 5.5 2.4 5.5 5.5v4.1h-16.8z',
-    'M5.3 10.5h13.8',
-    'M14.3 7.7l-3.6 9',
-    'M11.9 7.1v-3.1',
-    'M12 4.1l4.2 1.5l-4.2 1.5z',
-    'M5.1 18.2a2 2 0 1 0 4 0a2 2 0 1 0-4 0M10.4 18.2a2 2 0 1 0 4 0a2 2 0 1 0-4 0M15.7 18.2a2 2 0 1 0 4 0a2 2 0 1 0-4 0',
-    'M5.7 13.1h2.3',
+    'M5 13h1.4l1.4-3.6h7.6l1.8 3.6h1.8c0.7 0 1.2 0.5 1.2 1.2v2h-2',
+    'M7.8 16.2h8.5',
+    'M8 16.8a1.7 1.7 0 1 0 0-3.4a1.7 1.7 0 0 0 0 3.4',
+    'M16.3 16.8a1.7 1.7 0 1 0 0-3.4a1.7 1.7 0 0 0 0 3.4',
+    'M9.1 9.4v3.6',
+    'M14.1 9.4v3.6',
   ],
   log: [
     'M6 6h12',
@@ -88,7 +87,6 @@ const iconPaths = {
       </span>
 
       <span class="dashboard-module__title-wrap">
-        <span class="dashboard-module__eyebrow">{{ module.eyebrow }}</span>
         <span class="dashboard-module__title">{{ module.title }}</span>
       </span>
 

@@ -10,7 +10,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
   gap: 10px;
-  height: calc(100vh - 76px);
+  height: calc(100vh - 150px);
   align-items: stretch;
 }
 
@@ -24,7 +24,7 @@
   display: grid;
   gap: 10px;
   align-content: start;
-  max-height: calc(100vh - 76px);
+  max-height: calc(100vh - 150px);
   overflow: auto;
   padding-right: 2px;
 }

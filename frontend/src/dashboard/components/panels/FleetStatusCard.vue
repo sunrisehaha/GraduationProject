@@ -20,7 +20,7 @@ const props = defineProps({
   <section class="panel-card">
     <div class="panel-card__header">
       <div>
-        <p class="panel-card__eyebrow">FLEET STATUS</p>
+        <p class="panel-card__eyebrow">车队状态</p>
         <h2>小车状态</h2>
       </div>
     </div>

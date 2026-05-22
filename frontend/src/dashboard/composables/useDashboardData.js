@@ -64,6 +64,22 @@ const manualOrderPlaceSuggestions = Array.from(
   )
 )
 
+function formatCartName(cart) {
+  const rawName = cart?.name || cart?.cart_name || ''
+  const cartId = cart?.id ?? cart?.cart_id
+  const cartNameMatch = /^Cart-(\d+)$/i.exec(rawName)
+
+  if (cartNameMatch) {
+    return `小车 ${cartNameMatch[1]}`
+  }
+
+  if (!rawName && cartId) {
+    return `小车 ${cartId}`
+  }
+
+  return rawName
+}
+
 export function useDashboardData() {
   // 基础数据：后端轮询回来的原始小车和订单。
   const carts = ref([])
@@ -392,6 +408,7 @@ export function useDashboardData() {
 
     return {
       ...currentCart.value,
+      name: formatCartName(currentCart.value),
       position: formatPoint(currentCart.value),
       status: getStatusText(currentCart.value.status),
       batteryText: `${currentCart.value.battery_level ?? 100}%`,
@@ -471,7 +488,7 @@ export function useDashboardData() {
       start: formatPlace(order?.start_point, order?.start_label),
       end: formatPlace(order?.end_point, order?.end_label),
       status: order ? getStatusText(order.status) : '无任务',
-      cart: assignedCart?.name || (order ? '待分配' : '-'),
+      cart: assignedCart ? formatCartName(assignedCart) : (order ? '待分配' : '-'),
       source: order ? getSourceText(order.source) : '-',
       pathNodes: order?.path?.length || 0,
       createdAt: order?.create_time || '-',
@@ -497,7 +514,7 @@ export function useDashboardData() {
     carts.value
       .map((cart) => ({
         id: cart.id,
-        name: cart.name,
+        name: formatCartName(cart),
         position: formatPoint(cart),
         status: getStatusText(cart.status),
         batteryText: `${cart.battery_level ?? 100}%`,
@@ -565,13 +582,17 @@ export function useDashboardData() {
       ...explanation,
       hasExplanation: true,
       orderText: `#${explanation.order_id} · ${formatPoint(explanation.start_point)} -> ${formatPoint(explanation.end_point)}`,
-      selectedCartText: explanation.selected_cart_name || '暂无',
+      selectedCartText: formatCartName({
+        id: explanation.selected_cart_id,
+        name: explanation.selected_cart_name,
+      }) || '暂无',
       selectedPathText: explanation.selected_path_length
         ? `${explanation.selected_path_length} 个路径节点`
         : '-',
       scoreFormula: explanation.score_formula || '',
       candidates: (explanation.candidates || []).map((candidate) => ({
         ...candidate,
+        cart_name: formatCartName(candidate),
         statusText: getStatusText(candidate.status),
         distanceText:
           candidate.distance_to_pickup === null || candidate.distance_to_pickup === undefined

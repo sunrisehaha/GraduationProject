@@ -23,6 +23,7 @@ defineProps({
 
       <div class="topbar__title">
         <h1>智慧园区快递配送系统</h1>
+        <p class="topbar__subtitle">Smart Campus Express Delivery System</p>
       </div>
     </div>
 

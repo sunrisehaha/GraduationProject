@@ -2,15 +2,10 @@
 
 import { campusBusinessMap, getServicePointById } from './campusBusinessMap.js'
 
-const visualGridCols = 100
-const visualGridRows = 90
-
 export const campusSceneConfig = {
-  // 静态 Blender 底座是 100 x 90；后端业务规则仍是 60 x 45。
-  gridCols: visualGridCols,
-  gridRows: visualGridRows,
-  businessGridCols: campusBusinessMap.gridCols,
-  businessGridRows: campusBusinessMap.gridRows,
+  // 静态 Blender 底座和业务世界规则现在同源，都是 100 x 90。
+  gridCols: campusBusinessMap.gridCols,
+  gridRows: campusBusinessMap.gridRows,
   tileSize: 0.6,
   groundY: 0.22,
   camera: {
@@ -49,7 +44,7 @@ export const campusSceneConfig = {
     rotationY: -Math.PI / 2,
   },
   treeClusters: [],
-  // 业务锚点：优先展示门岗、快递中心、住宅区、公共服务区和停车待命区。
+  // 业务锚点：只展示关键点位，完整派件目标来自 shared/campus_rules.json。
   businessAnchors: [
     {
       id: 'gate_north',
@@ -64,46 +59,46 @@ export const campusSceneConfig = {
       point: getServicePointById('hub_dispatch_loading').point,
     },
     {
-      id: 'building_residential_1',
-      label: '1栋住宅楼',
-      type: 'dorm',
-      point: getServicePointById('marker_residential_1_dropoff').point,
+      id: 'west_logistics_center',
+      label: '物流中心',
+      type: 'hub',
+      point: getServicePointById('marker_west_logistics_center_dropoff').point,
     },
     {
-      id: 'building_residential_8',
-      label: '8栋住宅楼',
-      type: 'dorm',
-      point: getServicePointById('marker_residential_8_dropoff').point,
-    },
-    {
-      id: 'building_resident_service',
-      label: '住户服务大楼',
+      id: 'west_office',
+      label: '写字楼',
       type: 'service',
-      point: getServicePointById('marker_resident_service_dropoff').point,
+      point: getServicePointById('marker_west_office_dropoff').point,
     },
     {
-      id: 'building_property_center',
-      label: '物业管理中心',
+      id: 'west_property_center',
+      label: '物业中心',
       type: 'service',
-      point: getServicePointById('marker_property_center_dropoff').point,
+      point: getServicePointById('marker_west_property_center_dropoff').point,
     },
     {
-      id: 'building_sports_center',
-      label: '运动健身中心',
-      type: 'sports',
-      point: getServicePointById('marker_sports_center_dropoff').point,
-    },
-    {
-      id: 'building_comprehensive',
-      label: '综合楼',
+      id: 'food_japanese_cuisine',
+      label: '日本料理',
       type: 'teaching',
-      point: getServicePointById('marker_comprehensive_dropoff').point,
+      point: getServicePointById('marker_food_japanese_cuisine_dropoff').point,
     },
     {
-      id: 'building_power_room',
-      label: '发电间',
-      type: 'utility',
-      point: getServicePointById('marker_power_room_dropoff').point,
+      id: 'food_booking_lot_restaurant',
+      label: '订车场饭店',
+      type: 'teaching',
+      point: getServicePointById('marker_food_booking_lot_restaurant_dropoff').point,
+    },
+    {
+      id: 'apt_a2',
+      label: '东区公寓 A2',
+      type: 'dorm',
+      point: getServicePointById('marker_apt_a2_dropoff').point,
+    },
+    {
+      id: 'villa_b5',
+      label: '东区别墅 B5',
+      type: 'dorm',
+      point: getServicePointById('marker_villa_b5_dropoff').point,
     },
     {
       id: 'hub_dispatch_waiting',
@@ -120,16 +115,13 @@ export const campusSceneConfig = {
   ],
 }
 
-// 网格转 Three.js 世界坐标：业务点仍来自 60 x 45，先按比例投射到 100 x 90 视觉底座。
-// 下一阶段重写 shared/campus_rules.json 后，这里就可以直接使用同源坐标。
+// 网格转 Three.js 世界坐标：业务点和 Blender 静态场景共享 100 x 90 坐标系。
 export function gridPointToWorld(point, height = 0) {
-  const { gridCols, gridRows, businessGridCols, businessGridRows, tileSize } = campusSceneConfig
-  const visualX = (point.x / (businessGridCols - 1)) * (gridCols - 1)
-  const visualY = (point.y / (businessGridRows - 1)) * (gridRows - 1)
+  const { gridCols, gridRows, tileSize } = campusSceneConfig
 
   return {
-    x: (visualX - (gridCols - 1) / 2) * tileSize,
+    x: (point.x - (gridCols - 1) / 2) * tileSize,
     y: height,
-    z: (visualY - (gridRows - 1) / 2) * tileSize,
+    z: (point.y - (gridRows - 1) / 2) * tileSize,
   }
 }

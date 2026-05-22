@@ -48,13 +48,13 @@ const {
 
 // 模块定义：地图优先，右侧只放高频控制，底部承接辅助信息。
 const moduleDefinitions = [
-  { id: 'currentTask', eyebrow: 'CURRENT TASK', title: '当前任务', icon: 'task', defaultOpen: true, region: 'side' },
-  { id: 'demoControl', eyebrow: 'DEMO CONTROL', title: '演示控制', icon: 'control', defaultOpen: true, region: 'side' },
-  { id: 'fleetStatus', eyebrow: 'FLEET', title: '小车状态', icon: 'fleet', defaultOpen: true, region: 'bottom' },
-  { id: 'systemLog', eyebrow: 'LOG', title: '事件日志', icon: 'log', defaultOpen: true, region: 'bottom' },
-  { id: 'dispatchExplanation', eyebrow: 'DISPATCH REASON', title: '调度解释', icon: 'dispatch', defaultOpen: true, region: 'bottom' },
-  { id: 'orderHistory', eyebrow: 'HISTORY', title: '订单历史', icon: 'history', defaultOpen: true, region: 'bottom' },
-  { id: 'createOrder', eyebrow: 'ORDER', title: '手动派单', icon: 'order', defaultOpen: false, region: 'bottom' },
+  { id: 'currentTask', eyebrow: '当前任务', title: '当前任务', icon: 'task', defaultOpen: true, region: 'side' },
+  { id: 'demoControl', eyebrow: '演示控制', title: '演示控制', icon: 'control', defaultOpen: true, region: 'side' },
+  { id: 'fleetStatus', eyebrow: '车队状态', title: '小车状态', icon: 'fleet', defaultOpen: true, region: 'bottom' },
+  { id: 'systemLog', eyebrow: '事件日志', title: '事件日志', icon: 'log', defaultOpen: true, region: 'bottom' },
+  { id: 'dispatchExplanation', eyebrow: '调度解释', title: '调度解释', icon: 'dispatch', defaultOpen: true, region: 'bottom' },
+  { id: 'orderHistory', eyebrow: '订单历史', title: '订单历史', icon: 'history', defaultOpen: true, region: 'bottom' },
+  { id: 'createOrder', eyebrow: '手动派单', title: '手动派单', icon: 'order', defaultOpen: false, region: 'bottom' },
 ]
 
 const moduleComponentMap = {

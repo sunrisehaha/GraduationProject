@@ -12,7 +12,7 @@ defineProps({
   <section class="panel-card dispatch-explanation-card">
     <div class="panel-card__header">
       <div>
-        <p class="panel-card__eyebrow">DISPATCH REASON</p>
+        <p class="panel-card__eyebrow">调度解释</p>
         <h2>调度解释</h2>
       </div>
     </div>

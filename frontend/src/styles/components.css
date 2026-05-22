@@ -1,13 +1,15 @@
 .topbar {
   display: grid;
-  gap: 10px;
-  min-height: 76px;
-  margin-bottom: 10px;
-  padding: 12px 16px;
-  border: 1px solid rgba(84, 120, 138, 0.12);
+  gap: 12px;
+  min-height: 120px;
+  margin-bottom: 12px;
+  padding: 20px 24px 14px;
+  border: 1px solid rgba(84, 120, 138, 0.14);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 10px 24px rgba(70, 100, 118, 0.08);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(238, 249, 252, 0.94)),
+    rgba(255, 255, 255, 0.94);
+  box-shadow: 0 16px 34px rgba(70, 100, 118, 0.1);
   backdrop-filter: blur(14px);
 }
 
@@ -15,7 +17,7 @@
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 10px;
+  gap: 16px;
 }
 
 .topbar__title {
@@ -29,7 +31,7 @@
 }
 
 .topbar__title h1 {
-  font-size: 30px;
+  font-size: 42px;
   line-height: 1.12;
   font-weight: 800;
   letter-spacing: 0;
@@ -37,11 +39,13 @@
 
 .topbar__mark {
   flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
+  width: 64px;
+  height: 64px;
   border-radius: 8px;
   display: block;
-  box-shadow: 0 8px 18px rgba(37, 99, 164, 0.14);
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 12px 24px rgba(37, 99, 164, 0.16);
   object-fit: contain;
 }
 
@@ -52,8 +56,10 @@
   align-items: center;
   flex-wrap: wrap;
   row-gap: 8px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(84, 120, 138, 0.12);
+  padding: 10px 12px;
+  border: 1px solid rgba(84, 120, 138, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
   color: var(--text-muted);
   font-size: 13px;
 }
@@ -105,7 +111,14 @@
 }
 
 .topbar__subtitle {
+  margin: 6px 0 0;
   max-width: 900px;
+  color: #1f78a7;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  line-height: 1.4;
+  text-transform: uppercase;
 }
 
 .status-chip__dot {
@@ -204,24 +217,9 @@
 }
 
 .dashboard-module__icon--fleet svg {
-  width: 25px;
-  height: 25px;
-  stroke-width: 1.75;
-}
-
-.dashboard-module__icon--fleet path:first-child {
-  fill: rgba(240, 250, 255, 0.9);
-  stroke: #2b8ddd;
-}
-
-.dashboard-module__icon--fleet path:nth-child(5) {
-  fill: #f39a22;
-  stroke: #f39a22;
-}
-
-.dashboard-module__icon--fleet path:nth-child(6) {
-  fill: rgba(255, 255, 255, 0.72);
-  stroke: #2b8ddd;
+  width: 22px;
+  height: 22px;
+  stroke-width: 1.8;
 }
 
 .dashboard-module__icon--history svg {
@@ -279,18 +277,18 @@
 
 .dashboard-module__toggle {
   display: inline-flex;
-  width: 30px;
-  height: 30px;
+  width: 42px;
+  height: 42px;
   align-items: center;
   justify-content: center;
-  border-radius: 7px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid rgba(84, 120, 138, 0.12);
 }
 
 .dashboard-module__toggle span {
-  width: 9px;
-  height: 9px;
+  width: 13px;
+  height: 13px;
   border-right: 2px solid var(--accent-strong);
   border-bottom: 2px solid var(--accent-strong);
   transform: translateY(-2px) rotate(45deg);
@@ -1180,11 +1178,21 @@
 
 @media (max-width: 768px) {
   .topbar {
-    padding: 12px 14px;
+    min-height: auto;
+    padding: 16px 14px 12px;
+  }
+
+  .topbar__brand {
+    gap: 12px;
+  }
+
+  .topbar__mark {
+    width: 58px;
+    height: 58px;
   }
 
   .topbar__title h1 {
-    font-size: 26px;
+    font-size: 36px;
   }
 
   .form-grid,
@@ -1195,5 +1203,16 @@
 
   .history-panel {
     min-height: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar__mark {
+    width: 48px;
+    height: 48px;
+  }
+
+  .topbar__title h1 {
+    font-size: 28px;
   }
 }

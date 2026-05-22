@@ -100,7 +100,7 @@ def seed_orders():
 
     create_order(
         start_point=service_point_payload("marker_express_pickup"),
-        end_point=service_point_payload("marker_comprehensive_dropoff"),
+        end_point=service_point_payload("marker_villa_b5_dropoff"),
         source="manual",
         remark="系统初始化订单",
     )

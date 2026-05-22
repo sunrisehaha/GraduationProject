@@ -12,7 +12,7 @@ defineProps({
   <section class="panel-card">
     <div class="panel-card__header">
       <div>
-        <p class="panel-card__eyebrow">SYSTEM LOG</p>
+        <p class="panel-card__eyebrow">事件日志</p>
         <h2>事件日志</h2>
       </div>
     </div>
