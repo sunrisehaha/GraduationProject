@@ -45,7 +45,6 @@ function createState() {
     ambientLight: null,
     sunLight: null,
     sceneRoot: null,
-    landscapeRoot: null,
     markerRoot: null,
     cartRoot: null,
     effectRoot: null,
@@ -161,7 +160,6 @@ function createBaseScene(state, container) {
   state.sunLight.shadow.camera.bottom = -cameraConfig.shadowExtent
 
   state.sceneRoot = new THREE.Group()
-  state.landscapeRoot = new THREE.Group()
   state.markerRoot = new THREE.Group()
   state.cartRoot = new THREE.Group()
   state.effectRoot = new THREE.Group()
@@ -170,7 +168,6 @@ function createBaseScene(state, container) {
     state.ambientLight,
     state.sunLight,
     state.sceneRoot,
-    state.landscapeRoot,
     state.effectRoot,
     state.markerRoot,
     state.cartRoot
@@ -231,33 +228,6 @@ function addCampusModel(state) {
   state.sceneRoot.add(campus)
   state.campusScene = campus
   collectSwayTargets(state, campus)
-}
-
-function addLandscapeAssets(state) {
-  if (!state.landscapeRoot) {
-    return
-  }
-
-  clearGroup(state.landscapeRoot)
-
-  campusSceneConfig.treeClusters.forEach(({ asset, point, targetSize, rotation = 0 }, index) => {
-    const source = state.assets[asset]
-    if (!source) {
-      return
-    }
-
-    const cluster = source.clone(true)
-    markImportedAsset(cluster)
-    fitToSize(cluster, targetSize)
-    cluster.name = `landscape_${asset}_${index + 1}`
-
-    const world = gridPointToWorld(point, campusSceneConfig.groundY)
-    cluster.position.set(world.x, world.y, world.z)
-    cluster.rotation.y = rotation
-
-    state.landscapeRoot.add(cluster)
-    collectSwayTargets(state, cluster)
-  })
 }
 
 function addAnchorEffects(state) {
@@ -626,7 +596,6 @@ export function useThreeCampusPrototype(containerRef, sceneData) {
     createBaseScene(state, container)
     await loadAssets(state)
     addCampusModel(state)
-    addLandscapeAssets(state)
     addAnchorEffects(state)
     updateSceneData(state)
     resizeRenderer(state, container)

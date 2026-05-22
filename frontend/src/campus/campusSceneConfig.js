@@ -13,8 +13,6 @@ export const campusSceneConfig = {
     lookAt: { x: 0, y: 0, z: 0 },
     near: 0.1,
     far: 220,
-    fogNear: 56,
-    fogFar: 124,
     shadowExtent: 58,
     controls: {
       minDistance: 30,
@@ -35,7 +33,7 @@ export const campusSceneConfig = {
     },
   },
   modelUrls: {
-    campus: '/scene/world_rules_static_scene.glb?v=svg-layout-south-facing-20260521c',
+    campus: '/scene/campus.glb?v=campus-20260522',
     delivery_bot: '/scene/vehicles/delivery_bot.glb',
   },
   cartModel: {
@@ -43,7 +41,6 @@ export const campusSceneConfig = {
     targetSize: 1.12,
     rotationY: -Math.PI / 2,
   },
-  treeClusters: [],
   // 业务锚点：只展示关键点位，完整派件目标来自 shared/campus_rules.json。
   businessAnchors: [
     {

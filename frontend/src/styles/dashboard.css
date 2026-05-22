@@ -65,15 +65,6 @@
     var(--panel);
 }
 
-.map-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-}
-
 .map-title-block {
   display: flex;
   min-width: 0;
@@ -168,12 +159,6 @@
   font-size: 24px;
   line-height: 1.22;
   font-weight: 700;
-}
-
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
 }
 
 .canvas-wrap {

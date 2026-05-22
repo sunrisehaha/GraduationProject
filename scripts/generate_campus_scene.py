@@ -1,4 +1,4 @@
-"""按 world-rules-2d-preview.svg 生成扩容园区静态 Blender 场景。"""
+"""生成园区静态 Blender 场景。"""
 
 import math
 from pathlib import Path
@@ -8,10 +8,13 @@ from mathutils import Matrix, Vector
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-SCENE_DIR = PROJECT_ROOT / "frontend" / "public" / "scene"
-OUTPUT_BLEND = SCENE_DIR / "world_rules_static_scene.blend"
-OUTPUT_GLB = SCENE_DIR / "world_rules_static_scene.glb"
-OUTPUT_PREVIEW = SCENE_DIR / "world_rules_static_scene_preview.png"
+SOURCE_MODEL_DIR = PROJECT_ROOT / "assets" / "models"
+CAMPUS_SOURCE_DIR = PROJECT_ROOT / "assets" / "campus"
+PUBLIC_SCENE_DIR = PROJECT_ROOT / "frontend" / "public" / "scene"
+SCENE_DIR = SOURCE_MODEL_DIR
+OUTPUT_BLEND = CAMPUS_SOURCE_DIR / "campus.blend"
+OUTPUT_GLB = PUBLIC_SCENE_DIR / "campus.glb"
+OUTPUT_PREVIEW = CAMPUS_SOURCE_DIR / "campus_preview.png"
 
 # 场景微调阶段只保存 .blend，等布局确认后再导出前端资源。
 EXPORT_GLB = False
@@ -19,32 +22,28 @@ RENDER_PREVIEW = False
 
 ASSET_SPECS = {
     "boundary_tree": {
-        "path": SCENE_DIR / "tree.glb",
+        "path": SCENE_DIR / "environment" / "trees" / "tree.glb",
     },
     "grass": {
-        "path": SCENE_DIR / "environment" / "grass.glb",
+        "path": SCENE_DIR / "environment" / "ground" / "grass.glb",
     },
-    "bench": {
-        "path": SCENE_DIR / "environment" / "benches.glb",
-        "names": {"benchPhysicalDynamic"},
-    },
-    "minecraft_park": {"path": SCENE_DIR / "parkandlight" / "minecraft_park.glb"},
-    "office_tower": {"path": SCENE_DIR / "buildings" / "office_tower.glb"},
-    "library": {"path": SCENE_DIR / "buildings" / "library.glb"},
-    "property_center": {"path": SCENE_DIR / "buildings" / "property_center.glb"},
+    "minecraft_park": {"path": SCENE_DIR / "environment" / "parks" / "minecraft_park.glb"},
+    "office_tower": {"path": SCENE_DIR / "buildings" / "public" / "office_tower.glb"},
+    "library": {"path": SCENE_DIR / "buildings" / "public" / "library.glb"},
+    "property_center": {"path": SCENE_DIR / "buildings" / "public" / "property_center.glb"},
     "logistics_center": {
-        "path": SCENE_DIR / "buildings" / "logistics_center.glb",
+        "path": SCENE_DIR / "buildings" / "public" / "logistics_center.glb",
         "exclude_contains": {"UCX_", "ConcreteSidewalk", "M_DefaultGray"},
     },
-    "apartment": {"path": SCENE_DIR / "house" / "apartment_exterior.glb"},
-    "villa": {"path": SCENE_DIR / "house" / "psx_japanese_house.glb"},
-    "booking_lot_restaurant": {"path": SCENE_DIR / "restaurant_and_bakery" / "booking_lot_restaurant.glb"},
-    "japanese_vendor": {"path": SCENE_DIR / "restaurant_and_bakery" / "japanese_vendor.glb"},
-    "japanese_cuisine": {"path": SCENE_DIR / "restaurant_and_bakery" / "japanese_cuisine.glb"},
-    "japanese_ramen": {"path": SCENE_DIR / "restaurant_and_bakery" / "japanese_ramen.glb"},
-    "korean_bakery": {"path": SCENE_DIR / "restaurant_and_bakery" / "korean_bakery.glb", "ground_z": 0.0},
-    "paris_restaurant": {"path": SCENE_DIR / "restaurant_and_bakery" / "paris_restaurant.glb"},
-    "samhui_restaurant": {"path": SCENE_DIR / "restaurant_and_bakery" / "samhui_restaurant.glb"},
+    "apartment": {"path": SCENE_DIR / "buildings" / "residential" / "apartment.glb"},
+    "villa": {"path": SCENE_DIR / "buildings" / "residential" / "house.glb"},
+    "booking_lot_restaurant": {"path": SCENE_DIR / "buildings" / "food" / "booking_lot_restaurant.glb"},
+    "japanese_vendor": {"path": SCENE_DIR / "buildings" / "food" / "japanese_vendor.glb"},
+    "japanese_cuisine": {"path": SCENE_DIR / "buildings" / "food" / "japanese_cuisine.glb"},
+    "japanese_ramen": {"path": SCENE_DIR / "buildings" / "food" / "japanese_ramen.glb"},
+    "korean_bakery": {"path": SCENE_DIR / "buildings" / "food" / "korean_bakery.glb", "ground_z": 0.0},
+    "paris_restaurant": {"path": SCENE_DIR / "buildings" / "food" / "paris_restaurant.glb"},
+    "samhui_restaurant": {"path": SCENE_DIR / "buildings" / "food" / "samhui_restaurant.glb"},
 }
 
 ASSET_TEMPLATES = {}
@@ -791,7 +790,7 @@ def add_crosswalk(name, point, collection, rotation=0):
 
 
 def add_tree(name, point, collection, scale=1.0):
-    """地图边界统一使用 scene/tree.glb，避免旧树模型混杂。"""
+    """地图边界统一使用 assets/models/environment/trees/tree.glb，避免旧树模型混杂。"""
     rotation = math.radians((point[0] * 17 + point[1] * 7) % 360)
     if add_asset_instance(
         "boundary_tree",
@@ -830,29 +829,6 @@ def add_grass_cluster(name, point, collection, scale=1.0):
         z=0.04,
         rotation_z=rotation,
     )
-
-
-def add_bench(name, point, collection, rotation=0):
-    """优先用 benches.glb 里的单个长椅；失败时退回基础几何体。"""
-    angle = math.radians(rotation)
-    if add_asset_instance(
-        "bench",
-        name,
-        point,
-        collection,
-        target_height=0.5,
-        rotation_z=angle,
-    ):
-        return
-
-    x, y = world_center(point[0], point[1])
-    seat = add_box_world(f"{name}_seat", x, y, 0.9, 0.16, 0.12, "#8b5a2b", collection, z=0.24, bevel=0.015)
-    back = add_box_world(f"{name}_back", x, y + 0.13, 0.9, 0.12, 0.42, "#9a6332", collection, z=0.32, bevel=0.015)
-    for obj in (seat, back):
-        obj.rotation_euler[2] = angle
-    for offset in (-0.28, 0.28):
-        leg = add_box_world(f"{name}_leg_{offset}", x + offset, y - 0.02, 0.05, 0.12, 0.24, "#374151", collection, z=0.04)
-        leg.rotation_euler[2] = angle
 
 
 def add_light(name, point, collection):
@@ -1256,7 +1232,7 @@ def add_named_public_building(name, label, rect, color, collection, height):
 def add_restaurant(name, rect, collection, label="韩式饭店"):
     """优先导入 korean_bakery.glb 作为真实建筑资源，失败时用低模体块兜底。"""
     add_box_grid(f"{name}_base", rect, 0.22, "#f6d9b6", collection, z=0.035, roughness=0.68, bevel=0.03)
-    asset_path = SCENE_DIR / "buildings" / "korean_bakery.glb"
+    asset_path = ASSET_SPECS["korean_bakery"]["path"]
     if not asset_path.exists():
         add_public_building(name, label, rect, "#f97316", collection, height=2.2, text_color="#fff7ed")
         return
@@ -1433,7 +1409,7 @@ def add_residential_zones(collection):
 
 
 def add_central_park(collection):
-    """中央公园使用 parkandlight 里的真实 park 模型，保留稳定 ID park_center。"""
+    """中央公园使用 assets/models/environment/parks 里的真实 park 模型，保留稳定 ID park_center。"""
     add_glb_building(
         "minecraft_park",
         "park_center",
@@ -1446,7 +1422,7 @@ def add_central_park(collection):
 
 
 def add_public_area(collection):
-    """中部使用 restaurant_and_bakery 资源围绕中央公园布局。"""
+    """中部使用餐饮和糕点资源围绕中央公园布局。"""
     add_plane_grid("center_service_zone", (38.0, 6.5, 30.0, 79.0), "#eef4ef", GRASS_Z, collection, roughness=0.96)
 
     for item in FOOD_BUILDING_DEFS:

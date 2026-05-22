@@ -4,5 +4,7 @@ import App from './App.vue'
 import './styles/base.css'
 import './styles/dashboard.css'
 import './styles/components.css'
+import './styles/forms.css'
+import './styles/panels.css'
 
 createApp(App).mount('#app')
