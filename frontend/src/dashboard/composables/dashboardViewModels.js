@@ -1,6 +1,6 @@
 // 看板展示对象：把后端原始数据整理成组件可以直接渲染的结构。
-import { computed } from 'vue'
-import { campusBusinessMap } from '../../campus/campusBusinessMap'
+import { computed, ref, watch } from 'vue'
+import { campusBusinessMap, getOrderPlaceLabel } from '../../campus/campusBusinessMap'
 import {
   formatPlace,
   formatPoint,
@@ -13,32 +13,58 @@ import {
   getTaskProgressText,
   getTopBarStatusText,
   pickCurrentOrder,
+  shouldKeepCurrentOrder,
 } from './dashboardOrders'
 
 const historyListLimit = 60
 const activeOrderStatuses = ['assigned', 'to_pickup', 'delivering']
 const manualOrderStartOrder = ['marker_express_pickup', 'hub_dispatch_loading', 'gate_north', 'gate_south']
 
+function getManualStartSortIndex(pointId) {
+  const priorityIndex = manualOrderStartOrder.indexOf(pointId)
+  return priorityIndex === -1 ? manualOrderStartOrder.length : priorityIndex
+}
+
 export const manualOrderStartOptions = campusBusinessMap.servicePoints
-  .filter((point) => ['pickup', 'hub', 'gate'].includes(point.type))
+  .filter((point) => ['pickup', 'hub', 'gate', 'delivery'].includes(point.type))
   .map((point) => ({
     value: point.id,
-    label: point.name,
+    label: getOrderPlaceLabel(point.name),
     hint: point.role,
+    sortIndex: getManualStartSortIndex(point.id),
   }))
   .sort(
     (left, right) =>
-      manualOrderStartOrder.indexOf(left.value) - manualOrderStartOrder.indexOf(right.value)
+      left.sortIndex - right.sortIndex || left.label.localeCompare(right.label, 'zh-Hans-CN')
   )
 
 export const manualOrderPlaceSuggestions = Array.from(
-  new Set(
-    campusBusinessMap.deliveryTargets.flatMap((target) => [
-      target.name,
-      ...target.addressExamples.slice(0, 2),
-    ])
-  )
+  new Set(campusBusinessMap.deliveryTargets.map((target) => target.name))
 )
+
+function normalizeBatteryLevel(value) {
+  const batteryLevel = Number(value ?? 100)
+
+  if (!Number.isFinite(batteryLevel)) {
+    return 100
+  }
+
+  return Math.max(0, Math.min(100, batteryLevel))
+}
+
+function getBatteryColor(value) {
+  const batteryLevel = normalizeBatteryLevel(value)
+  const hue = Math.round(125 * Math.pow(batteryLevel / 100, 1.6))
+  return `hsl(${hue} 76% 43%)`
+}
+
+function getBatteryText(value) {
+  return `${Math.round(normalizeBatteryLevel(value))}%`
+}
+
+function getBatteryWidth(value) {
+  return `${normalizeBatteryLevel(value).toFixed(2)}%`
+}
 
 export function formatCartName(cart) {
   const rawName = cart?.name || cart?.cart_name || ''
@@ -97,7 +123,18 @@ export function createDashboardViewModels({
   selectedOrderDetail,
   selectedOrderEvents,
 }) {
-  const currentOrder = computed(() => pickCurrentOrder(orders.value))
+  const lockedCurrentOrderId = ref(null)
+  const currentOrder = computed(() => pickCurrentOrder(orders.value, lockedCurrentOrderId.value))
+
+  // 当前任务需要稳定，不然每秒刷新时新订单会抢走地图路线焦点。
+  watch(
+    currentOrder,
+    (order) => {
+      lockedCurrentOrderId.value = shouldKeepCurrentOrder(order) ? order.id : null
+    },
+    { immediate: true }
+  )
+
   const currentCart = computed(() => getCurrentCart(currentOrder.value, carts.value))
 
   const currentCartView = computed(() => {
@@ -110,7 +147,7 @@ export function createDashboardViewModels({
       name: formatCartName(currentCart.value),
       position: formatPoint(currentCart.value),
       status: getStatusText(currentCart.value.status),
-      batteryText: `${currentCart.value.battery_level ?? 100}%`,
+      batteryText: getBatteryText(currentCart.value.battery_level),
     }
   })
 
@@ -181,11 +218,13 @@ export function createDashboardViewModels({
         name: formatCartName(cart),
         position: formatPoint(cart),
         status: getStatusText(cart.status),
-        batteryText: `${cart.battery_level ?? 100}%`,
+        batteryText: getBatteryText(cart.battery_level),
+        batteryWidth: getBatteryWidth(cart.battery_level),
+        batteryColor: getBatteryColor(cart.battery_level),
         orderId: cart.current_order_id,
         isActive: cart.status !== 'idle',
       }))
-      .sort((left, right) => Number(right.isActive) - Number(left.isActive))
+      .sort((left, right) => left.id - right.id)
   )
 
   const filteredOrders = computed(() => {

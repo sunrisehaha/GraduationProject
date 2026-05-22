@@ -9,6 +9,7 @@ import {
 import { createOrder } from '../../api/orders'
 import {
   findDeliveryTargetByText,
+  getOrderPlaceLabel,
   getServicePointById,
 } from '../../campus/campusBusinessMap'
 import { buildDestinationLabel } from './dashboardOrders'
@@ -35,7 +36,7 @@ export function createDashboardActions({
         return { ok: false, message: '未找到对应地点，请输入楼栋名或示例地址。' }
       }
 
-      const startLabel = startPoint.name
+      const startLabel = getOrderPlaceLabel(startPoint.name)
       const endLabel = buildDestinationLabel(formData.endPlaceText, endTarget)
       const createdOrder = await createOrder({
         start_point: {

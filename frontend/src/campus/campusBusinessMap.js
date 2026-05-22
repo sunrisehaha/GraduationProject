@@ -120,6 +120,10 @@ export function getServicePointById(id) {
   return campusServicePoints.find((point) => point.id === id) || null
 }
 
+export function getOrderPlaceLabel(name) {
+  return String(name || '').replace(/收件点$/, '').trim()
+}
+
 export const campusBuildingCatalog = campusZones.filter((zone) => zone.deliveryPointId)
 
 export const campusDeliveryTargets = campusBuildingCatalog.map((zone) => {

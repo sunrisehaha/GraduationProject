@@ -72,13 +72,11 @@ const moduleOpenState = ref({ ...defaultOpenState })
 
 function getModuleSummary(moduleId) {
   const summaryMap = {
-    demoControl: `${demoControl.value.modeText} · ${demoControl.value.activeOrderCount} 单活动`,
-    currentTask: `${currentTask.value.id} · ${currentTask.value.status}`,
-    dispatchExplanation: dispatchExplanation.value.hasExplanation
-      ? dispatchExplanation.value.selectedCartText
-      : '暂无调度决策',
-    fleetStatus: `${fleetSummary.value.total} 辆 · ${fleetSummary.value.active} 忙碌 · ${fleetSummary.value.idle} 空闲`,
-    systemLog: `${logs.value.length} 条事件`,
+    demoControl: '',
+    currentTask: '',
+    dispatchExplanation: '',
+    fleetStatus: '',
+    systemLog: '',
     orderHistory: `${filteredOrders.value.length} 条记录`,
     createOrder: '',
   }

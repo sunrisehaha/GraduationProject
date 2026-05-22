@@ -1,7 +1,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 
-// 创建订单卡片：第一版改成“地点输入 -> 坐标映射”，不再让用户直接手填网格坐标。
+// 创建订单卡片：起终点都用标准地点选择，避免手填坐标和浏览器默认输入候选层不一致。
 const props = defineProps({
   submitOrder: {
     type: Function,
@@ -30,7 +30,7 @@ const submitting = ref(false)
 const feedbackText = ref('')
 const feedbackType = ref('info')
 
-// 提交动作：把地点交给外层解析，成功后清空终点输入并回显结果。
+// 提交动作：把地点交给外层解析，成功后清空终点选择并回显结果。
 async function handleSubmit() {
   feedbackText.value = ''
   submitting.value = true
@@ -70,24 +70,20 @@ async function handleSubmit() {
         </label>
         <label>
           <span>终点</span>
-          <input
-            v-model="form.endPlaceText"
-            list="delivery-place-suggestions"
-            type="text"
-            placeholder="东区别墅 B5 / 日本料理"
-            required
-          />
-          <datalist id="delivery-place-suggestions">
+          <select v-model="form.endPlaceText" required>
+            <option value="" disabled>请选择终点</option>
             <option
               v-for="item in destinationSuggestions"
               :key="item"
               :value="item"
-            />
-          </datalist>
+            >
+              {{ item }}
+            </option>
+          </select>
         </label>
       </div>
 
-      <p class="order-form__hint">输入楼栋、房间号或公共建筑名，系统自动映射收件点。</p>
+      <p class="order-form__hint">选择楼栋或公共建筑，系统自动映射收件点。</p>
 
       <p
         v-if="feedbackText"

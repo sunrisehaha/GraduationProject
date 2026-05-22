@@ -72,7 +72,21 @@ export function buildDestinationLabel(rawText, target) {
   return /室|单元|门口|前台|大厅|值班|办公室/.test(input) ? input : target.name
 }
 
-export function pickCurrentOrder(orderList) {
+const currentOrderStatuses = new Set(['pending', 'assigned', 'to_pickup', 'delivering'])
+
+export function shouldKeepCurrentOrder(order) {
+  return Boolean(order?.id !== undefined && currentOrderStatuses.has(order.status))
+}
+
+export function pickCurrentOrder(orderList, lockedOrderId = null) {
+  if (lockedOrderId !== null && lockedOrderId !== undefined) {
+    const lockedOrder = orderList.find((order) => String(order.id) === String(lockedOrderId))
+
+    if (shouldKeepCurrentOrder(lockedOrder)) {
+      return lockedOrder
+    }
+  }
+
   const latestOrders = orderList.slice().reverse()
 
   return (

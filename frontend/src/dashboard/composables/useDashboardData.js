@@ -20,6 +20,7 @@ const orderFetchLimit = 120
 export function useDashboardData() {
   // 基础数据：后端轮询回来的原始小车和订单。
   const carts = ref([])
+  const displayCarts = ref([])
   const orders = ref([])
   const demoState = ref({
     demo_mode_enabled: false,
@@ -48,9 +49,74 @@ export function useDashboardData() {
   const lastUpdatedText = ref('等待数据加载')
   const errorMessage = ref('')
   let timerId = null
+  let batteryAnimationFrameId = null
   let isDashboardMounted = false
   let refreshRequestId = 0
   let refreshTimerVersion = 0
+
+  function normalizeBatteryLevel(value) {
+    const batteryLevel = Number(value ?? 100)
+
+    if (!Number.isFinite(batteryLevel)) {
+      return 100
+    }
+
+    return Math.max(0, Math.min(100, batteryLevel))
+  }
+
+  function stopBatteryAnimation() {
+    if (!batteryAnimationFrameId) {
+      return
+    }
+
+    window.cancelAnimationFrame(batteryAnimationFrameId)
+    batteryAnimationFrameId = null
+  }
+
+  // 电量动画只影响前端展示：后端仍保存真实整数电量，避免改动调度判断。
+  function animateDisplayCarts(latestCarts) {
+    const targetCarts = latestCarts.map((cart) => ({
+      ...cart,
+      battery_level: normalizeBatteryLevel(cart.battery_level),
+    }))
+
+    if (!displayCarts.value.length) {
+      displayCarts.value = targetCarts
+      return
+    }
+
+    stopBatteryAnimation()
+    const previousBatteryMap = new Map(
+      displayCarts.value.map((cart) => [cart.id, normalizeBatteryLevel(cart.battery_level)])
+    )
+    const startBatteryLevels = targetCarts.map((cart) =>
+      previousBatteryMap.has(cart.id) ? previousBatteryMap.get(cart.id) : cart.battery_level
+    )
+    const animationStartTime = window.performance.now()
+    const animationDurationMs = Math.max(220, getRefreshIntervalMs() * 0.82)
+
+    function updateBatteryFrame(now) {
+      const progress = Math.min(1, (now - animationStartTime) / animationDurationMs)
+
+      displayCarts.value = targetCarts.map((cart, index) => {
+        const startBattery = startBatteryLevels[index]
+        const nextBattery = startBattery + (cart.battery_level - startBattery) * progress
+
+        return {
+          ...cart,
+          battery_level: Number(nextBattery.toFixed(2)),
+        }
+      })
+
+      if (progress < 1) {
+        batteryAnimationFrameId = window.requestAnimationFrame(updateBatteryFrame)
+      } else {
+        batteryAnimationFrameId = null
+      }
+    }
+
+    batteryAnimationFrameId = window.requestAnimationFrame(updateBatteryFrame)
+  }
 
   function getDemoSpeedValue() {
     const speed = Number(demoState.value.speed_multiplier)
@@ -173,6 +239,7 @@ export function useDashboardData() {
 
       processOrderChanges(previousOrders, latestOrders)
       carts.value = latestCarts
+      animateDisplayCarts(latestCarts)
       orders.value = latestOrders
       demoState.value = latestDemoState
       dispatchExplanationState.value = latestDispatchExplanation
@@ -248,7 +315,7 @@ export function useDashboardData() {
     stats,
     topBar,
   } = createDashboardViewModels({
-    carts,
+    carts: displayCarts,
     orders,
     demoState,
     dispatchExplanationState,
@@ -268,6 +335,7 @@ export function useDashboardData() {
   onBeforeUnmount(() => {
     isDashboardMounted = false
     clearRefreshTimer()
+    stopBatteryAnimation()
   })
 
   return {

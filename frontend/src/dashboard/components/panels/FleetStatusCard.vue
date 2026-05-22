@@ -41,7 +41,7 @@ const props = defineProps({
           </span>
         </div>
         <div class="cart-battery">
-          <span :style="{ width: cart.batteryText }"></span>
+          <span :style="{ width: cart.batteryWidth, '--battery-color': cart.batteryColor }"></span>
         </div>
         <p class="mini-list__meta">{{ cart.batteryText }} · {{ cart.orderId ? `#${cart.orderId}` : '无任务' }} · {{ cart.position }}</p>
       </li>

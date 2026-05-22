@@ -16,8 +16,8 @@ import {
   updateCartAnimations,
 } from './threeCartMotion.js'
 const markerColors = {
-  start: '#34d399',
-  end: '#f97316',
+  start: '#22c55e',
+  end: '#ef4444',
 }
 const anchorColors = {
   gate: '#7dd3fc',
@@ -49,6 +49,7 @@ function createState() {
     cartRoot: null,
     effectRoot: null,
     pathLine: null,
+    lockedRouteOrderId: null,
     assets: {},
     assetsReady: false,
     campusScene: null,
@@ -69,7 +70,21 @@ function createState() {
   }
 }
 
-function pickCurrentOrder(orders) {
+const routeLockStatuses = new Set(['pending', 'assigned', 'to_pickup', 'delivering'])
+
+function shouldKeepRouteOrder(order) {
+  return Boolean(order?.id !== undefined && routeLockStatuses.has(order.status))
+}
+
+function pickCurrentOrder(orders, lockedRouteOrderId = null) {
+  if (lockedRouteOrderId !== null && lockedRouteOrderId !== undefined) {
+    const lockedOrder = orders.find((order) => String(order.id) === String(lockedRouteOrderId))
+
+    if (shouldKeepRouteOrder(lockedOrder)) {
+      return lockedOrder
+    }
+  }
+
   const latestOrders = orders.slice().reverse()
 
   return (
@@ -270,98 +285,518 @@ function addAnchorEffects(state) {
   })
 }
 
-function createPathLine(points) {
-  if (points.length < 2) {
+const routeHeights = {
+  shadow: 0.1,
+  main: 0.13,
+  current: 0.16,
+  node: 0.19,
+  arrow: 0.34,
+  marker: 0.15,
+}
+
+const routeColors = {
+  shadow: '#064e3b',
+  completed: '#94a3b8',
+  current: '#38bdf8',
+  remaining: '#22c55e',
+  muted: '#64748b',
+  node: '#ffffff',
+  currentNode: '#3b82f6',
+  start: '#22c55e',
+  end: '#ef4444',
+  arrow: '#a7f3d0',
+}
+
+function clampNumber(value, min, max) {
+  return Math.min(Math.max(value, min), max)
+}
+
+function normalizeRoutePoints(rawPoints) {
+  const points = normalizePathPoints(Array.isArray(rawPoints) ? rawPoints : [])
+  return points.filter((point, index) => {
+    const previous = points[index - 1]
+    return !previous || previous.x !== point.x || previous.y !== point.y
+  })
+}
+
+function routePointToWorld(point, heightOffset = routeHeights.main) {
+  const world = gridPointToWorld(point, campusSceneConfig.groundY + heightOffset)
+  return new THREE.Vector3(world.x, world.y, world.z)
+}
+
+function calculateRouteLength(worldPoints) {
+  return worldPoints.reduce((length, point, index) => {
+    if (index === 0) {
+      return length
+    }
+
+    return length + point.distanceTo(worldPoints[index - 1])
+  }, 0)
+}
+
+function createRouteMaterial(color, opacity, emissiveIntensity = 0.24) {
+  return new THREE.MeshStandardMaterial({
+    color,
+    emissive: color,
+    emissiveIntensity,
+    roughness: 0.42,
+    metalness: 0.04,
+    transparent: true,
+    opacity,
+    depthWrite: false,
+  })
+}
+
+function createFlatArrowGeometry(width = 0.34, length = 0.62) {
+  const geometry = new THREE.BufferGeometry()
+  const vertices = new Float32Array([
+    0,
+    0,
+    length * 0.5,
+    -width * 0.5,
+    0,
+    -length * 0.5,
+    width * 0.5,
+    0,
+    -length * 0.5,
+  ])
+  geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3))
+  geometry.setIndex([0, 1, 2])
+  geometry.computeVertexNormals()
+  return geometry
+}
+
+function createPathTube(worldPoints, options = {}) {
+  if (worldPoints.length < 2) {
     return null
   }
 
-  const worldPoints = points.map((point) => {
-    const world = gridPointToWorld(point, campusSceneConfig.groundY + 0.18)
-    return new THREE.Vector3(world.x, world.y, world.z)
-  })
+  const routeLength = calculateRouteLength(worldPoints)
 
-  const pathGroup = new THREE.Group()
-  const pathSegments = []
-  const pathMaterial = new THREE.MeshBasicMaterial({
-    color: '#0ea5e9',
-    transparent: true,
-    opacity: 0.92,
-    depthWrite: false,
-  })
-  const glowMaterial = createGlowMaterial('#38bdf8', 0.22)
-
-  for (let index = 0; index < worldPoints.length - 1; index += 1) {
-    const start = worldPoints[index]
-    const end = worldPoints[index + 1]
-    const direction = end.clone().sub(start)
-    const length = direction.length()
-
-    if (length <= 0.001) {
-      continue
-    }
-
-    const center = start.clone().add(end).multiplyScalar(0.5)
-    const rotation = new THREE.Quaternion().setFromUnitVectors(
-      new THREE.Vector3(0, 1, 0),
-      direction.clone().normalize()
-    )
-
-    const segment = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.08, 0.08, length, 12),
-      pathMaterial
-    )
-    segment.position.copy(center)
-    segment.quaternion.copy(rotation)
-    segment.name = 'current_task_path_segment'
-    pathGroup.add(segment)
-    pathSegments.push(segment)
-
-    const glow = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.17, 0.17, length, 12),
-      glowMaterial
-    )
-    glow.position.copy(center)
-    glow.quaternion.copy(rotation)
-    glow.name = 'current_task_path_glow_segment'
-    pathGroup.add(glow)
+  if (routeLength <= 0.001) {
+    return null
   }
 
-  worldPoints.forEach((position, index) => {
-    if (index % 2 !== 0 && index !== worldPoints.length - 1) {
+  const curve = new THREE.CatmullRomCurve3(worldPoints, false, 'catmullrom', options.tension ?? 0.08)
+  const tubularSegments = clampNumber(
+    Math.round(routeLength * (options.segmentDensity || 4)),
+    8,
+    options.maxSegments || 220
+  )
+  const geometry = new THREE.TubeGeometry(
+    curve,
+    tubularSegments,
+    options.radius || 0.08,
+    options.radialSegments || 12,
+    false
+  )
+  const material =
+    options.material ||
+    createRouteMaterial(options.color || routeColors.remaining, options.opacity ?? 0.82)
+  const tube = new THREE.Mesh(geometry, material)
+  tube.name = options.name || 'route_tube'
+  tube.renderOrder = options.renderOrder || 20
+  tube.userData.routeMaterial = material
+  return tube
+}
+
+function createRouteLayer(points, options = {}) {
+  const worldPoints = points.map((point) =>
+    routePointToWorld(point, options.heightOffset ?? routeHeights.main)
+  )
+  return createPathTube(worldPoints, options)
+}
+
+function distanceToGridSegment(point, start, end) {
+  const segmentX = end.x - start.x
+  const segmentY = end.y - start.y
+  const segmentLengthSquared = segmentX * segmentX + segmentY * segmentY
+
+  if (segmentLengthSquared <= 0.0001) {
+    return Math.hypot(point.x - start.x, point.y - start.y)
+  }
+
+  const projected = clampNumber(
+    ((point.x - start.x) * segmentX + (point.y - start.y) * segmentY) / segmentLengthSquared,
+    0,
+    1
+  )
+  const closestX = start.x + segmentX * projected
+  const closestY = start.y + segmentY * projected
+  return Math.hypot(point.x - closestX, point.y - closestY)
+}
+
+function findNearestRouteSegmentIndex(points, cart) {
+  if (!cart || !Number.isFinite(cart.x) || !Number.isFinite(cart.y) || points.length < 2) {
+    return 0
+  }
+
+  let nearestIndex = 0
+  let nearestDistance = Number.POSITIVE_INFINITY
+
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const distance = distanceToGridSegment(cart, points[index], points[index + 1])
+
+    if (distance < nearestDistance) {
+      nearestDistance = distance
+      nearestIndex = index
+    }
+  }
+
+  return nearestIndex
+}
+
+function resolveRouteProgressIndex(points, cart) {
+  if (points.length < 2) {
+    return 0
+  }
+
+  const serverIndex = Number(cart?.path_index)
+
+  if (Number.isFinite(serverIndex) && serverIndex > 0) {
+    return clampNumber(Math.max(0, serverIndex - 1), 0, points.length - 2)
+  }
+
+  return findNearestRouteSegmentIndex(points, cart)
+}
+
+function findActiveCart(carts, currentOrder, activeCartId) {
+  if (activeCartId !== null && activeCartId !== undefined) {
+    const matchedCart = carts.find((cart) => String(cart.id) === String(activeCartId))
+
+    if (matchedCart) {
+      return matchedCart
+    }
+  }
+
+  if (currentOrder?.id !== undefined) {
+    const orderCart = carts.find((cart) => String(cart.current_order_id) === String(currentOrder.id))
+
+    if (orderCart) {
+      return orderCart
+    }
+  }
+
+  return (
+    carts.find(
+      (cart) =>
+        cart.status !== 'idle' &&
+        cart.current_order_id &&
+        normalizeRoutePoints(cart.current_path || []).length >= 2
+    ) || null
+  )
+}
+
+function buildActiveRouteData(currentOrder, currentPath, carts, activeCartId) {
+  const activeCart = findActiveCart(carts, currentOrder, activeCartId)
+  const cartPath = normalizeRoutePoints(activeCart?.current_path || [])
+  const orderPath = normalizeRoutePoints(currentOrder?.path || currentOrder?.planned_path || [])
+  const fallbackPath = normalizeRoutePoints(currentPath)
+  const fullPath =
+    cartPath.length >= 2 ? cartPath : orderPath.length >= 2 ? orderPath : fallbackPath
+
+  if (fullPath.length < 2) {
+    return null
+  }
+
+  const currentIndex = activeCart ? resolveRouteProgressIndex(fullPath, activeCart) : 0
+  const completed = currentIndex > 0 ? fullPath.slice(0, currentIndex + 1) : []
+  const current = fullPath.slice(currentIndex, Math.min(currentIndex + 2, fullPath.length))
+  const remaining =
+    currentIndex + 1 < fullPath.length ? fullPath.slice(currentIndex + 1, fullPath.length) : []
+
+  return {
+    activeCart,
+    activeCartId: activeCart?.id ?? activeCartId ?? null,
+    points: fullPath,
+    completed,
+    current,
+    remaining,
+    currentIndex,
+  }
+}
+
+function createRouteNodes(points, currentIndex) {
+  const group = new THREE.Group()
+  const material = createGlowMaterial(routeColors.node, 0.86)
+  const currentMaterial = createGlowMaterial(routeColors.currentNode, 0.96)
+  const startMaterial = createGlowMaterial(routeColors.start, 0.98)
+  const endMaterial = createGlowMaterial(routeColors.end, 0.98)
+  const maxNodes = 48
+  const step = Math.max(1, Math.ceil(points.length / maxNodes))
+
+  points.forEach((point, index) => {
+    const isRouteEdge = index === 0 || index === points.length - 1
+    const isCurrent = index === currentIndex || index === currentIndex + 1
+
+    if (!isRouteEdge && !isCurrent && index % step !== 0) {
       return
     }
 
-    const bead = new THREE.Mesh(
-      new THREE.SphereGeometry(0.12, 16, 12),
-      createGlowMaterial('#7dd3fc', 0.62)
-    )
-    bead.position.copy(position)
-    pathGroup.add(bead)
+    const colorMaterial =
+      index === 0
+        ? startMaterial
+        : index === points.length - 1
+          ? endMaterial
+          : isCurrent
+            ? currentMaterial
+            : material
+    const radius = isRouteEdge ? 0.13 : isCurrent ? 0.12 : 0.075
+    const node = new THREE.Mesh(new THREE.SphereGeometry(radius, 18, 12), colorMaterial)
+    node.position.copy(routePointToWorld(point, routeHeights.node))
+    node.name = isCurrent ? 'route_current_node' : 'route_node'
+    node.renderOrder = 28
+    group.add(node)
+
+    if (isCurrent) {
+      group.userData.currentNodes ||= []
+      group.userData.currentNodes.push(node)
+    }
   })
 
-  pathGroup.userData.pathGlowMaterial = glowMaterial
-  pathGroup.userData.pathMaterial = pathMaterial
-  pathGroup.userData.pathSegments = pathSegments
-  pathGroup.userData.pathBeads = pathGroup.children.filter((child) => !child.name.includes('path_'))
-  return pathGroup
+  return group
+}
+
+function createDirectionArrows(points, options = {}) {
+  const worldPoints = points.map((point) =>
+    routePointToWorld(point, options.heightOffset ?? routeHeights.arrow)
+  )
+
+  if (worldPoints.length < 2) {
+    return null
+  }
+
+  const routeLength = calculateRouteLength(worldPoints)
+
+  if (routeLength <= 0.001) {
+    return null
+  }
+
+  const group = new THREE.Group()
+  const curve = new THREE.CatmullRomCurve3(worldPoints, false, 'catmullrom', 0.08)
+  const arrowCount = clampNumber(Math.floor(routeLength / (options.spacing || 3.2)), 1, 18)
+  const material = new THREE.MeshBasicMaterial({
+    color: options.color || routeColors.arrow,
+    transparent: true,
+    opacity: options.opacity ?? 0.86,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  })
+  const geometry = createFlatArrowGeometry(options.width || 0.34, options.length || 0.62)
+  const baseDirection = new THREE.Vector3(0, 0, 1)
+
+  for (let index = 1; index <= arrowCount; index += 1) {
+    const t = index / (arrowCount + 1)
+    const position = curve.getPointAt(t)
+    const tangent = curve.getTangentAt(t).normalize()
+
+    if (tangent.lengthSq() <= 0.0001) {
+      continue
+    }
+
+    const arrow = new THREE.Mesh(geometry, material)
+    arrow.position.copy(position)
+    arrow.quaternion.setFromUnitVectors(baseDirection, tangent)
+    arrow.name = 'route_direction_arrow'
+    arrow.renderOrder = 30
+    arrow.userData.phase = index * 0.55
+    group.add(arrow)
+  }
+
+  group.userData.arrowMaterial = material
+  group.userData.routeArrows = group.children
+  return group
+}
+
+function createMutedCartRoutes(carts, activeCartId) {
+  const group = new THREE.Group()
+
+  carts.forEach((cart) => {
+    if (String(cart.id) === String(activeCartId) || cart.status === 'idle' || !cart.current_order_id) {
+      return
+    }
+
+    const cartPath = normalizeRoutePoints(cart.current_path || [])
+
+    if (cartPath.length < 2) {
+      return
+    }
+
+    const startIndex = resolveRouteProgressIndex(cartPath, cart)
+    const visiblePath = cartPath.slice(startIndex)
+
+    if (visiblePath.length < 2) {
+      return
+    }
+
+    const mutedRoute = createRouteLayer(visiblePath, {
+      name: 'muted_cart_route',
+      color: routeColors.muted,
+      opacity: 0.22,
+      emissiveIntensity: 0.08,
+      heightOffset: routeHeights.main - 0.015,
+      radius: 0.045,
+      radialSegments: 8,
+      segmentDensity: 2,
+      maxSegments: 90,
+      renderOrder: 12,
+    })
+
+    if (mutedRoute) {
+      group.add(mutedRoute)
+    }
+  })
+
+  return group
+}
+
+function createRouteVisualization(routeData, carts) {
+  const routeGroup = new THREE.Group()
+  routeGroup.name = 'active_route_visualization'
+  routeGroup.userData.animatedMaterials = []
+  routeGroup.userData.routeArrows = []
+  routeGroup.userData.currentNodes = []
+
+  const mutedRoutes = createMutedCartRoutes(carts, routeData?.activeCartId)
+  routeGroup.add(mutedRoutes)
+
+  if (!routeData?.points?.length) {
+    return routeGroup.children.length ? routeGroup : null
+  }
+
+  const shadow = createRouteLayer(routeData.points, {
+    name: 'route_shadow_layer',
+    color: routeColors.shadow,
+    opacity: 0.28,
+    emissiveIntensity: 0.02,
+    heightOffset: routeHeights.shadow,
+    radius: 0.16,
+    radialSegments: 12,
+    segmentDensity: 3,
+    renderOrder: 14,
+  })
+
+  if (shadow) {
+    routeGroup.add(shadow)
+  }
+
+  const completed = createRouteLayer(routeData.completed, {
+    name: 'route_completed_layer',
+    color: routeColors.completed,
+    opacity: 0.5,
+    emissiveIntensity: 0.08,
+    heightOffset: routeHeights.main,
+    radius: 0.07,
+    radialSegments: 10,
+    renderOrder: 18,
+  })
+
+  if (completed) {
+    routeGroup.add(completed)
+  }
+
+  const remaining = createRouteLayer(routeData.remaining, {
+    name: 'route_remaining_layer',
+    color: routeColors.remaining,
+    opacity: 0.82,
+    emissiveIntensity: 0.34,
+    heightOffset: routeHeights.main + 0.015,
+    radius: 0.095,
+    radialSegments: 12,
+    renderOrder: 20,
+  })
+
+  if (remaining) {
+    routeGroup.add(remaining)
+    routeGroup.userData.animatedMaterials.push({
+      material: remaining.material,
+      opacityBase: 0.68,
+      opacityWave: 0.12,
+      speed: 1.8,
+    })
+  }
+
+  const currentHalo = createRouteLayer(routeData.current, {
+    name: 'route_current_halo',
+    color: routeColors.current,
+    opacity: 0.24,
+    emissiveIntensity: 0.52,
+    heightOffset: routeHeights.current + 0.01,
+    radius: 0.27,
+    radialSegments: 14,
+    renderOrder: 22,
+  })
+  const current = createRouteLayer(routeData.current, {
+    name: 'route_current_segment',
+    color: routeColors.current,
+    opacity: 0.96,
+    emissiveIntensity: 0.78,
+    heightOffset: routeHeights.current + 0.025,
+    radius: 0.15,
+    radialSegments: 14,
+    renderOrder: 24,
+  })
+
+  if (currentHalo) {
+    routeGroup.add(currentHalo)
+    routeGroup.userData.animatedMaterials.push({
+      material: currentHalo.material,
+      opacityBase: 0.16,
+      opacityWave: 0.14,
+      speed: 2.4,
+    })
+  }
+
+  if (current) {
+    routeGroup.add(current)
+    routeGroup.userData.animatedMaterials.push({
+      material: current.material,
+      opacityBase: 0.84,
+      opacityWave: 0.14,
+      speed: 2.6,
+    })
+  }
+
+  const nodes = createRouteNodes(routeData.points, routeData.currentIndex)
+  routeGroup.add(nodes)
+  routeGroup.userData.currentNodes.push(...(nodes.userData.currentNodes || []))
+
+  const arrowPath =
+    routeData.currentIndex < routeData.points.length - 1
+      ? routeData.points.slice(routeData.currentIndex)
+      : routeData.points
+  const arrows = createDirectionArrows(arrowPath)
+
+  if (arrows) {
+    routeGroup.add(arrows)
+    routeGroup.userData.routeArrows.push(...(arrows.userData.routeArrows || []))
+    routeGroup.userData.animatedMaterials.push({
+      material: arrows.userData.arrowMaterial,
+      opacityBase: 0.7,
+      opacityWave: 0.26,
+      speed: 2.1,
+    })
+  }
+
+  return routeGroup
 }
 
 function createMarkerLabel(text, color) {
   const canvas = document.createElement('canvas')
-  canvas.width = 256
-  canvas.height = 96
+  canvas.width = 384
+  canvas.height = 112
   const context = canvas.getContext('2d')
   context.fillStyle = 'rgba(255, 255, 255, 0.88)'
   context.strokeStyle = color
   context.lineWidth = 5
-  context.roundRect(10, 16, 236, 58, 18)
+  context.roundRect(12, 18, 360, 68, 20)
   context.fill()
   context.stroke()
   context.fillStyle = '#20313d'
-  context.font = '700 28px sans-serif'
+  context.font = '700 30px sans-serif'
   context.textAlign = 'center'
   context.textBaseline = 'middle'
-  context.fillText(text, 128, 45)
+  context.fillText(text, 192, 52)
 
   const texture = new THREE.CanvasTexture(canvas)
   texture.colorSpace = THREE.SRGBColorSpace
@@ -372,59 +807,82 @@ function createMarkerLabel(text, color) {
       depthWrite: false,
     })
   )
-  sprite.scale.set(1.9, 0.72, 1)
-  sprite.position.y = 1.95
+  sprite.scale.set(2.7, 0.8, 1)
+  sprite.position.y = 1.88
   sprite.userData.labelTexture = texture
   return sprite
 }
 
+function getRoutePointLabel(point) {
+  return point?.label_text || point?.label || point?.name || point?.id || ''
+}
+
+function shortenMarkerLabel(text) {
+  if (!text || text.length <= 9) {
+    return text
+  }
+
+  return `${text.slice(0, 8)}…`
+}
+
 function createMarker(point, type) {
   const color = markerColors[type]
-  const labelText = type === 'start' ? '取件点' : '配送终点'
+  const prefix = type === 'start' ? '起点' : '终点'
+  const pointLabel = shortenMarkerLabel(getRoutePointLabel(point))
+  const labelText = pointLabel ? `${prefix} ${pointLabel}` : prefix
   const marker = new THREE.Group()
-  const world = gridPointToWorld(point, campusSceneConfig.groundY)
+  const world = gridPointToWorld(point, campusSceneConfig.groundY + routeHeights.marker)
+  const isEnd = type === 'end'
 
   const pillar = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.12, 0.18, 1.18, 24),
+    new THREE.CylinderGeometry(isEnd ? 0.13 : 0.11, isEnd ? 0.22 : 0.18, isEnd ? 1.34 : 1.08, 24),
     new THREE.MeshStandardMaterial({
       color,
       emissive: color,
-      emissiveIntensity: 0.46,
+      emissiveIntensity: isEnd ? 0.62 : 0.48,
       roughness: 0.36,
       metalness: 0.1,
     })
   )
-  pillar.position.y = 0.64
+  pillar.position.y = isEnd ? 0.74 : 0.61
   pillar.castShadow = true
   pillar.receiveShadow = true
   marker.add(pillar)
 
+  const base = new THREE.Mesh(
+    new THREE.CylinderGeometry(isEnd ? 0.38 : 0.32, isEnd ? 0.42 : 0.36, 0.055, 40),
+    createGlowMaterial(color, isEnd ? 0.62 : 0.5)
+  )
+  base.position.y = 0.04
+  marker.add(base)
+
   const ring = new THREE.Mesh(
-    new THREE.RingGeometry(0.48, 0.74, 56),
-    createGlowMaterial(color, 0.72)
+    new THREE.RingGeometry(isEnd ? 0.58 : 0.5, isEnd ? 0.86 : 0.74, 64),
+    createGlowMaterial(color, isEnd ? 0.74 : 0.66)
   )
   ring.rotation.x = -Math.PI / 2
-  ring.position.y = 0.04
+  ring.position.y = 0.075
   marker.add(ring)
 
   const glowColumn = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.22, 0.34, 1.7, 24, 1, true),
-    createGlowMaterial(color, 0.18)
+    new THREE.CylinderGeometry(isEnd ? 0.28 : 0.22, isEnd ? 0.42 : 0.34, isEnd ? 1.92 : 1.62, 24, 1, true),
+    createGlowMaterial(color, isEnd ? 0.2 : 0.16)
   )
-  glowColumn.position.y = 0.92
+  glowColumn.position.y = isEnd ? 1.0 : 0.86
   marker.add(glowColumn)
 
   const orb = new THREE.Mesh(
-    new THREE.SphereGeometry(0.18, 24, 18),
+    new THREE.SphereGeometry(isEnd ? 0.23 : 0.19, 24, 18),
     createGlowMaterial(color, 0.96)
   )
-  orb.position.y = 1.28
+  orb.position.y = isEnd ? 1.48 : 1.24
   marker.add(orb)
 
   marker.add(createMarkerLabel(labelText, color))
 
   marker.position.set(world.x, world.y, world.z)
-  marker.userData.pulseParts = [pillar, ring, glowColumn, orb]
+  marker.userData.baseY = world.y
+  marker.userData.pulseParts = [base, pillar, ring, glowColumn, orb]
   return marker
 }
 
@@ -452,11 +910,22 @@ function clearGroup(group) {
 }
 
 function updateSceneData(state) {
-  const currentOrder = pickCurrentOrder(state.currentSceneData.orders)
+  const currentOrder = pickCurrentOrder(
+    state.currentSceneData.orders,
+    state.lockedRouteOrderId
+  )
+  state.lockedRouteOrderId = shouldKeepRouteOrder(currentOrder) ? currentOrder.id : null
   const currentPath = normalizePathPoints(state.currentSceneData.currentPath)
   const activeCartId = currentOrder?.assigned_cart_id || null
+  const activeRouteData = buildActiveRouteData(
+    currentOrder,
+    currentPath,
+    state.currentSceneData.carts,
+    activeCartId
+  )
+  const visualActiveCartId = activeRouteData?.activeCartId ?? activeCartId
 
-  syncCartObjects(state, state.currentSceneData.carts, activeCartId, {
+  syncCartObjects(state, state.currentSceneData.carts, visualActiveCartId, {
     createGlowMaterial,
     disposeObject,
     fitToSize,
@@ -471,8 +940,8 @@ function updateSceneData(state) {
 
   clearGroup(state.markerRoot)
 
-  if (currentPath.length >= 2) {
-    state.pathLine = createPathLine(currentPath)
+  if (activeRouteData || state.currentSceneData.carts.length) {
+    state.pathLine = createRouteVisualization(activeRouteData, state.currentSceneData.carts)
     state.pathLine && state.effectRoot.add(state.pathLine)
   }
 
@@ -525,20 +994,27 @@ function updateEnvironmentalAnimations(state, elapsedSeconds) {
     }
   })
 
-  if (state.pathLine?.userData.pathSegments) {
-    const wave = Math.sin(elapsedSeconds * 3.2)
-    state.pathLine.userData.pathMaterial.opacity = 0.84 + (wave + 1) * 0.04
-    state.pathLine.userData.pathGlowMaterial.opacity = 0.16 + (wave + 1) * 0.05
-    state.pathLine.userData.pathBeads.forEach((bead, index) => {
-      const beadWave = Math.sin(elapsedSeconds * 4.2 + index * 0.8)
-      bead.scale.setScalar(1 + Math.max(0, beadWave) * 0.32)
-      bead.material.opacity = 0.42 + Math.max(0, beadWave) * 0.34
+  if (state.pathLine?.userData.animatedMaterials) {
+    state.pathLine.userData.animatedMaterials.forEach((entry, index) => {
+      const wave = Math.sin(elapsedSeconds * entry.speed + index * 0.45)
+      entry.material.opacity = entry.opacityBase + (wave + 1) * 0.5 * entry.opacityWave
+    })
+
+    state.pathLine.userData.routeArrows?.forEach((arrow, index) => {
+      const wave = Math.sin(elapsedSeconds * 2.8 + arrow.userData.phase + index * 0.2)
+      arrow.scale.setScalar(1 + Math.max(0, wave) * 0.18)
+    })
+
+    state.pathLine.userData.currentNodes?.forEach((node, index) => {
+      const wave = Math.sin(elapsedSeconds * 3 + index * 0.7)
+      node.scale.setScalar(1 + Math.max(0, wave) * 0.36)
+      node.material.opacity = 0.72 + Math.max(0, wave) * 0.24
     })
   }
 
   state.markerRoot.children.forEach((marker, index) => {
     const wave = Math.sin(elapsedSeconds * 2.4 + index * 0.8)
-    marker.position.y = campusSceneConfig.groundY + wave * 0.06
+    marker.position.y = (marker.userData.baseY ?? campusSceneConfig.groundY) + wave * 0.06
 
     marker.userData.pulseParts?.forEach((part, partIndex) => {
       part.scale.setScalar(1 + Math.max(0, wave) * 0.08 * (partIndex + 1))

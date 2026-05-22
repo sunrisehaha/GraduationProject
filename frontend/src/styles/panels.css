@@ -166,6 +166,136 @@
   font-weight: 700;
 }
 
+.dispatch-insight-toggle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(46, 139, 174, 0.18);
+  border-radius: 12px;
+  color: var(--text);
+  background: linear-gradient(135deg, rgba(230, 248, 255, 0.9), rgba(255, 255, 255, 0.82));
+  text-align: left;
+  box-shadow: 0 10px 24px rgba(48, 125, 153, 0.08);
+}
+
+.dispatch-insight-toggle__copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dispatch-insight-toggle__copy strong {
+  color: var(--accent-strong);
+  font-size: 15px;
+}
+
+.dispatch-insight-toggle__copy span {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dispatch-insight-toggle__result {
+  padding: 7px 10px;
+  border-radius: 999px;
+  color: #0f5132;
+  background: rgba(34, 197, 94, 0.14);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.dispatch-detail {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.dispatch-decision-card {
+  padding: 14px 16px;
+  border: 1px solid rgba(56, 189, 248, 0.16);
+  border-radius: 12px;
+  background: rgba(240, 249, 255, 0.78);
+}
+
+.dispatch-decision-card__label {
+  margin: 0 0 5px;
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.dispatch-decision-card h3 {
+  margin: 0 0 7px;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.dispatch-decision-card p:last-child {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.dispatch-logic-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dispatch-logic-block,
+.dispatch-factor {
+  padding: 12px;
+  border: 1px solid rgba(84, 120, 138, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.dispatch-logic-block span {
+  display: inline-flex;
+  margin-bottom: 7px;
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.dispatch-logic-block strong {
+  display: block;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.dispatch-logic-block p,
+.dispatch-factor p {
+  margin: 7px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.dispatch-logic-block--accent {
+  border-color: rgba(34, 197, 94, 0.18);
+  background: rgba(240, 253, 244, 0.78);
+}
+
+.dispatch-factor-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dispatch-factor strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
 .history-filter-button {
   padding: 13px 16px;
   border-radius: 14px;
@@ -208,7 +338,8 @@
 .history-list,
 .history-detail {
   max-height: 520px;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-right: 4px;
 }
 
@@ -219,11 +350,35 @@
 }
 
 .history-item {
+  width: 100%;
+  min-width: 0;
   text-align: left;
+  white-space: normal;
+}
+
+.history-item__head {
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .history-item__title {
+  flex: 1 1 180px;
+  min-width: 0;
   font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.history-item__badge {
+  flex: 0 0 auto;
+}
+
+.history-item__meta,
+.history-item__route,
+.history-detail__hero h3 {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .history-item__route {
@@ -438,7 +593,8 @@
   height: 100%;
   max-width: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #22c55e, #54b9d9);
+  background: var(--battery-color, #22c55e);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--battery-color, #22c55e) 32%, transparent);
 }
 
 .message-list--compact {
@@ -566,6 +722,16 @@
   .demo-status-strip,
   .demo-control-actions {
     grid-template-columns: 1fr;
+  }
+
+  .dispatch-insight-toggle,
+  .dispatch-logic-grid,
+  .dispatch-factor-list {
+    grid-template-columns: 1fr;
+  }
+
+  .dispatch-insight-toggle__copy span {
+    white-space: normal;
   }
 
   .history-panel {
