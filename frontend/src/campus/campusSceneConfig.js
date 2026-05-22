@@ -33,7 +33,7 @@ export const campusSceneConfig = {
     },
   },
   modelUrls: {
-    campus: '/scene/campus.glb?v=campus-20260522',
+    campus: '/scene/campus.glb?v=campus-20260523-road-v4',
     delivery_bot: '/scene/vehicles/delivery_bot.glb',
   },
   cartModel: {

@@ -8,7 +8,7 @@ import json
 import random
 from datetime import datetime, timedelta
 
-from backend.campus.rules import CAMPUS_RULES, service_points_by_ids
+from backend.campus.rules import CAMPUS_RULES, all_order_pickup_points, service_points_by_ids
 from backend.database import Order, OrderEvent, OrderPoint
 from backend.system.extensions import db
 from backend.system.runtime import MAP_HEIGHT, MAP_WIDTH, is_free_point
@@ -21,10 +21,10 @@ def _point_key(point):
     return (point["x"], point["y"])
 
 
-SIMULATED_PICKUP_PLACES = service_points_by_ids(CAMPUS_RULES["simulation"]["pickupPointIds"])
+SIMULATED_PICKUP_PLACES = all_order_pickup_points()
 SIMULATED_DELIVERY_PLACES = service_points_by_ids(CAMPUS_RULES["simulation"]["deliveryPointIds"])
 KNOWN_PLACE_LABELS = {
-    (point["point"]["x"], point["point"]["y"]): point["name"].replace("收件点", "")
+    (point["point"]["x"], point["point"]["y"]): point["name"].replace("收件点", "").strip()
     for point in CAMPUS_RULES["servicePoints"]
 }
 

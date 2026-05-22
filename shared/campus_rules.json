@@ -17,417 +17,1866 @@
       "id": "west_office",
       "name": "写字楼",
       "kind": "office",
-      "rect": { "x": 4, "y": 5, "width": 32, "height": 23 },
+      "rect": {
+        "x": 4,
+        "y": 5,
+        "width": 32,
+        "height": 23
+      },
       "heightLevel": "high",
       "description": "西侧北部写字楼，是办公类配送目标。",
-      "aliases": ["写字楼", "办公楼", "西侧写字楼"],
-      "addressExamples": ["写字楼一层大厅", "写字楼前台"],
+      "aliases": [
+        "写字楼",
+        "办公楼",
+        "西侧写字楼"
+      ],
+      "addressExamples": [
+        "写字楼一层大厅",
+        "写字楼前台"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_west_office_dropoff",
-      "render": { "height": 11.1, "color": "#b7c1ca" }
+      "render": {
+        "height": 11.1,
+        "color": "#b7c1ca"
+      }
     },
     {
       "id": "west_library",
       "name": "图书馆",
       "kind": "library",
-      "rect": { "x": 4, "y": 28, "width": 32, "height": 18 },
+      "rect": {
+        "x": 4,
+        "y": 28,
+        "width": 32,
+        "height": 18
+      },
       "heightLevel": "mid",
       "description": "西侧第二栋图书馆，是公共文化类配送目标。",
-      "aliases": ["图书馆", "西侧图书馆"],
-      "addressExamples": ["图书馆正门", "图书馆服务台"],
+      "aliases": [
+        "图书馆",
+        "西侧图书馆"
+      ],
+      "addressExamples": [
+        "图书馆正门",
+        "图书馆服务台"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_west_library_dropoff",
-      "render": { "height": 9.6, "color": "#cbd5e1" }
+      "render": {
+        "height": 9.6,
+        "color": "#cbd5e1"
+      }
     },
     {
       "id": "west_property_center",
       "name": "物业中心",
       "kind": "property",
-      "rect": { "x": 7, "y": 50, "width": 25, "height": 14 },
+      "rect": {
+        "x": 7,
+        "y": 50,
+        "width": 25,
+        "height": 14
+      },
       "heightLevel": "mid",
       "description": "西侧第三栋物业中心，负责园区运营和维修服务。",
-      "aliases": ["物业中心", "物业管理中心", "物业办公室"],
-      "addressExamples": ["物业中心前台", "物业中心值班室"],
+      "aliases": [
+        "物业中心",
+        "物业管理中心",
+        "物业办公室"
+      ],
+      "addressExamples": [
+        "物业中心前台",
+        "物业中心值班室"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_west_property_center_dropoff",
-      "render": { "height": 6.15, "color": "#dbeafe" }
+      "render": {
+        "height": 6.15,
+        "color": "#dbeafe"
+      }
     },
     {
       "id": "west_logistics_center",
       "name": "物流中心",
       "kind": "logistics",
-      "rect": { "x": 4, "y": 66, "width": 32, "height": 13 },
+      "rect": {
+        "x": 4,
+        "y": 66,
+        "width": 32,
+        "height": 13
+      },
       "heightLevel": "mid",
       "description": "西南角物流中心，是快递入库、分拣和装货的核心枢纽。",
-      "aliases": ["物流中心", "快递中心", "快递服务中心", "快递站"],
-      "addressExamples": ["物流中心装货口", "物流中心分拣区"],
+      "aliases": [
+        "物流中心",
+        "快递中心",
+        "快递服务中心",
+        "快递站"
+      ],
+      "addressExamples": [
+        "物流中心装货口",
+        "物流中心分拣区"
+      ],
       "orderDensity": "high",
       "deliveryPointId": "marker_west_logistics_center_dropoff",
-      "render": { "height": 8.7, "color": "#c7d2fe" }
+      "render": {
+        "height": 8.7,
+        "color": "#c7d2fe"
+      }
     },
     {
       "id": "food_japanese_cuisine",
       "name": "日本料理",
       "kind": "restaurant",
-      "rect": { "x": 40, "y": 8, "width": 10, "height": 10 },
+      "rect": {
+        "x": 40,
+        "y": 8,
+        "width": 10,
+        "height": 10
+      },
       "heightLevel": "low",
       "description": "餐饮区北侧的日本料理店。",
-      "aliases": ["日本料理", "日料店"],
-      "addressExamples": ["日本料理门口", "日本料理前台"],
+      "aliases": [
+        "日本料理",
+        "日料店"
+      ],
+      "addressExamples": [
+        "日本料理门口",
+        "日本料理前台"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_food_japanese_cuisine_dropoff",
-      "render": { "height": 3.9, "color": "#f8fafc" }
+      "render": {
+        "height": 3.9,
+        "color": "#f8fafc"
+      }
     },
     {
       "id": "food_paris_restaurant",
       "name": "巴黎餐厅",
       "kind": "restaurant",
-      "rect": { "x": 56, "y": 8, "width": 10, "height": 10 },
+      "rect": {
+        "x": 56,
+        "y": 8,
+        "width": 10,
+        "height": 10
+      },
       "heightLevel": "low",
       "description": "餐饮区北侧的巴黎餐厅。",
-      "aliases": ["巴黎餐厅", "法式餐厅"],
-      "addressExamples": ["巴黎餐厅门口", "巴黎餐厅前台"],
+      "aliases": [
+        "巴黎餐厅",
+        "法式餐厅"
+      ],
+      "addressExamples": [
+        "巴黎餐厅门口",
+        "巴黎餐厅前台"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_food_paris_restaurant_dropoff",
-      "render": { "height": 3.7, "color": "#f8fafc" }
+      "render": {
+        "height": 3.7,
+        "color": "#f8fafc"
+      }
     },
     {
       "id": "food_japanese_ramen",
       "name": "日本拉面",
       "kind": "restaurant",
-      "rect": { "x": 41, "y": 21, "width": 8, "height": 8 },
+      "rect": {
+        "x": 41,
+        "y": 21,
+        "width": 8,
+        "height": 8
+      },
       "heightLevel": "low",
       "description": "餐饮区中部的日本拉面店。",
-      "aliases": ["日本拉面", "拉面店"],
-      "addressExamples": ["日本拉面门口", "拉面店前台"],
+      "aliases": [
+        "日本拉面",
+        "拉面店"
+      ],
+      "addressExamples": [
+        "日本拉面门口",
+        "拉面店前台"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_food_japanese_ramen_dropoff",
-      "render": { "height": 2.75, "color": "#f8fafc" }
+      "render": {
+        "height": 2.75,
+        "color": "#f8fafc"
+      }
     },
     {
       "id": "food_samhui_restaurant",
       "name": "韩国三熙饭店",
       "kind": "restaurant",
-      "rect": { "x": 57, "y": 21, "width": 8, "height": 8 },
+      "rect": {
+        "x": 57,
+        "y": 21,
+        "width": 8,
+        "height": 8
+      },
       "heightLevel": "low",
       "description": "餐饮区中部的韩国三熙饭店。",
-      "aliases": ["韩国三熙饭店", "三熙饭店", "韩国饭店"],
-      "addressExamples": ["韩国三熙饭店门口", "三熙饭店前台"],
+      "aliases": [
+        "韩国三熙饭店",
+        "三熙饭店",
+        "韩国饭店"
+      ],
+      "addressExamples": [
+        "韩国三熙饭店门口",
+        "三熙饭店前台"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_food_samhui_restaurant_dropoff",
-      "render": { "height": 2.65, "color": "#f8fafc" }
+      "render": {
+        "height": 2.65,
+        "color": "#f8fafc"
+      }
     },
     {
       "id": "food_japanese_vendor",
       "name": "日本小商贩",
       "kind": "retail",
-      "rect": { "x": 39, "y": 56, "width": 15, "height": 17 },
+      "rect": {
+        "x": 39,
+        "y": 59,
+        "width": 12,
+        "height": 9
+      },
       "heightLevel": "low",
       "description": "餐饮区南侧的小型日式商铺。",
-      "aliases": ["日本小商贩", "日式小店", "小商贩"],
-      "addressExamples": ["日本小商贩门口", "日式小店前台"],
+      "aliases": [
+        "日本小商贩",
+        "日式小店",
+        "小商贩"
+      ],
+      "addressExamples": [
+        "日本小商贩门口",
+        "日式小店前台"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_food_japanese_vendor_dropoff",
-      "render": { "height": 4.575, "color": "#bbf7d0" }
+      "render": {
+        "height": 4.575,
+        "color": "#bbf7d0"
+      }
     },
     {
       "id": "food_korean_bakery",
       "name": "韩国糕点店",
       "kind": "retail",
-      "rect": { "x": 50, "y": 55, "width": 21, "height": 21 },
+      "rect": {
+        "x": 55,
+        "y": 59,
+        "width": 12,
+        "height": 9
+      },
       "heightLevel": "low",
       "description": "餐饮区南侧的韩国糕点店。",
-      "aliases": ["韩国糕点店", "糕点店", "韩式糕点店"],
-      "addressExamples": ["韩国糕点店门口", "糕点店前台"],
+      "aliases": [
+        "韩国糕点店",
+        "糕点店",
+        "韩式糕点店"
+      ],
+      "addressExamples": [
+        "韩国糕点店门口",
+        "糕点店前台"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_food_korean_bakery_dropoff",
-      "render": { "height": 6.035, "color": "#bbf7d0" }
+      "render": {
+        "height": 6.035,
+        "color": "#bbf7d0"
+      }
     },
     {
       "id": "food_booking_lot_restaurant",
       "name": "订车场饭店",
       "kind": "restaurant",
-      "rect": { "x": 39, "y": 69, "width": 30, "height": 17 },
+      "rect": {
+        "x": 47,
+        "y": 73,
+        "width": 20,
+        "height": 12
+      },
       "heightLevel": "low",
       "description": "餐饮区最南侧的订车场饭店。",
-      "aliases": ["订车场饭店", "订车场餐厅", "Hungry Jacks"],
-      "addressExamples": ["订车场饭店门口", "订车场饭店前台"],
+      "aliases": [
+        "订车场饭店",
+        "订车场餐厅",
+        "Hungry Jacks"
+      ],
+      "addressExamples": [
+        "订车场饭店门口",
+        "订车场饭店前台"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_food_booking_lot_restaurant_dropoff",
-      "render": { "height": 5.2, "color": "#bbf7d0" }
+      "render": {
+        "height": 5.2,
+        "color": "#bbf7d0"
+      }
     },
     {
       "id": "apt_a1",
       "name": "东区公寓 A1",
       "kind": "apartment",
-      "rect": { "x": 69, "y": 12, "width": 9, "height": 6 },
+      "rect": {
+        "x": 69,
+        "y": 12,
+        "width": 9,
+        "height": 6
+      },
       "heightLevel": "mid",
       "description": "东区北侧第一排公寓。",
-      "aliases": ["东区公寓A1", "公寓A1", "A1公寓"],
-      "addressExamples": ["东区公寓 A1 门口", "公寓 A1 一层大厅"],
+      "aliases": [
+        "东区公寓A1",
+        "公寓A1",
+        "A1公寓"
+      ],
+      "addressExamples": [
+        "东区公寓 A1 门口",
+        "公寓 A1 一层大厅"
+      ],
       "orderDensity": "high",
       "deliveryPointId": "marker_apt_a1_dropoff",
-      "render": { "height": 2.25, "color": "#dbeafe" }
+      "render": {
+        "height": 2.25,
+        "color": "#dbeafe"
+      }
     },
     {
       "id": "apt_a2",
       "name": "东区公寓 A2",
       "kind": "apartment",
-      "rect": { "x": 85, "y": 12, "width": 9, "height": 6 },
+      "rect": {
+        "x": 85,
+        "y": 12,
+        "width": 9,
+        "height": 6
+      },
       "heightLevel": "mid",
       "description": "东区北侧第一排公寓。",
-      "aliases": ["东区公寓A2", "公寓A2", "A2公寓"],
-      "addressExamples": ["东区公寓 A2 门口", "公寓 A2 一层大厅"],
+      "aliases": [
+        "东区公寓A2",
+        "公寓A2",
+        "A2公寓"
+      ],
+      "addressExamples": [
+        "东区公寓 A2 门口",
+        "公寓 A2 一层大厅"
+      ],
       "orderDensity": "high",
       "deliveryPointId": "marker_apt_a2_dropoff",
-      "render": { "height": 2.25, "color": "#dbeafe" }
+      "render": {
+        "height": 2.25,
+        "color": "#dbeafe"
+      }
     },
     {
       "id": "apt_a3",
       "name": "东区公寓 A3",
       "kind": "apartment",
-      "rect": { "x": 69, "y": 28, "width": 9, "height": 6 },
+      "rect": {
+        "x": 69,
+        "y": 28,
+        "width": 9,
+        "height": 6
+      },
       "heightLevel": "mid",
       "description": "东区北侧第二排公寓。",
-      "aliases": ["东区公寓A3", "公寓A3", "A3公寓"],
-      "addressExamples": ["东区公寓 A3 门口", "公寓 A3 一层大厅"],
+      "aliases": [
+        "东区公寓A3",
+        "公寓A3",
+        "A3公寓"
+      ],
+      "addressExamples": [
+        "东区公寓 A3 门口",
+        "公寓 A3 一层大厅"
+      ],
       "orderDensity": "high",
       "deliveryPointId": "marker_apt_a3_dropoff",
-      "render": { "height": 2.25, "color": "#dbeafe" }
+      "render": {
+        "height": 2.25,
+        "color": "#dbeafe"
+      }
     },
     {
       "id": "apt_a4",
       "name": "东区公寓 A4",
       "kind": "apartment",
-      "rect": { "x": 85, "y": 28, "width": 9, "height": 6 },
+      "rect": {
+        "x": 85,
+        "y": 28,
+        "width": 9,
+        "height": 6
+      },
       "heightLevel": "mid",
       "description": "东区北侧第二排公寓。",
-      "aliases": ["东区公寓A4", "公寓A4", "A4公寓"],
-      "addressExamples": ["东区公寓 A4 门口", "公寓 A4 一层大厅"],
+      "aliases": [
+        "东区公寓A4",
+        "公寓A4",
+        "A4公寓"
+      ],
+      "addressExamples": [
+        "东区公寓 A4 门口",
+        "公寓 A4 一层大厅"
+      ],
       "orderDensity": "high",
       "deliveryPointId": "marker_apt_a4_dropoff",
-      "render": { "height": 2.25, "color": "#dbeafe" }
+      "render": {
+        "height": 2.25,
+        "color": "#dbeafe"
+      }
     },
     {
       "id": "villa_b1",
       "name": "东区别墅 B1",
       "kind": "villa",
-      "rect": { "x": 69, "y": 43, "width": 7, "height": 6 },
+      "rect": {
+        "x": 69,
+        "y": 43,
+        "width": 7,
+        "height": 6
+      },
       "heightLevel": "low",
       "description": "东区南侧第一排独栋别墅。",
-      "aliases": ["东区别墅B1", "别墅B1", "B1别墅"],
-      "addressExamples": ["东区别墅 B1 门口", "别墅 B1 庭院门"],
+      "aliases": [
+        "东区别墅B1",
+        "别墅B1",
+        "B1别墅"
+      ],
+      "addressExamples": [
+        "东区别墅 B1 门口",
+        "别墅 B1 庭院门"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_villa_b1_dropoff",
-      "render": { "height": 1.65, "color": "#dcfce7" }
+      "render": {
+        "height": 1.65,
+        "color": "#dcfce7"
+      }
     },
     {
       "id": "villa_b2",
       "name": "东区别墅 B2",
       "kind": "villa",
-      "rect": { "x": 78, "y": 43, "width": 7, "height": 6 },
+      "rect": {
+        "x": 78,
+        "y": 43,
+        "width": 7,
+        "height": 6
+      },
       "heightLevel": "low",
       "description": "东区南侧第一排独栋别墅。",
-      "aliases": ["东区别墅B2", "别墅B2", "B2别墅"],
-      "addressExamples": ["东区别墅 B2 门口", "别墅 B2 庭院门"],
+      "aliases": [
+        "东区别墅B2",
+        "别墅B2",
+        "B2别墅"
+      ],
+      "addressExamples": [
+        "东区别墅 B2 门口",
+        "别墅 B2 庭院门"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_villa_b2_dropoff",
-      "render": { "height": 1.65, "color": "#dcfce7" }
+      "render": {
+        "height": 1.65,
+        "color": "#dcfce7"
+      }
     },
     {
       "id": "villa_b3",
       "name": "东区别墅 B3",
       "kind": "villa",
-      "rect": { "x": 87, "y": 43, "width": 7, "height": 6 },
+      "rect": {
+        "x": 87,
+        "y": 43,
+        "width": 7,
+        "height": 6
+      },
       "heightLevel": "low",
       "description": "东区南侧第一排独栋别墅。",
-      "aliases": ["东区别墅B3", "别墅B3", "B3别墅"],
-      "addressExamples": ["东区别墅 B3 门口", "别墅 B3 庭院门"],
+      "aliases": [
+        "东区别墅B3",
+        "别墅B3",
+        "B3别墅"
+      ],
+      "addressExamples": [
+        "东区别墅 B3 门口",
+        "别墅 B3 庭院门"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_villa_b3_dropoff",
-      "render": { "height": 1.65, "color": "#dcfce7" }
+      "render": {
+        "height": 1.65,
+        "color": "#dcfce7"
+      }
     },
     {
       "id": "villa_b4",
       "name": "东区别墅 B4",
       "kind": "villa",
-      "rect": { "x": 69, "y": 60, "width": 7, "height": 6 },
+      "rect": {
+        "x": 69,
+        "y": 60,
+        "width": 7,
+        "height": 6
+      },
       "heightLevel": "low",
       "description": "东区南侧第二排独栋别墅。",
-      "aliases": ["东区别墅B4", "别墅B4", "B4别墅"],
-      "addressExamples": ["东区别墅 B4 门口", "别墅 B4 庭院门"],
+      "aliases": [
+        "东区别墅B4",
+        "别墅B4",
+        "B4别墅"
+      ],
+      "addressExamples": [
+        "东区别墅 B4 门口",
+        "别墅 B4 庭院门"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_villa_b4_dropoff",
-      "render": { "height": 1.65, "color": "#dcfce7" }
+      "render": {
+        "height": 1.65,
+        "color": "#dcfce7"
+      }
     },
     {
       "id": "villa_b5",
       "name": "东区别墅 B5",
       "kind": "villa",
-      "rect": { "x": 78, "y": 60, "width": 7, "height": 6 },
+      "rect": {
+        "x": 78,
+        "y": 60,
+        "width": 7,
+        "height": 6
+      },
       "heightLevel": "low",
       "description": "东区南侧第二排独栋别墅。",
-      "aliases": ["东区别墅B5", "别墅B5", "B5别墅"],
-      "addressExamples": ["东区别墅 B5 门口", "别墅 B5 庭院门"],
+      "aliases": [
+        "东区别墅B5",
+        "别墅B5",
+        "B5别墅"
+      ],
+      "addressExamples": [
+        "东区别墅 B5 门口",
+        "别墅 B5 庭院门"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_villa_b5_dropoff",
-      "render": { "height": 1.65, "color": "#dcfce7" }
+      "render": {
+        "height": 1.65,
+        "color": "#dcfce7"
+      }
     },
     {
       "id": "villa_b6",
       "name": "东区别墅 B6",
       "kind": "villa",
-      "rect": { "x": 87, "y": 60, "width": 7, "height": 6 },
+      "rect": {
+        "x": 87,
+        "y": 60,
+        "width": 7,
+        "height": 6
+      },
       "heightLevel": "low",
       "description": "东区南侧第二排独栋别墅。",
-      "aliases": ["东区别墅B6", "别墅B6", "B6别墅"],
-      "addressExamples": ["东区别墅 B6 门口", "别墅 B6 庭院门"],
+      "aliases": [
+        "东区别墅B6",
+        "别墅B6",
+        "B6别墅"
+      ],
+      "addressExamples": [
+        "东区别墅 B6 门口",
+        "别墅 B6 庭院门"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_villa_b6_dropoff",
-      "render": { "height": 1.65, "color": "#dcfce7" }
+      "render": {
+        "height": 1.65,
+        "color": "#dcfce7"
+      }
     },
     {
       "id": "villa_b7",
       "name": "东区别墅 B7",
       "kind": "villa",
-      "rect": { "x": 69, "y": 75, "width": 7, "height": 6 },
+      "rect": {
+        "x": 69,
+        "y": 75,
+        "width": 7,
+        "height": 6
+      },
       "heightLevel": "low",
       "description": "东区南侧第三排独栋别墅。",
-      "aliases": ["东区别墅B7", "别墅B7", "B7别墅"],
-      "addressExamples": ["东区别墅 B7 门口", "别墅 B7 庭院门"],
+      "aliases": [
+        "东区别墅B7",
+        "别墅B7",
+        "B7别墅"
+      ],
+      "addressExamples": [
+        "东区别墅 B7 门口",
+        "别墅 B7 庭院门"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_villa_b7_dropoff",
-      "render": { "height": 1.65, "color": "#dcfce7" }
+      "render": {
+        "height": 1.65,
+        "color": "#dcfce7"
+      }
     },
     {
       "id": "villa_b8",
       "name": "东区别墅 B8",
       "kind": "villa",
-      "rect": { "x": 78, "y": 75, "width": 7, "height": 6 },
+      "rect": {
+        "x": 78,
+        "y": 75,
+        "width": 7,
+        "height": 6
+      },
       "heightLevel": "low",
       "description": "东区南侧第三排独栋别墅。",
-      "aliases": ["东区别墅B8", "别墅B8", "B8别墅"],
-      "addressExamples": ["东区别墅 B8 门口", "别墅 B8 庭院门"],
+      "aliases": [
+        "东区别墅B8",
+        "别墅B8",
+        "B8别墅"
+      ],
+      "addressExamples": [
+        "东区别墅 B8 门口",
+        "别墅 B8 庭院门"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_villa_b8_dropoff",
-      "render": { "height": 1.65, "color": "#dcfce7" }
+      "render": {
+        "height": 1.65,
+        "color": "#dcfce7"
+      }
     },
     {
       "id": "villa_b9",
       "name": "东区别墅 B9",
       "kind": "villa",
-      "rect": { "x": 87, "y": 75, "width": 7, "height": 6 },
+      "rect": {
+        "x": 87,
+        "y": 75,
+        "width": 7,
+        "height": 6
+      },
       "heightLevel": "low",
       "description": "东区南侧第三排独栋别墅。",
-      "aliases": ["东区别墅B9", "别墅B9", "B9别墅"],
-      "addressExamples": ["东区别墅 B9 门口", "别墅 B9 庭院门"],
+      "aliases": [
+        "东区别墅B9",
+        "别墅B9",
+        "B9别墅"
+      ],
+      "addressExamples": [
+        "东区别墅 B9 门口",
+        "别墅 B9 庭院门"
+      ],
       "orderDensity": "medium",
       "deliveryPointId": "marker_villa_b9_dropoff",
-      "render": { "height": 1.65, "color": "#dcfce7" }
+      "render": {
+        "height": 1.65,
+        "color": "#dcfce7"
+      }
     },
     {
       "id": "park_center",
       "name": "中央公园",
       "kind": "park",
-      "rect": { "x": 40, "y": 33, "width": 25, "height": 22 },
+      "rect": {
+        "x": 40,
+        "y": 33,
+        "width": 25,
+        "height": 22
+      },
       "heightLevel": "low",
       "description": "地图中心公园，有树、草地和水池，是景观核心，不作为派件目标。",
       "cartPassable": false,
       "pedestrianPassable": true,
       "reserveUse": "park",
-      "render": { "color": "#bbf7d0" }
+      "render": {
+        "color": "#bbf7d0"
+      }
     },
     {
       "id": "space_logistics_apron",
       "name": "物流中心装卸区",
       "kind": "logistics_apron",
-      "rect": { "x": 36, "y": 66, "width": 3, "height": 13 },
+      "rect": {
+        "x": 36,
+        "y": 66,
+        "width": 3,
+        "height": 13
+      },
       "heightLevel": "low",
       "description": "物流中心东侧装卸和小车接驳区域。",
       "cartPassable": true,
       "pedestrianPassable": false,
       "reserveUse": "logistics",
-      "render": { "color": "#d3eefb" }
+      "render": {
+        "color": "#d3eefb"
+      }
     },
     {
       "id": "space_dispatch_parking",
       "name": "调度等待区",
       "kind": "parking",
-      "rect": { "x": 36, "y": 76, "width": 3, "height": 8 },
+      "rect": {
+        "x": 36,
+        "y": 76,
+        "width": 3,
+        "height": 8
+      },
       "heightLevel": "low",
       "description": "空闲小车停车和待命区域。",
       "cartPassable": true,
       "pedestrianPassable": true,
       "reserveUse": "parking",
-      "render": { "color": "#f0df9b" }
+      "render": {
+        "color": "#f0df9b"
+      }
     }
   ],
   "roads": [
-    { "id": "road_outer_north", "name": "北侧外环路", "direction": "horizontal", "rect": { "x": 4, "y": 3, "width": 92, "height": 2 } },
-    { "id": "road_outer_south", "name": "南侧外环路", "direction": "horizontal", "rect": { "x": 4, "y": 85, "width": 92, "height": 2 } },
-    { "id": "road_outer_west", "name": "西侧外环路", "direction": "vertical", "rect": { "x": 2, "y": 3, "width": 2, "height": 84 } },
-    { "id": "road_outer_east", "name": "东侧外环路", "direction": "vertical", "rect": { "x": 96, "y": 3, "width": 2, "height": 84 } },
-    { "id": "road_west_center_spine", "name": "西侧建筑与中区之间纵向路", "direction": "vertical", "rect": { "x": 36, "y": 4, "width": 3, "height": 83 } },
-    { "id": "road_food_north_service", "name": "餐饮区北侧服务路", "direction": "horizontal", "rect": { "x": 36, "y": 19, "width": 32, "height": 2 } },
-    { "id": "road_food_mid_service", "name": "餐饮区中部服务路", "direction": "horizontal", "rect": { "x": 36, "y": 30, "width": 32, "height": 2 } },
-    { "id": "road_food_south_service", "name": "餐饮区南侧服务路", "direction": "horizontal", "rect": { "x": 34, "y": 86, "width": 36, "height": 2 } },
-    { "id": "road_east_apartment_vertical", "name": "公寓区纵向车道", "direction": "vertical", "rect": { "x": 81, "y": 10, "width": 3, "height": 25 } },
-    { "id": "road_east_apartment_horizontal", "name": "公寓区横向车道", "direction": "horizontal", "rect": { "x": 68, "y": 23, "width": 28, "height": 2 } },
-    { "id": "road_east_residential_split", "name": "公寓和别墅之间分隔车道", "direction": "horizontal", "rect": { "x": 67, "y": 39, "width": 30, "height": 3 } },
-    { "id": "road_east_villa_vertical_1", "name": "别墅区西侧纵向车道", "direction": "vertical", "rect": { "x": 76, "y": 43, "width": 2, "height": 38 } },
-    { "id": "road_east_villa_vertical_2", "name": "别墅区东侧纵向车道", "direction": "vertical", "rect": { "x": 85, "y": 43, "width": 2, "height": 38 } },
-    { "id": "road_east_villa_row_1", "name": "别墅区第一排门前车道", "direction": "horizontal", "rect": { "x": 67, "y": 54, "width": 30, "height": 2 } },
-    { "id": "road_east_villa_row_2", "name": "别墅区第二排门前车道", "direction": "horizontal", "rect": { "x": 67, "y": 69, "width": 30, "height": 2 } },
-    { "id": "road_east_villa_row_3", "name": "别墅区第三排门前车道", "direction": "horizontal", "rect": { "x": 67, "y": 82, "width": 30, "height": 2 } }
+    {
+      "id": "road_north_loop",
+      "name": "北侧外环路",
+      "direction": "horizontal",
+      "accessScope": "public",
+      "rect": {
+        "x": 3,
+        "y": 2,
+        "width": 94,
+        "height": 4
+      }
+    },
+    {
+      "id": "road_south_loop",
+      "name": "南侧外环路",
+      "direction": "horizontal",
+      "accessScope": "public",
+      "rect": {
+        "x": 3,
+        "y": 84,
+        "width": 94,
+        "height": 4
+      }
+    },
+    {
+      "id": "road_west_loop",
+      "name": "西侧外环路",
+      "direction": "vertical",
+      "accessScope": "public",
+      "rect": {
+        "x": 1,
+        "y": 4,
+        "width": 4,
+        "height": 82
+      }
+    },
+    {
+      "id": "road_east_loop",
+      "name": "东侧外环路",
+      "direction": "vertical",
+      "accessScope": "public",
+      "rect": {
+        "x": 95,
+        "y": 4,
+        "width": 4,
+        "height": 82
+      }
+    },
+    {
+      "id": "road_west_center_spine",
+      "name": "西侧建筑与中区纵向主路",
+      "direction": "vertical",
+      "accessScope": "public",
+      "rect": {
+        "x": 35,
+        "y": 4,
+        "width": 3,
+        "height": 82
+      }
+    },
+    {
+      "id": "road_west_office_front",
+      "name": "写字楼门前公共路",
+      "direction": "horizontal",
+      "accessScope": "public",
+      "rect": {
+        "x": 3,
+        "y": 29,
+        "width": 34,
+        "height": 2
+      }
+    },
+    {
+      "id": "road_west_library_front",
+      "name": "图书馆门前公共路",
+      "direction": "horizontal",
+      "accessScope": "public",
+      "rect": {
+        "x": 3,
+        "y": 46,
+        "width": 34,
+        "height": 3
+      }
+    },
+    {
+      "id": "road_west_property_front",
+      "name": "物业中心门前公共路",
+      "direction": "horizontal",
+      "accessScope": "public",
+      "rect": {
+        "x": 3,
+        "y": 64,
+        "width": 34,
+        "height": 3
+      }
+    },
+    {
+      "id": "road_food_middle_spine",
+      "name": "餐饮区中部纵向路",
+      "direction": "vertical",
+      "accessScope": "public",
+      "rect": {
+        "x": 51,
+        "y": 4,
+        "width": 3,
+        "height": 28
+      }
+    },
+    {
+      "id": "road_center_east_spine",
+      "name": "餐饮区与住宅区之间南北路",
+      "direction": "vertical",
+      "accessScope": "public",
+      "rect": {
+        "x": 66,
+        "y": 4,
+        "width": 3,
+        "height": 82
+      }
+    },
+    {
+      "id": "road_food_north_front",
+      "name": "餐饮区北排门前公共路",
+      "direction": "horizontal",
+      "accessScope": "public",
+      "rect": {
+        "x": 36,
+        "y": 19,
+        "width": 32,
+        "height": 3
+      }
+    },
+    {
+      "id": "road_food_mid_front",
+      "name": "餐饮区中排门前公共路",
+      "direction": "horizontal",
+      "accessScope": "public",
+      "rect": {
+        "x": 36,
+        "y": 30,
+        "width": 32,
+        "height": 3
+      }
+    },
+    {
+      "id": "road_park_south_food_front",
+      "name": "公园南侧公共路",
+      "direction": "horizontal",
+      "accessScope": "public",
+      "rect": {
+        "x": 36,
+        "y": 56,
+        "width": 32,
+        "height": 3
+      }
+    },
+    {
+      "id": "road_food_south_front",
+      "name": "小商铺南侧公共路",
+      "direction": "horizontal",
+      "accessScope": "public",
+      "rect": {
+        "x": 36,
+        "y": 69,
+        "width": 32,
+        "height": 3
+      }
+    },
+    {
+      "id": "road_apartment_center_spine",
+      "name": "公寓区中部纵向路",
+      "direction": "vertical",
+      "accessScope": "public",
+      "rect": {
+        "x": 81,
+        "y": 4,
+        "width": 3,
+        "height": 37
+      }
+    },
+    {
+      "id": "road_apartment_first_front",
+      "name": "公寓第一排门前公共路",
+      "direction": "horizontal",
+      "accessScope": "public",
+      "rect": {
+        "x": 67,
+        "y": 23,
+        "width": 30,
+        "height": 2
+      }
+    },
+    {
+      "id": "road_apartment_second_front",
+      "name": "公寓第二排门前公共路",
+      "direction": "horizontal",
+      "accessScope": "public",
+      "rect": {
+        "x": 67,
+        "y": 39,
+        "width": 30,
+        "height": 3
+      }
+    },
+    {
+      "id": "road_villa_west_inner_spine",
+      "name": "别墅区西侧纵向路",
+      "direction": "vertical",
+      "accessScope": "public",
+      "rect": {
+        "x": 76,
+        "y": 40,
+        "width": 3,
+        "height": 46
+      }
+    },
+    {
+      "id": "road_villa_east_inner_spine",
+      "name": "别墅区东侧纵向路",
+      "direction": "vertical",
+      "accessScope": "public",
+      "rect": {
+        "x": 85,
+        "y": 40,
+        "width": 2,
+        "height": 46
+      }
+    },
+    {
+      "id": "road_villa_row_1_front",
+      "name": "别墅第一排门前公共路",
+      "direction": "horizontal",
+      "accessScope": "public",
+      "rect": {
+        "x": 67,
+        "y": 54,
+        "width": 30,
+        "height": 2
+      }
+    },
+    {
+      "id": "road_villa_row_2_front",
+      "name": "别墅第二排门前公共路",
+      "direction": "horizontal",
+      "accessScope": "public",
+      "rect": {
+        "x": 67,
+        "y": 69,
+        "width": 30,
+        "height": 3
+      }
+    },
+    {
+      "id": "road_access_west_office",
+      "name": "写字楼专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "west_office",
+      "rect": {
+        "x": 20,
+        "y": 29,
+        "width": 1,
+        "height": 2
+      }
+    },
+    {
+      "id": "road_access_west_library",
+      "name": "图书馆专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "west_library",
+      "rect": {
+        "x": 20,
+        "y": 46,
+        "width": 1,
+        "height": 3
+      }
+    },
+    {
+      "id": "road_access_west_property_center",
+      "name": "物业中心专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "west_property_center",
+      "rect": {
+        "x": 19,
+        "y": 64,
+        "width": 1,
+        "height": 2
+      }
+    },
+    {
+      "id": "road_access_west_logistics_center",
+      "name": "物流中心专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "west_logistics_center",
+      "rect": {
+        "x": 20,
+        "y": 79,
+        "width": 1,
+        "height": 8
+      }
+    },
+    {
+      "id": "road_access_food_japanese_cuisine",
+      "name": "日本料理专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "food_japanese_cuisine",
+      "rect": {
+        "x": 45,
+        "y": 18,
+        "width": 1,
+        "height": 3
+      }
+    },
+    {
+      "id": "road_access_food_paris_restaurant",
+      "name": "巴黎餐厅专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "food_paris_restaurant",
+      "rect": {
+        "x": 61,
+        "y": 18,
+        "width": 1,
+        "height": 3
+      }
+    },
+    {
+      "id": "road_access_food_japanese_ramen",
+      "name": "日本拉面专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "food_japanese_ramen",
+      "rect": {
+        "x": 45,
+        "y": 29,
+        "width": 1,
+        "height": 4
+      }
+    },
+    {
+      "id": "road_access_food_samhui_restaurant",
+      "name": "韩国三熙饭店专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "food_samhui_restaurant",
+      "rect": {
+        "x": 61,
+        "y": 29,
+        "width": 1,
+        "height": 4
+      }
+    },
+    {
+      "id": "road_access_food_japanese_vendor",
+      "name": "日本小商贩专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "food_japanese_vendor",
+      "rect": {
+        "x": 45,
+        "y": 68,
+        "width": 1,
+        "height": 3
+      }
+    },
+    {
+      "id": "road_access_food_korean_bakery",
+      "name": "韩国糕点店专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "food_korean_bakery",
+      "rect": {
+        "x": 61,
+        "y": 68,
+        "width": 1,
+        "height": 3
+      }
+    },
+    {
+      "id": "road_access_food_booking_lot_restaurant",
+      "name": "订车场饭店专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "food_booking_lot_restaurant",
+      "rect": {
+        "x": 57,
+        "y": 85,
+        "width": 1,
+        "height": 2
+      }
+    },
+    {
+      "id": "road_access_apt_a1",
+      "name": "东区公寓 A1专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "apt_a1",
+      "rect": {
+        "x": 74,
+        "y": 18,
+        "width": 1,
+        "height": 7
+      }
+    },
+    {
+      "id": "road_access_apt_a2",
+      "name": "东区公寓 A2专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "apt_a2",
+      "rect": {
+        "x": 90,
+        "y": 18,
+        "width": 1,
+        "height": 7
+      }
+    },
+    {
+      "id": "road_access_apt_a3",
+      "name": "东区公寓 A3专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "apt_a3",
+      "rect": {
+        "x": 74,
+        "y": 35,
+        "width": 1,
+        "height": 6
+      }
+    },
+    {
+      "id": "road_access_apt_a4",
+      "name": "东区公寓 A4专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "apt_a4",
+      "rect": {
+        "x": 90,
+        "y": 35,
+        "width": 1,
+        "height": 6
+      }
+    },
+    {
+      "id": "road_access_villa_b1",
+      "name": "东区别墅 B1专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "villa_b1",
+      "rect": {
+        "x": 73,
+        "y": 49,
+        "width": 1,
+        "height": 7
+      }
+    },
+    {
+      "id": "road_access_villa_b2",
+      "name": "东区别墅 B2专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "villa_b2",
+      "rect": {
+        "x": 82,
+        "y": 49,
+        "width": 1,
+        "height": 7
+      }
+    },
+    {
+      "id": "road_access_villa_b3",
+      "name": "东区别墅 B3专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "villa_b3",
+      "rect": {
+        "x": 90,
+        "y": 49,
+        "width": 1,
+        "height": 7
+      }
+    },
+    {
+      "id": "road_access_villa_b4",
+      "name": "东区别墅 B4专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "villa_b4",
+      "rect": {
+        "x": 73,
+        "y": 66,
+        "width": 1,
+        "height": 5
+      }
+    },
+    {
+      "id": "road_access_villa_b5",
+      "name": "东区别墅 B5专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "villa_b5",
+      "rect": {
+        "x": 82,
+        "y": 66,
+        "width": 1,
+        "height": 5
+      }
+    },
+    {
+      "id": "road_access_villa_b6",
+      "name": "东区别墅 B6专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "villa_b6",
+      "rect": {
+        "x": 90,
+        "y": 66,
+        "width": 1,
+        "height": 5
+      }
+    },
+    {
+      "id": "road_access_villa_b7",
+      "name": "东区别墅 B7专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "villa_b7",
+      "rect": {
+        "x": 73,
+        "y": 81,
+        "width": 1,
+        "height": 6
+      }
+    },
+    {
+      "id": "road_access_villa_b8",
+      "name": "东区别墅 B8专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "villa_b8",
+      "rect": {
+        "x": 82,
+        "y": 81,
+        "width": 1,
+        "height": 6
+      }
+    },
+    {
+      "id": "road_access_villa_b9",
+      "name": "东区别墅 B9专属入口路",
+      "direction": "vertical",
+      "accessScope": "target_access",
+      "targetZoneId": "villa_b9",
+      "rect": {
+        "x": 90,
+        "y": 81,
+        "width": 1,
+        "height": 6
+      }
+    }
   ],
   "servicePoints": [
-    { "id": "gate_north", "name": "北门岗", "type": "gate", "point": { "x": 50, "y": 3 }, "role": "北侧入口和访客出入点", "aliases": ["北门", "北门岗"], "render": { "markerColor": "#7dd3fc" } },
-    { "id": "gate_south", "name": "南门岗", "type": "gate", "point": { "x": 50, "y": 86 }, "role": "南侧入口和车辆离场点", "aliases": ["南门", "南门岗"], "render": { "markerColor": "#7dd3fc" } },
-    { "id": "hub_dispatch_loading", "name": "物流中心装货口", "type": "hub", "point": { "x": 36, "y": 72 }, "role": "小车统一装货点", "aliases": ["装货口", "快递装货口", "物流中心装货口"], "targetZoneId": "west_logistics_center", "render": { "markerColor": "#34d399" } },
-    { "id": "marker_express_pickup", "name": "物流中心出件口", "type": "pickup", "point": { "x": 36, "y": 75 }, "role": "快递从物流中心发出的业务起点", "aliases": ["出件口", "快递出件口", "物流中心出件口"], "targetZoneId": "west_logistics_center", "render": { "markerColor": "#22d3ee" } },
-    { "id": "hub_dispatch_waiting", "name": "调度等待区", "type": "parking", "point": { "x": 37, "y": 80 }, "role": "空闲小车停车和待命区域", "aliases": ["等待区", "调度等待区", "停车等待区"], "targetZoneId": "space_dispatch_parking", "render": { "markerColor": "#fbbf24" } },
-    { "id": "marker_west_office_dropoff", "name": "写字楼收件点", "type": "delivery", "point": { "x": 36, "y": 17 }, "role": "写字楼门前收件点", "aliases": ["写字楼门口", "写字楼收件点"], "targetZoneId": "west_office" },
-    { "id": "marker_west_library_dropoff", "name": "图书馆收件点", "type": "delivery", "point": { "x": 36, "y": 37 }, "role": "图书馆门前收件点", "aliases": ["图书馆门口", "图书馆收件点"], "targetZoneId": "west_library" },
-    { "id": "marker_west_property_center_dropoff", "name": "物业中心收件点", "type": "delivery", "point": { "x": 36, "y": 57 }, "role": "物业中心门前收件点", "aliases": ["物业中心门口", "物业中心收件点"], "targetZoneId": "west_property_center" },
-    { "id": "marker_west_logistics_center_dropoff", "name": "物流中心收件点", "type": "delivery", "point": { "x": 36, "y": 79 }, "role": "物流中心门前收件点", "aliases": ["物流中心门口", "物流中心收件点"], "targetZoneId": "west_logistics_center" },
-    { "id": "marker_food_japanese_cuisine_dropoff", "name": "日本料理收件点", "type": "delivery", "point": { "x": 45, "y": 19 }, "role": "日本料理门前收件点", "aliases": ["日本料理门口", "日本料理收件点"], "targetZoneId": "food_japanese_cuisine" },
-    { "id": "marker_food_paris_restaurant_dropoff", "name": "巴黎餐厅收件点", "type": "delivery", "point": { "x": 61, "y": 19 }, "role": "巴黎餐厅门前收件点", "aliases": ["巴黎餐厅门口", "巴黎餐厅收件点"], "targetZoneId": "food_paris_restaurant" },
-    { "id": "marker_food_japanese_ramen_dropoff", "name": "日本拉面收件点", "type": "delivery", "point": { "x": 45, "y": 30 }, "role": "日本拉面门前收件点", "aliases": ["日本拉面门口", "拉面店收件点"], "targetZoneId": "food_japanese_ramen" },
-    { "id": "marker_food_samhui_restaurant_dropoff", "name": "韩国三熙饭店收件点", "type": "delivery", "point": { "x": 61, "y": 30 }, "role": "韩国三熙饭店门前收件点", "aliases": ["韩国三熙饭店门口", "三熙饭店收件点"], "targetZoneId": "food_samhui_restaurant" },
-    { "id": "marker_food_japanese_vendor_dropoff", "name": "日本小商贩收件点", "type": "delivery", "point": { "x": 44, "y": 86 }, "role": "日本小商贩门前收件点", "aliases": ["日本小商贩门口", "日式小店收件点"], "targetZoneId": "food_japanese_vendor" },
-    { "id": "marker_food_korean_bakery_dropoff", "name": "韩国糕点店收件点", "type": "delivery", "point": { "x": 60, "y": 86 }, "role": "韩国糕点店门前收件点", "aliases": ["韩国糕点店门口", "糕点店收件点"], "targetZoneId": "food_korean_bakery" },
-    { "id": "marker_food_booking_lot_restaurant_dropoff", "name": "订车场饭店收件点", "type": "delivery", "point": { "x": 52, "y": 86 }, "role": "订车场饭店门前收件点", "aliases": ["订车场饭店门口", "订车场饭店收件点"], "targetZoneId": "food_booking_lot_restaurant" },
-    { "id": "marker_apt_a1_dropoff", "name": "东区公寓 A1 收件点", "type": "delivery", "point": { "x": 73, "y": 23 }, "role": "东区公寓 A1 门前收件点", "aliases": ["东区公寓A1门口", "公寓A1收件点"], "targetZoneId": "apt_a1" },
-    { "id": "marker_apt_a2_dropoff", "name": "东区公寓 A2 收件点", "type": "delivery", "point": { "x": 89, "y": 23 }, "role": "东区公寓 A2 门前收件点", "aliases": ["东区公寓A2门口", "公寓A2收件点"], "targetZoneId": "apt_a2" },
-    { "id": "marker_apt_a3_dropoff", "name": "东区公寓 A3 收件点", "type": "delivery", "point": { "x": 73, "y": 39 }, "role": "东区公寓 A3 门前收件点", "aliases": ["东区公寓A3门口", "公寓A3收件点"], "targetZoneId": "apt_a3" },
-    { "id": "marker_apt_a4_dropoff", "name": "东区公寓 A4 收件点", "type": "delivery", "point": { "x": 89, "y": 39 }, "role": "东区公寓 A4 门前收件点", "aliases": ["东区公寓A4门口", "公寓A4收件点"], "targetZoneId": "apt_a4" },
-    { "id": "marker_villa_b1_dropoff", "name": "东区别墅 B1 收件点", "type": "delivery", "point": { "x": 72, "y": 54 }, "role": "东区别墅 B1 门前收件点", "aliases": ["东区别墅B1门口", "别墅B1收件点"], "targetZoneId": "villa_b1" },
-    { "id": "marker_villa_b2_dropoff", "name": "东区别墅 B2 收件点", "type": "delivery", "point": { "x": 82, "y": 54 }, "role": "东区别墅 B2 门前收件点", "aliases": ["东区别墅B2门口", "别墅B2收件点"], "targetZoneId": "villa_b2" },
-    { "id": "marker_villa_b3_dropoff", "name": "东区别墅 B3 收件点", "type": "delivery", "point": { "x": 90, "y": 54 }, "role": "东区别墅 B3 门前收件点", "aliases": ["东区别墅B3门口", "别墅B3收件点"], "targetZoneId": "villa_b3" },
-    { "id": "marker_villa_b4_dropoff", "name": "东区别墅 B4 收件点", "type": "delivery", "point": { "x": 72, "y": 69 }, "role": "东区别墅 B4 门前收件点", "aliases": ["东区别墅B4门口", "别墅B4收件点"], "targetZoneId": "villa_b4" },
-    { "id": "marker_villa_b5_dropoff", "name": "东区别墅 B5 收件点", "type": "delivery", "point": { "x": 82, "y": 69 }, "role": "东区别墅 B5 门前收件点", "aliases": ["东区别墅B5门口", "别墅B5收件点"], "targetZoneId": "villa_b5" },
-    { "id": "marker_villa_b6_dropoff", "name": "东区别墅 B6 收件点", "type": "delivery", "point": { "x": 90, "y": 69 }, "role": "东区别墅 B6 门前收件点", "aliases": ["东区别墅B6门口", "别墅B6收件点"], "targetZoneId": "villa_b6" },
-    { "id": "marker_villa_b7_dropoff", "name": "东区别墅 B7 收件点", "type": "delivery", "point": { "x": 72, "y": 82 }, "role": "东区别墅 B7 门前收件点", "aliases": ["东区别墅B7门口", "别墅B7收件点"], "targetZoneId": "villa_b7" },
-    { "id": "marker_villa_b8_dropoff", "name": "东区别墅 B8 收件点", "type": "delivery", "point": { "x": 82, "y": 82 }, "role": "东区别墅 B8 门前收件点", "aliases": ["东区别墅B8门口", "别墅B8收件点"], "targetZoneId": "villa_b8" },
-    { "id": "marker_villa_b9_dropoff", "name": "东区别墅 B9 收件点", "type": "delivery", "point": { "x": 90, "y": 82 }, "role": "东区别墅 B9 门前收件点", "aliases": ["东区别墅B9门口", "别墅B9收件点"], "targetZoneId": "villa_b9" }
+    {
+      "id": "gate_north",
+      "name": "北门岗",
+      "type": "gate",
+      "point": {
+        "x": 50,
+        "y": 3
+      },
+      "role": "北侧入口和访客出入点",
+      "aliases": [
+        "北门",
+        "北门岗"
+      ],
+      "render": {
+        "markerColor": "#7dd3fc"
+      }
+    },
+    {
+      "id": "gate_south",
+      "name": "南门岗",
+      "type": "gate",
+      "point": {
+        "x": 50,
+        "y": 86
+      },
+      "role": "南侧入口和车辆离场点",
+      "aliases": [
+        "南门",
+        "南门岗"
+      ],
+      "render": {
+        "markerColor": "#7dd3fc"
+      }
+    },
+    {
+      "id": "hub_dispatch_loading",
+      "name": "物流中心装货口",
+      "type": "hub",
+      "point": {
+        "x": 36,
+        "y": 72
+      },
+      "role": "小车统一装货点",
+      "aliases": [
+        "装货口",
+        "快递装货口",
+        "物流中心装货口"
+      ],
+      "targetZoneId": "west_logistics_center",
+      "render": {
+        "markerColor": "#34d399"
+      }
+    },
+    {
+      "id": "marker_express_pickup",
+      "name": "物流中心出件口",
+      "type": "pickup",
+      "point": {
+        "x": 36,
+        "y": 75
+      },
+      "role": "快递从物流中心发出的业务起点",
+      "aliases": [
+        "出件口",
+        "快递出件口",
+        "物流中心出件口"
+      ],
+      "targetZoneId": "west_logistics_center",
+      "render": {
+        "markerColor": "#22d3ee"
+      }
+    },
+    {
+      "id": "hub_dispatch_waiting",
+      "name": "调度等待区",
+      "type": "parking",
+      "point": {
+        "x": 37,
+        "y": 80
+      },
+      "role": "空闲小车停车和待命区域",
+      "aliases": [
+        "等待区",
+        "调度等待区",
+        "停车等待区"
+      ],
+      "targetZoneId": "space_dispatch_parking",
+      "render": {
+        "markerColor": "#fbbf24"
+      }
+    },
+    {
+      "id": "marker_west_office_dropoff",
+      "name": "写字楼收件点",
+      "type": "delivery",
+      "point": {
+        "x": 20,
+        "y": 29
+      },
+      "role": "写字楼门前收件点",
+      "aliases": [
+        "写字楼门口",
+        "写字楼收件点"
+      ],
+      "targetZoneId": "west_office",
+      "accessRoadId": "road_access_west_office"
+    },
+    {
+      "id": "marker_west_library_dropoff",
+      "name": "图书馆收件点",
+      "type": "delivery",
+      "point": {
+        "x": 20,
+        "y": 46
+      },
+      "role": "图书馆门前收件点",
+      "aliases": [
+        "图书馆门口",
+        "图书馆收件点"
+      ],
+      "targetZoneId": "west_library",
+      "accessRoadId": "road_access_west_library"
+    },
+    {
+      "id": "marker_west_property_center_dropoff",
+      "name": "物业中心收件点",
+      "type": "delivery",
+      "point": {
+        "x": 19,
+        "y": 64
+      },
+      "role": "物业中心门前收件点",
+      "aliases": [
+        "物业中心门口",
+        "物业中心收件点"
+      ],
+      "targetZoneId": "west_property_center",
+      "accessRoadId": "road_access_west_property_center"
+    },
+    {
+      "id": "marker_west_logistics_center_dropoff",
+      "name": "物流中心收件点",
+      "type": "delivery",
+      "point": {
+        "x": 20,
+        "y": 79
+      },
+      "role": "物流中心门前收件点",
+      "aliases": [
+        "物流中心门口",
+        "物流中心收件点"
+      ],
+      "targetZoneId": "west_logistics_center",
+      "accessRoadId": "road_access_west_logistics_center"
+    },
+    {
+      "id": "marker_food_japanese_cuisine_dropoff",
+      "name": "日本料理收件点",
+      "type": "delivery",
+      "point": {
+        "x": 45,
+        "y": 18
+      },
+      "role": "日本料理门前收件点",
+      "aliases": [
+        "日本料理门口",
+        "日本料理收件点"
+      ],
+      "targetZoneId": "food_japanese_cuisine",
+      "accessRoadId": "road_access_food_japanese_cuisine"
+    },
+    {
+      "id": "marker_food_paris_restaurant_dropoff",
+      "name": "巴黎餐厅收件点",
+      "type": "delivery",
+      "point": {
+        "x": 61,
+        "y": 18
+      },
+      "role": "巴黎餐厅门前收件点",
+      "aliases": [
+        "巴黎餐厅门口",
+        "巴黎餐厅收件点"
+      ],
+      "targetZoneId": "food_paris_restaurant",
+      "accessRoadId": "road_access_food_paris_restaurant"
+    },
+    {
+      "id": "marker_food_japanese_ramen_dropoff",
+      "name": "日本拉面收件点",
+      "type": "delivery",
+      "point": {
+        "x": 45,
+        "y": 29
+      },
+      "role": "日本拉面门前收件点",
+      "aliases": [
+        "日本拉面门口",
+        "拉面店收件点"
+      ],
+      "targetZoneId": "food_japanese_ramen",
+      "accessRoadId": "road_access_food_japanese_ramen"
+    },
+    {
+      "id": "marker_food_samhui_restaurant_dropoff",
+      "name": "韩国三熙饭店收件点",
+      "type": "delivery",
+      "point": {
+        "x": 61,
+        "y": 29
+      },
+      "role": "韩国三熙饭店门前收件点",
+      "aliases": [
+        "韩国三熙饭店门口",
+        "三熙饭店收件点"
+      ],
+      "targetZoneId": "food_samhui_restaurant",
+      "accessRoadId": "road_access_food_samhui_restaurant"
+    },
+    {
+      "id": "marker_food_japanese_vendor_dropoff",
+      "name": "日本小商贩收件点",
+      "type": "delivery",
+      "point": {
+        "x": 45,
+        "y": 68
+      },
+      "role": "日本小商贩门前收件点",
+      "aliases": [
+        "日本小商贩门口",
+        "日式小店收件点"
+      ],
+      "targetZoneId": "food_japanese_vendor",
+      "accessRoadId": "road_access_food_japanese_vendor"
+    },
+    {
+      "id": "marker_food_korean_bakery_dropoff",
+      "name": "韩国糕点店收件点",
+      "type": "delivery",
+      "point": {
+        "x": 61,
+        "y": 68
+      },
+      "role": "韩国糕点店门前收件点",
+      "aliases": [
+        "韩国糕点店门口",
+        "糕点店收件点"
+      ],
+      "targetZoneId": "food_korean_bakery",
+      "accessRoadId": "road_access_food_korean_bakery"
+    },
+    {
+      "id": "marker_food_booking_lot_restaurant_dropoff",
+      "name": "订车场饭店收件点",
+      "type": "delivery",
+      "point": {
+        "x": 57,
+        "y": 85
+      },
+      "role": "订车场饭店门前收件点",
+      "aliases": [
+        "订车场饭店门口",
+        "订车场饭店收件点"
+      ],
+      "targetZoneId": "food_booking_lot_restaurant",
+      "accessRoadId": "road_access_food_booking_lot_restaurant"
+    },
+    {
+      "id": "marker_apt_a1_dropoff",
+      "name": "东区公寓 A1 收件点",
+      "type": "delivery",
+      "point": {
+        "x": 74,
+        "y": 18
+      },
+      "role": "东区公寓 A1 门前收件点",
+      "aliases": [
+        "东区公寓A1门口",
+        "公寓A1收件点"
+      ],
+      "targetZoneId": "apt_a1",
+      "accessRoadId": "road_access_apt_a1"
+    },
+    {
+      "id": "marker_apt_a2_dropoff",
+      "name": "东区公寓 A2 收件点",
+      "type": "delivery",
+      "point": {
+        "x": 90,
+        "y": 18
+      },
+      "role": "东区公寓 A2 门前收件点",
+      "aliases": [
+        "东区公寓A2门口",
+        "公寓A2收件点"
+      ],
+      "targetZoneId": "apt_a2",
+      "accessRoadId": "road_access_apt_a2"
+    },
+    {
+      "id": "marker_apt_a3_dropoff",
+      "name": "东区公寓 A3 收件点",
+      "type": "delivery",
+      "point": {
+        "x": 74,
+        "y": 35
+      },
+      "role": "东区公寓 A3 门前收件点",
+      "aliases": [
+        "东区公寓A3门口",
+        "公寓A3收件点"
+      ],
+      "targetZoneId": "apt_a3",
+      "accessRoadId": "road_access_apt_a3"
+    },
+    {
+      "id": "marker_apt_a4_dropoff",
+      "name": "东区公寓 A4 收件点",
+      "type": "delivery",
+      "point": {
+        "x": 90,
+        "y": 35
+      },
+      "role": "东区公寓 A4 门前收件点",
+      "aliases": [
+        "东区公寓A4门口",
+        "公寓A4收件点"
+      ],
+      "targetZoneId": "apt_a4",
+      "accessRoadId": "road_access_apt_a4"
+    },
+    {
+      "id": "marker_villa_b1_dropoff",
+      "name": "东区别墅 B1 收件点",
+      "type": "delivery",
+      "point": {
+        "x": 73,
+        "y": 49
+      },
+      "role": "东区别墅 B1 门前收件点",
+      "aliases": [
+        "东区别墅B1门口",
+        "别墅B1收件点"
+      ],
+      "targetZoneId": "villa_b1",
+      "accessRoadId": "road_access_villa_b1"
+    },
+    {
+      "id": "marker_villa_b2_dropoff",
+      "name": "东区别墅 B2 收件点",
+      "type": "delivery",
+      "point": {
+        "x": 82,
+        "y": 49
+      },
+      "role": "东区别墅 B2 门前收件点",
+      "aliases": [
+        "东区别墅B2门口",
+        "别墅B2收件点"
+      ],
+      "targetZoneId": "villa_b2",
+      "accessRoadId": "road_access_villa_b2"
+    },
+    {
+      "id": "marker_villa_b3_dropoff",
+      "name": "东区别墅 B3 收件点",
+      "type": "delivery",
+      "point": {
+        "x": 90,
+        "y": 49
+      },
+      "role": "东区别墅 B3 门前收件点",
+      "aliases": [
+        "东区别墅B3门口",
+        "别墅B3收件点"
+      ],
+      "targetZoneId": "villa_b3",
+      "accessRoadId": "road_access_villa_b3"
+    },
+    {
+      "id": "marker_villa_b4_dropoff",
+      "name": "东区别墅 B4 收件点",
+      "type": "delivery",
+      "point": {
+        "x": 73,
+        "y": 66
+      },
+      "role": "东区别墅 B4 门前收件点",
+      "aliases": [
+        "东区别墅B4门口",
+        "别墅B4收件点"
+      ],
+      "targetZoneId": "villa_b4",
+      "accessRoadId": "road_access_villa_b4"
+    },
+    {
+      "id": "marker_villa_b5_dropoff",
+      "name": "东区别墅 B5 收件点",
+      "type": "delivery",
+      "point": {
+        "x": 82,
+        "y": 66
+      },
+      "role": "东区别墅 B5 门前收件点",
+      "aliases": [
+        "东区别墅B5门口",
+        "别墅B5收件点"
+      ],
+      "targetZoneId": "villa_b5",
+      "accessRoadId": "road_access_villa_b5"
+    },
+    {
+      "id": "marker_villa_b6_dropoff",
+      "name": "东区别墅 B6 收件点",
+      "type": "delivery",
+      "point": {
+        "x": 90,
+        "y": 66
+      },
+      "role": "东区别墅 B6 门前收件点",
+      "aliases": [
+        "东区别墅B6门口",
+        "别墅B6收件点"
+      ],
+      "targetZoneId": "villa_b6",
+      "accessRoadId": "road_access_villa_b6"
+    },
+    {
+      "id": "marker_villa_b7_dropoff",
+      "name": "东区别墅 B7 收件点",
+      "type": "delivery",
+      "point": {
+        "x": 73,
+        "y": 81
+      },
+      "role": "东区别墅 B7 门前收件点",
+      "aliases": [
+        "东区别墅B7门口",
+        "别墅B7收件点"
+      ],
+      "targetZoneId": "villa_b7",
+      "accessRoadId": "road_access_villa_b7"
+    },
+    {
+      "id": "marker_villa_b8_dropoff",
+      "name": "东区别墅 B8 收件点",
+      "type": "delivery",
+      "point": {
+        "x": 82,
+        "y": 81
+      },
+      "role": "东区别墅 B8 门前收件点",
+      "aliases": [
+        "东区别墅B8门口",
+        "别墅B8收件点"
+      ],
+      "targetZoneId": "villa_b8",
+      "accessRoadId": "road_access_villa_b8"
+    },
+    {
+      "id": "marker_villa_b9_dropoff",
+      "name": "东区别墅 B9 收件点",
+      "type": "delivery",
+      "point": {
+        "x": 90,
+        "y": 81
+      },
+      "role": "东区别墅 B9 门前收件点",
+      "aliases": [
+        "东区别墅B9门口",
+        "别墅B9收件点"
+      ],
+      "targetZoneId": "villa_b9",
+      "accessRoadId": "road_access_villa_b9"
+    }
   ],
   "pointObstacles": [],
   "defaultCarts": [
-    { "id": 1, "name": "Cart-1", "x": 36, "y": 76 },
-    { "id": 2, "name": "Cart-2", "x": 37, "y": 76 },
-    { "id": 3, "name": "Cart-3", "x": 38, "y": 76 },
-    { "id": 4, "name": "Cart-4", "x": 36, "y": 78 },
-    { "id": 5, "name": "Cart-5", "x": 37, "y": 78 },
-    { "id": 6, "name": "Cart-6", "x": 38, "y": 78 },
-    { "id": 7, "name": "Cart-7", "x": 36, "y": 80 },
-    { "id": 8, "name": "Cart-8", "x": 37, "y": 80 },
-    { "id": 9, "name": "Cart-9", "x": 38, "y": 80 },
-    { "id": 10, "name": "Cart-10", "x": 36, "y": 82 },
-    { "id": 11, "name": "Cart-11", "x": 37, "y": 82 },
-    { "id": 12, "name": "Cart-12", "x": 38, "y": 82 }
+    {
+      "id": 1,
+      "name": "Cart-1",
+      "x": 36,
+      "y": 76
+    },
+    {
+      "id": 2,
+      "name": "Cart-2",
+      "x": 37,
+      "y": 76
+    },
+    {
+      "id": 3,
+      "name": "Cart-3",
+      "x": 38,
+      "y": 76
+    },
+    {
+      "id": 4,
+      "name": "Cart-4",
+      "x": 36,
+      "y": 78
+    },
+    {
+      "id": 5,
+      "name": "Cart-5",
+      "x": 37,
+      "y": 78
+    },
+    {
+      "id": 6,
+      "name": "Cart-6",
+      "x": 38,
+      "y": 78
+    },
+    {
+      "id": 7,
+      "name": "Cart-7",
+      "x": 36,
+      "y": 80
+    },
+    {
+      "id": 8,
+      "name": "Cart-8",
+      "x": 37,
+      "y": 80
+    },
+    {
+      "id": 9,
+      "name": "Cart-9",
+      "x": 38,
+      "y": 80
+    },
+    {
+      "id": 10,
+      "name": "Cart-10",
+      "x": 37,
+      "y": 82
+    }
   ],
   "simulation": {
-    "pickupPointIds": ["hub_dispatch_loading", "marker_express_pickup"],
+    "pickupPointIds": [
+      "hub_dispatch_loading",
+      "marker_express_pickup",
+      "gate_north",
+      "gate_south",
+      "marker_west_office_dropoff",
+      "marker_west_library_dropoff",
+      "marker_west_property_center_dropoff",
+      "marker_west_logistics_center_dropoff",
+      "marker_food_japanese_cuisine_dropoff",
+      "marker_food_paris_restaurant_dropoff",
+      "marker_food_japanese_ramen_dropoff",
+      "marker_food_samhui_restaurant_dropoff",
+      "marker_food_japanese_vendor_dropoff",
+      "marker_food_korean_bakery_dropoff",
+      "marker_food_booking_lot_restaurant_dropoff",
+      "marker_apt_a1_dropoff",
+      "marker_apt_a2_dropoff",
+      "marker_apt_a3_dropoff",
+      "marker_apt_a4_dropoff",
+      "marker_villa_b1_dropoff",
+      "marker_villa_b2_dropoff",
+      "marker_villa_b3_dropoff",
+      "marker_villa_b4_dropoff",
+      "marker_villa_b5_dropoff",
+      "marker_villa_b6_dropoff",
+      "marker_villa_b7_dropoff",
+      "marker_villa_b8_dropoff",
+      "marker_villa_b9_dropoff"
+    ],
     "deliveryPointIds": [
       "marker_west_office_dropoff",
       "marker_west_library_dropoff",

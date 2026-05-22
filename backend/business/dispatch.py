@@ -1,6 +1,7 @@
 """调度业务：封装订单分配、小车推进和仿真订单生成逻辑。"""
 
 import json
+from math import ceil
 
 from backend.business.cart import get_all_carts, get_busy_carts, reset_cart, touch_cart
 from backend.business.order import (
@@ -16,10 +17,18 @@ from backend.business.order import (
 )
 from backend.campus.pathfinding import find_path
 from backend.system.extensions import db
-from backend.system.runtime import MAP_HEIGHT, MAP_WIDTH, OBSTACLES, set_last_dispatch_explanation
+from backend.system.runtime import (
+    MAP_HEIGHT,
+    MAP_WIDTH,
+    OBSTACLES,
+    accessible_points_for_order,
+    set_last_dispatch_explanation,
+)
 
 BATTERY_MAX_LEVEL = 100
-BATTERY_USE_PER_STEP = 1
+# 园区最大完整任务约 300 格；按 4 格消耗 1% 计算，满电小车能覆盖任意一单并留下余量。
+BATTERY_STEPS_PER_PERCENT = 4
+BATTERY_USE_PER_DRAIN_TICK = 1
 IDLE_RECHARGE_PER_TICK = 1
 MIN_BATTERY_RESERVE = 8
 BATTERY_HEALTHY_LEVEL = 80
@@ -40,6 +49,7 @@ def build_path_segments(cart, order):
         obstacles=OBSTACLES,
         width=MAP_WIDTH,
         height=MAP_HEIGHT,
+        accessible_points=accessible_points_for_order(cart_position, start_point),
     )
     path_to_end = find_path(
         start=start_point,
@@ -47,6 +57,7 @@ def build_path_segments(cart, order):
         obstacles=OBSTACLES,
         width=MAP_WIDTH,
         height=MAP_HEIGHT,
+        accessible_points=accessible_points_for_order(start_point, end_point),
     )
     return path_to_start, path_to_end
 
@@ -77,8 +88,13 @@ def get_cart_battery(cart):
 
 
 def estimate_battery_usage(path):
-    """估算完成本次任务需要的电量：当前简化为每移动一格消耗 1%。"""
-    return max(1, path_step_count(path) * BATTERY_USE_PER_STEP)
+    """估算完成本次任务需要的电量：若干格路程折算成 1% 电量。"""
+    return max(1, ceil(path_step_count(path) / BATTERY_STEPS_PER_PERCENT))
+
+
+def should_drain_battery_for_step(moved_steps):
+    """按路径步数扣电：第 1、5、9...步各扣 1%，总量与预估保持一致。"""
+    return moved_steps > 0 and (moved_steps - 1) % BATTERY_STEPS_PER_PERCENT == 0
 
 
 def build_candidate_score(cart, path_to_start, path_to_end):
@@ -314,7 +330,9 @@ def advance_carts():
         cart.current_x = next_point["x"]
         cart.current_y = next_point["y"]
         cart.path_index += 1
-        cart.battery_level = clamp_battery(get_cart_battery(cart) - BATTERY_USE_PER_STEP)
+        moved_steps = cart.path_index - 1
+        if should_drain_battery_for_step(moved_steps):
+            cart.battery_level = clamp_battery(get_cart_battery(cart) - BATTERY_USE_PER_DRAIN_TICK)
         touch_cart(cart)
 
         start_point, _ = get_order_start_end(order)

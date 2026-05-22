@@ -4,7 +4,7 @@ from flask import jsonify, request
 
 from backend.api.page import ensure_workers_started
 from backend.campus.pathfinding import find_path
-from backend.system.runtime import MAP_HEIGHT, MAP_WIDTH, OBSTACLES
+from backend.system.runtime import MAP_HEIGHT, MAP_WIDTH, OBSTACLES, accessible_points_for_order
 
 
 def register_path_api(app):
@@ -27,5 +27,6 @@ def register_path_api(app):
             obstacles=OBSTACLES,
             width=MAP_WIDTH,
             height=MAP_HEIGHT,
+            accessible_points=accessible_points_for_order(start, end),
         )
         return jsonify({"path": path})

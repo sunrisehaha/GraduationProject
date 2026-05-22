@@ -16,6 +16,11 @@ def should_reset_demo_data():
     if not carts:
         return False
 
+    default_cart_ids = {item["id"] for item in DEFAULT_CARTS}
+    current_cart_ids = {cart.id for cart in carts}
+    if current_cart_ids != default_cart_ids:
+        return True
+
     cart_points = [(cart.current_x, cart.current_y) for cart in carts]
     order_points = db.session.execute(text("SELECT x, y FROM order_points")).all()
     all_points = cart_points + order_points

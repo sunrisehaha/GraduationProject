@@ -76,19 +76,28 @@ function isVehicleReserveZone(zone) {
 
 export const campusZones = campusRules.zones.map(normalizeZone)
 export const campusRoadCorridors = campusRules.roads.map(normalizeRoad)
+export const campusPublicRoadCorridors = campusRoadCorridors.filter(
+  (road) => (road.accessScope || 'public') === 'public'
+)
 export const campusServicePoints = campusRules.servicePoints.map(normalizeServicePoint)
 export const campusScaleRules = campusRules.scaleRules
+const servicePointKeys = new Set(campusServicePoints.map((item) => pointKey(item.point)))
 
 const pointObstacleKeys = new Set(
   (campusRules.pointObstacles || []).map((item) => pointKey(item.point))
 )
 
 export function isBlockedPoint(point) {
-  return pointObstacleKeys.has(pointKey(point)) || isZonePoint(point, (zone) => zone.cartPassable === false)
+  return (
+    pointObstacleKeys.has(pointKey(point)) ||
+    (isZonePoint(point, (zone) => zone.cartPassable === false) &&
+      !isRoadPoint(point) &&
+      !servicePointKeys.has(pointKey(point)))
+  )
 }
 
 export function isRoadPoint(point) {
-  return campusRoadCorridors.some((road) => pointInRect(point, road.rect))
+  return campusPublicRoadCorridors.some((road) => pointInRect(point, road.rect))
 }
 
 export function isVehicleAccessiblePoint(point) {
@@ -96,11 +105,15 @@ export function isVehicleAccessiblePoint(point) {
     return false
   }
 
-  return isRoadPoint(point) || isZonePoint(point, isVehicleReserveZone)
+  return (
+    isRoadPoint(point) ||
+    isZonePoint(point, isVehicleReserveZone) ||
+    servicePointKeys.has(pointKey(point))
+  )
 }
 
 export function distanceToNearestVehiclePath(point) {
-  const roadDistances = campusRoadCorridors.map((road) => distancePointToRect(point, road.rect))
+  const roadDistances = campusPublicRoadCorridors.map((road) => distancePointToRect(point, road.rect))
   const reserveDistances = campusZones
     .filter(isVehicleReserveZone)
     .map((zone) => distancePointToRect(point, zone.rect))

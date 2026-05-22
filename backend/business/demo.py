@@ -3,7 +3,12 @@
 import random
 
 from backend.business.order import count_active_orders, create_order, serialize_order
-from backend.campus.rules import CAMPUS_RULES, DEFAULT_CARTS, service_point_payload
+from backend.campus.rules import (
+    CAMPUS_RULES,
+    DEFAULT_CARTS,
+    all_order_pickup_points,
+    service_points_by_ids,
+)
 from backend.database import Cart, Order, OrderEvent, OrderPoint
 from backend.system.extensions import db
 from backend.system.runtime import (
@@ -17,21 +22,22 @@ from backend.system.runtime import (
 
 
 def build_demo_order_templates(demo_key):
-    """随机生成演示订单：取件点从快递站/装货口中随机选取，送货点从全部业务收件点中随机选取。
+    """随机生成演示订单：取件点和送货点都从业务点位中随机选取。
 
     每次调用都会产生不同的组合，避免答辩演示时每次都是同一组固定订单。
     demo_key 决定生成数量：'one' 生成 1 单，其余情况生成 5 单。
     """
-    pickup_ids = CAMPUS_RULES["simulation"]["pickupPointIds"]
-    delivery_ids = CAMPUS_RULES["simulation"]["deliveryPointIds"]
+    pickup_points = all_order_pickup_points()
+    delivery_points = service_points_by_ids(CAMPUS_RULES["simulation"]["deliveryPointIds"])
     count = 1 if demo_key == "one" else 5
 
     templates = []
     for _ in range(count):
-        start_id = random.choice(pickup_ids)
-        end_id = random.choice(delivery_ids)
-        start_point = service_point_payload(start_id)
-        end_point = service_point_payload(end_id)
+        start_point = random.choice(pickup_points)
+        end_point = random.choice(delivery_points)
+        while start_point["x"] == end_point["x"] and start_point["y"] == end_point["y"]:
+            end_point = random.choice(delivery_points)
+
         templates.append({
             "start_point": start_point,
             "end_point": end_point,
@@ -67,7 +73,12 @@ def reset_demo_scene():
     OrderPoint.query.delete()
     Order.query.delete()
 
+    default_cart_ids = {item["id"] for item in DEFAULT_CARTS}
     existing_carts = {cart.id: cart for cart in Cart.query.all()}
+    for cart in existing_carts.values():
+        if cart.id not in default_cart_ids:
+            db.session.delete(cart)
+
     for item in DEFAULT_CARTS:
         cart = existing_carts.get(item["id"])
 

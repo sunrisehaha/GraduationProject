@@ -1,6 +1,7 @@
 """生成园区静态 Blender 场景。"""
 
 import math
+import random
 from pathlib import Path
 
 import bpy
@@ -54,8 +55,8 @@ GRID_ROWS = 90
 TILE_SIZE = 0.6
 SOUTH_FACING_ROTATION = 0
 HOUSE_CLOCKWISE_ROTATION = SOUTH_FACING_ROTATION - 90
-BOOKING_LOT_RESTAURANT_RECT = (35.8, 68.7, 32.76, 17.16)
-BOOKING_LOT_RESTAURANT_PLAZA_RECT = (34.0, 67.3, 37.44, 20.28)
+BOOKING_LOT_RESTAURANT_RECT = (47.8, 73.0, 18.6, 12.0)
+BOOKING_LOT_RESTAURANT_PLAZA_RECT = (35.8, 72.0, 31.8, 13.8)
 BOOKING_LOT_RESTAURANT_MARKER_POINT = (48.4, 82.4)
 CENTRAL_PARK_RECT = (40.0, 33.0, 25.0, 22.0)
 
@@ -72,8 +73,8 @@ FOOD_BUILDING_DEFS = [
     {"id": "food_paris_restaurant", "name": "巴黎餐厅", "label": "巴黎餐厅", "asset": "paris_restaurant", "rect": (55.7, 8.4, 10.2, 9.4), "height": 3.7, "fit": 0.94},
     {"id": "food_japanese_ramen", "name": "日本拉面", "label": "日本拉面", "asset": "japanese_ramen", "rect": (41.4, 21.4, 7.8, 7.3), "height": 2.75, "rotation": SOUTH_FACING_ROTATION - 90, "fit": 0.86},
     {"id": "food_samhui_restaurant", "name": "韩国三熙饭店", "label": "三熙饭店", "asset": "samhui_restaurant", "rect": (56.9, 21.4, 7.8, 7.3), "height": 2.65, "fit": 0.86},
-    {"id": "food_japanese_vendor", "name": "日本小商贩", "label": "日本小商贩", "asset": "japanese_vendor", "rect": (37.1, 55.9, 16.5, 17.1), "height": 4.575, "fit": 0.96},
-    {"id": "food_korean_bakery", "name": "韩国糕点店", "label": "韩国糕点店", "asset": "korean_bakery", "rect": (49.9, 55.1, 20.74, 21.08), "height": 6.035, "fit": 0.98},
+    {"id": "food_japanese_vendor", "name": "日本小商贩", "label": "日本小商贩", "asset": "japanese_vendor", "rect": (39.2, 59.4, 11.0, 8.0), "height": 4.575, "fit": 0.96},
+    {"id": "food_korean_bakery", "name": "韩国糕点店", "label": "韩国糕点店", "asset": "korean_bakery", "rect": (55.2, 59.4, 11.0, 8.0), "height": 6.035, "fit": 0.98},
     {"id": "food_booking_lot_restaurant", "name": "订车场饭店", "label": "订车场饭店", "asset": "booking_lot_restaurant", "rect": BOOKING_LOT_RESTAURANT_RECT, "height": 5.2, "fit": 0.98},
 ]
 
@@ -98,9 +99,11 @@ VILLA_DEFS = [
 
 GROUND_Z = 0.0
 GRASS_Z = 0.012
-ROAD_Z = 0.03
-MARKING_Z = 0.046
+ROAD_Z = 0.04
+MARKING_Z = 0.056
 BUILDING_Z = 0.06
+SIDEWALK_Z = ROAD_Z - 0.018
+SURFACE_FLOOR_Z = ROAD_Z - 0.01
 
 FONT_CANDIDATES = [
     Path("/System/Library/Fonts/STHeiti Light.ttc"),
@@ -482,6 +485,70 @@ def add_plane_grid(name, rect, color, z, collection, roughness=0.82, alpha=1.0):
     return link_object(obj, collection)
 
 
+def add_tile_grid(name, rect, collection, z, step=1.8, color="#c9d4dc", line_width=0.035, alpha=0.55):
+    """给铺装面加浅色砖缝，让地面不是单块平板。"""
+    x, y, width, height = rect
+    vertical_count = max(0, int(width / step))
+    horizontal_count = max(0, int(height / step))
+
+    for index in range(1, vertical_count):
+        line_x = x + index * step
+        add_plane_grid(
+            f"{name}_tile_v_{index:02d}",
+            (line_x - line_width / 2, y, line_width, height),
+            color,
+            z,
+            collection,
+            roughness=0.78,
+            alpha=alpha,
+        )
+
+    for index in range(1, horizontal_count):
+        line_y = y + index * step
+        add_plane_grid(
+            f"{name}_tile_h_{index:02d}",
+            (x, line_y - line_width / 2, width, line_width),
+            color,
+            z,
+            collection,
+            roughness=0.78,
+            alpha=alpha,
+        )
+
+
+def add_random_surface_strokes(
+    name,
+    rect,
+    collection,
+    z,
+    colors,
+    count,
+    min_length,
+    max_length,
+    min_width=0.025,
+    max_width=0.055,
+):
+    """用少量随机细线表达草屑或石纹，避免材质靠纯色硬撑。"""
+    x, y, width, height = rect
+    rng = random.Random(name)
+
+    for index in range(count):
+        length = rng.uniform(min_length, max_length)
+        stroke_width = rng.uniform(min_width, max_width)
+        stroke_x = rng.uniform(x + 0.35, x + max(0.36, width - 0.35))
+        stroke_y = rng.uniform(y + 0.35, y + max(0.36, height - 0.35))
+        obj = add_plane_grid(
+            f"{name}_stroke_{index + 1:02d}",
+            (stroke_x, stroke_y, length, stroke_width),
+            rng.choice(colors),
+            z,
+            collection,
+            roughness=0.84,
+            alpha=rng.uniform(0.35, 0.68),
+        )
+        obj.rotation_euler[2] = math.radians(rng.uniform(-34, 34))
+
+
 def expand_rect(rect, padding):
     """给建筑铺装留出一圈可见边界。"""
     x, y, width, height = rect
@@ -491,16 +558,53 @@ def expand_rect(rect, padding):
 def add_marble_floor(name, rect, collection, padding=0.65):
     """用浅色大理石感地板承托公共建筑和餐厅。"""
     floor_rect = expand_rect(rect, padding)
-    add_plane_grid(name, floor_rect, "#e7ecef", MARKING_Z - 0.014, collection, roughness=0.42)
+    add_plane_grid(name, floor_rect, "#f1f4f4", SURFACE_FLOOR_Z, collection, roughness=0.42)
 
     x, y, width, height = floor_rect
-    add_plane_grid(f"{name}_vein_1", (x + width * 0.18, y + height * 0.18, width * 0.62, 0.045), "#aeb8c2", MARKING_Z - 0.011, collection, roughness=0.5, alpha=0.55)
-    add_plane_grid(f"{name}_vein_2", (x + width * 0.28, y + height * 0.58, width * 0.5, 0.04), "#bcc5ce", MARKING_Z - 0.010, collection, roughness=0.5, alpha=0.45)
+    add_tile_grid(
+        f"{name}_tile",
+        floor_rect,
+        collection,
+        SURFACE_FLOOR_Z + 0.003,
+        step=1.45,
+        color="#d5dde3",
+        line_width=0.028,
+        alpha=0.5,
+    )
+    vein_count = max(8, min(24, int(width * height / 10)))
+    add_random_surface_strokes(
+        f"{name}_vein",
+        floor_rect,
+        collection,
+        SURFACE_FLOOR_Z + 0.005,
+        ["#9db0be", "#b8c4cb", "#d8dee2"],
+        vein_count,
+        min_length=0.8,
+        max_length=2.7,
+        min_width=0.018,
+        max_width=0.035,
+    )
 
 
 def add_grass_floor(name, rect, collection, padding=0.75):
     """用薄草地铺装表达住宅、小商铺和订车场饭店的底座。"""
-    add_plane_grid(name, expand_rect(rect, padding), "#b8dfb3", MARKING_Z - 0.016, collection, roughness=0.9)
+    floor_rect = expand_rect(rect, padding)
+    add_plane_grid(name, floor_rect, "#aee1a1", SURFACE_FLOOR_Z - 0.002, collection, roughness=0.92)
+
+    x, y, width, height = floor_rect
+    detail_count = max(18, min(110, int(width * height / 18)))
+    add_random_surface_strokes(
+        f"{name}_grass_detail",
+        floor_rect,
+        collection,
+        SURFACE_FLOOR_Z + 0.002,
+        ["#6eaf68", "#8bc985", "#d7f1ba"],
+        detail_count,
+        min_length=0.12,
+        max_length=0.42,
+        min_width=0.018,
+        max_width=0.04,
+    )
 
 
 def add_box_grid(
@@ -745,7 +849,16 @@ def add_roof_badge(name, rect, roof_z, collection, label_text):
 def add_road(name, rect, collection, color="#b9c7d6", has_lane=True):
     """创建道路主体和中心虚线。"""
     x, y, width, height = rect
-    add_plane_grid(name, rect, color, ROAD_Z, collection, roughness=0.64)
+    add_plane_grid(name, rect, color, ROAD_Z, collection, roughness=0.88)
+
+    edge_color = "#c8d1d7"
+    edge_width = 0.11
+    if width >= height:
+        add_plane_grid(f"{name}_curb_north", (x, y - edge_width, width, edge_width), edge_color, ROAD_Z - 0.002, collection, roughness=0.72)
+        add_plane_grid(f"{name}_curb_south", (x, y + height, width, edge_width), edge_color, ROAD_Z - 0.002, collection, roughness=0.72)
+    else:
+        add_plane_grid(f"{name}_curb_west", (x - edge_width, y, edge_width, height), edge_color, ROAD_Z - 0.002, collection, roughness=0.72)
+        add_plane_grid(f"{name}_curb_east", (x + width, y, edge_width, height), edge_color, ROAD_Z - 0.002, collection, roughness=0.72)
 
     if not has_lane:
         return
@@ -761,7 +874,7 @@ def add_road(name, rect, collection, color="#b9c7d6", has_lane=True):
             dash_h = min(1.4, height / dash_count * 0.5)
             gap = height / dash_count
             dash_rect = (x + width / 2 - 0.06, y + index * gap + gap * 0.22, 0.12, dash_h)
-        add_plane_grid(f"{name}_lane_{index + 1:02d}", dash_rect, "#ffffff", MARKING_Z, collection, roughness=0.45)
+        add_plane_grid(f"{name}_lane_{index + 1:02d}", dash_rect, "#f8fafc", MARKING_Z, collection, roughness=0.48)
 
 
 def add_sidewalk_ring(name, outer_rect, thickness, collection, color="#e9d8a6"):
@@ -774,7 +887,7 @@ def add_sidewalk_ring(name, outer_rect, thickness, collection, color="#e9d8a6"):
         (x + width - thickness, y, thickness, height),
     ]
     for index, strip in enumerate(strips):
-        add_plane_grid(f"{name}_{index + 1}", strip, color, MARKING_Z - 0.004, collection, roughness=0.7)
+        add_plane_grid(f"{name}_{index + 1}", strip, color, SIDEWALK_Z, collection, roughness=0.7)
 
 
 def add_crosswalk(name, point, collection, rotation=0):
@@ -1322,57 +1435,109 @@ def add_outer_landscape(collection):
 
 
 def add_roads(collection):
-    """按确认后的道路草图生成外环主路、分区服务路和公园步行环。"""
-    asphalt = "#24282d"
-    service_asphalt = "#343a40"
-    sidewalk = "#d9e0e6"
-    warm_walk = "#e8ddc7"
+    """生成公共道路和建筑专属入口路，和世界规则保持同一套道路语义。"""
+    asphalt = "#30353a"
+    service_asphalt = "#42484e"
+    sidewalk = "#dce5ea"
+    warm_walk = "#dce5ea"
+    driveway_paver = "#cfd8de"
 
     def add_road_with_walks(name, rect, color, has_lane=False, walk_color=sidewalk, walk_width=0.55):
         x, y, width, height = rect
         if width >= height:
-            add_plane_grid(f"{name}_walk_north", (x, y - walk_width, width, 0.38), walk_color, MARKING_Z - 0.007, collection)
-            add_plane_grid(f"{name}_walk_south", (x, y + height + 0.17, width, 0.38), walk_color, MARKING_Z - 0.007, collection)
+            walk_rects = [
+                (f"{name}_walk_north", (x, y - walk_width, width, 0.42)),
+                (f"{name}_walk_south", (x, y + height + 0.16, width, 0.42)),
+            ]
         else:
-            add_plane_grid(f"{name}_walk_west", (x - walk_width, y, 0.38, height), walk_color, MARKING_Z - 0.007, collection)
-            add_plane_grid(f"{name}_walk_east", (x + width + 0.17, y, 0.38, height), walk_color, MARKING_Z - 0.007, collection)
+            walk_rects = [
+                (f"{name}_walk_west", (x - walk_width, y, 0.42, height)),
+                (f"{name}_walk_east", (x + width + 0.16, y, 0.42, height)),
+            ]
+
+        for walk_name, walk_rect in walk_rects:
+            add_plane_grid(walk_name, walk_rect, walk_color, SIDEWALK_Z, collection, roughness=0.74)
+            add_tile_grid(
+                f"{walk_name}_tile",
+                walk_rect,
+                collection,
+                SIDEWALK_Z + 0.003,
+                step=1.25,
+                color="#c5d0d7",
+                line_width=0.026,
+                alpha=0.45,
+            )
         add_road(name, rect, collection, color, has_lane=has_lane)
 
-    # 最外侧留给树，车行外环收进树线内侧。
-    outer_ring_roads = [
-        ("outer_ring_north", (3.6, 3.0, 92.8, 1.8)),
-        ("outer_ring_south", (3.6, 85.2, 92.8, 1.8)),
-        ("outer_ring_west", (1.8, 3.0, 1.8, 84.0)),
-        ("outer_ring_east", (96.4, 3.0, 1.8, 84.0)),
+    public_roads = [
+        ("north_loop", (3.0, 2.9, 94.0, 2.2), asphalt, True),
+        ("south_loop", (3.0, 84.9, 94.0, 2.2), asphalt, True),
+        ("west_loop", (1.9, 4.0, 2.2, 82.0), asphalt, True),
+        ("east_loop", (95.9, 4.0, 2.2, 82.0), asphalt, True),
+        ("west_center_spine", (35.7, 4.0, 2.2, 82.0), asphalt, True),
+        ("west_office_front", (3.0, 29.0, 33.8, 2.0), service_asphalt, False),
+        ("west_library_front", (3.0, 46.5, 33.8, 2.0), service_asphalt, False),
+        ("west_property_front", (3.0, 64.4, 33.8, 2.0), service_asphalt, False),
+        ("food_middle_spine", (51.6, 4.0, 2.0, 27.5), service_asphalt, False),
+        ("center_east_spine", (66.3, 4.0, 2.2, 82.0), asphalt, True),
+        ("food_north_front", (36.8, 19.4, 30.6, 2.0), service_asphalt, False),
+        ("food_mid_front", (36.8, 30.6, 30.6, 2.0), service_asphalt, False),
+        ("park_south_food_front", (36.8, 56.3, 30.6, 2.0), service_asphalt, False),
+        ("food_south_front", (36.8, 69.2, 30.6, 2.0), service_asphalt, False),
+        ("apartment_center_spine", (81.1, 4.0, 2.0, 36.5), service_asphalt, False),
+        ("apartment_first_front", (67.4, 23.0, 29.6, 2.0), service_asphalt, False),
+        ("apartment_second_front", (67.4, 39.45, 29.6, 2.1), service_asphalt, False),
+        ("villa_west_inner_spine", (76.3, 40.5, 1.8, 45.5), service_asphalt, False),
+        ("villa_east_inner_spine", (85.1, 40.5, 1.8, 45.5), service_asphalt, False),
+        ("villa_row_1_front", (67.4, 54.0, 29.6, 2.0), service_asphalt, False),
+        ("villa_row_2_front", (67.4, 69.2, 29.6, 2.0), service_asphalt, False),
     ]
-    for name, rect in outer_ring_roads:
-        add_road(name, rect, collection, asphalt, has_lane=True)
+    for name, rect, color, has_lane in public_roads:
+        add_road_with_walks(name, rect, color, has_lane=has_lane, walk_color=sidewalk if has_lane else warm_walk, walk_width=0.45)
 
-    # 左侧建筑和中部区域之间的纵向服务路。
-    add_road_with_walks("west_center_service_spine", (36.3, 4.0, 2.2, 82.5), asphalt, has_lane=True, walk_color=sidewalk, walk_width=0.55)
-
-    # 餐饮区只做短横路，避免车行道切穿中央公园。
-    food_service_roads = [
-        ("food_north_service_lane", (36.3, 18.9, 31.9, 1.9)),
-        ("food_mid_service_lane", (36.3, 30.4, 31.9, 1.9)),
-        ("food_south_service_lane", (34.0, 86.0, 36.0, 1.8)),
+    access_driveways = [
+        ("access_west_office", 19.75, 28.82, 30.0),
+        ("access_west_library", 19.5, 46.2, 47.5),
+        ("access_west_property_center", 19.4, 64.2, 65.4),
+        ("access_west_logistics_center", 19.5, 79.2, 86.0),
+        ("access_food_japanese_cuisine", 45.3, 18.25, 20.4),
+        ("access_food_paris_restaurant", 60.8, 18.25, 20.4),
+        ("access_food_japanese_ramen", 45.3, 29.15, 31.6),
+        ("access_food_samhui_restaurant", 60.8, 29.15, 31.6),
+        ("access_food_japanese_vendor", 44.7, 67.85, 70.2),
+        ("access_food_korean_bakery", 60.7, 67.85, 70.2),
+        ("access_food_booking_lot_restaurant", 57.4, 85.0, 86.0),
+        ("access_apt_a1", 73.6, 18.25, 24.0),
+        ("access_apt_a2", 89.6, 18.25, 24.0),
+        ("access_apt_a3", 73.6, 34.75, 40.5),
+        ("access_apt_a4", 89.6, 34.75, 40.5),
+        ("access_villa_b1", 72.75, 49.05, 55.0),
+        ("access_villa_b2", 81.85, 49.05, 55.0),
+        ("access_villa_b3", 90.15, 49.05, 55.0),
+        ("access_villa_b4", 72.75, 65.75, 70.2),
+        ("access_villa_b5", 81.85, 65.75, 70.2),
+        ("access_villa_b6", 90.15, 65.75, 70.2),
+        ("access_villa_b7", 72.75, 81.05, 86.0),
+        ("access_villa_b8", 81.85, 81.05, 86.0),
+        ("access_villa_b9", 90.15, 81.05, 86.0),
     ]
-    for name, rect in food_service_roads:
-        add_road_with_walks(name, rect, service_asphalt, has_lane=False, walk_color=warm_walk, walk_width=0.45)
-
-    # 右侧住宅区内部小路：公寓 2x2、别墅 3x3 各自成组。
-    residential_roads = [
-        ("east_apartment_lane_v", (81.2, 10.2, 2.0, 25.0)),
-        ("east_apartment_lane_h", (68.2, 23.0, 27.2, 2.0)),
-        ("east_residential_split_lane", (66.8, 39.2, 29.6, 2.1)),
-        ("east_villa_lane_v1", (76.55, 43.0, 1.4, 38.0)),
-        ("east_villa_lane_v2", (85.55, 43.0, 1.0, 38.0)),
-        ("east_villa_lane_h1", (66.8, 54.4, 29.6, 2.0)),
-        ("east_villa_lane_h2", (66.8, 69.0, 29.6, 2.0)),
-        ("east_villa_lane_h3", (66.8, 82.0, 29.6, 1.8)),
-    ]
-    for name, rect in residential_roads:
-        add_road_with_walks(name, rect, service_asphalt, has_lane=False, walk_color=warm_walk, walk_width=0.45)
+    for name, x, door_y, road_y in access_driveways:
+        y_start = min(door_y, road_y)
+        height = abs(road_y - door_y)
+        if height <= 0:
+            continue
+        path_rect = (x - 0.24, y_start, 0.48, height)
+        add_plane_grid(name, path_rect, driveway_paver, MARKING_Z - 0.006, collection, roughness=0.78, alpha=0.64)
+        add_tile_grid(
+            f"{name}_paver_joints",
+            path_rect,
+            collection,
+            MARKING_Z - 0.003,
+            step=0.75,
+            color="#e6edf2",
+            line_width=0.018,
+            alpha=0.35,
+        )
 
     # 中央公园只做人行环路，保留公园作为地图核心视觉。
     park_walks = [

@@ -31,8 +31,17 @@ def is_blocked_zone(zone):
     return not zone.get("cartPassable", False)
 
 
+def is_public_road(road):
+    """公共道路默认开放；建筑专属入口路只在目标订单里临时放行。"""
+    return road.get("accessScope", "public") == "public"
+
+
+PUBLIC_ROADS = [road for road in CAMPUS_RULES["roads"] if is_public_road(road)]
+TARGET_ACCESS_ROADS = [
+    road for road in CAMPUS_RULES["roads"] if road.get("accessScope") == "target_access"
+]
 VEHICLE_AREA_ITEMS = [
-    *CAMPUS_RULES["roads"],
+    *PUBLIC_ROADS,
     *[zone for zone in CAMPUS_RULES["zones"] if is_vehicle_zone(zone)],
 ]
 ZONE_OBSTACLES = [
@@ -42,9 +51,36 @@ ZONE_OBSTACLES = [
     for point in rect_to_points(zone["rect"])
 ]
 POINT_OBSTACLES = [item["point"] for item in CAMPUS_RULES.get("pointObstacles", [])]
-OBSTACLES = [*ZONE_OBSTACLES, *POINT_OBSTACLES]
+# 可行驶区域由 roads 明确给出；建筑 zone 只阻挡非道路区域，不能把道路切断。
+OBSTACLES = POINT_OBSTACLES
 OBSTACLE_POINTS = {(item["x"], item["y"]) for item in OBSTACLES}
 VEHICLE_ACCESSIBLE_POINTS = build_point_set(VEHICLE_AREA_ITEMS) - OBSTACLE_POINTS
+SERVICE_POINT_BY_COORD = {
+    (point["point"]["x"], point["point"]["y"]): point
+    for point in CAMPUS_RULES["servicePoints"]
+}
+SERVICE_POINT_POINTS = set(SERVICE_POINT_BY_COORD)
+
+
+def target_accessible_points_for(*points):
+    """按订单起终点临时放行对应建筑的专属入口路。"""
+    target_zone_ids = {
+        service_point.get("targetZoneId")
+        for point in points
+        for service_point in [SERVICE_POINT_BY_COORD.get((point["x"], point["y"]))]
+        if service_point and service_point.get("targetZoneId")
+    }
+    target_roads = [
+        road for road in TARGET_ACCESS_ROADS if road.get("targetZoneId") in target_zone_ids
+    ]
+    return (build_point_set(target_roads) - OBSTACLE_POINTS) | {
+        point_key(point) for point in points
+    }
+
+
+def accessible_points_for_order(*points):
+    """订单路径可走公共路，并临时进入起点/终点建筑自己的入口路。"""
+    return VEHICLE_ACCESSIBLE_POINTS | target_accessible_points_for(*points)
 
 
 def in_map_bounds(point):
@@ -64,7 +100,9 @@ def is_vehicle_accessible_point(point):
 
 def is_free_point(point):
     """判断点位是否可以放订单或小车。"""
-    return in_map_bounds(point) and is_vehicle_accessible_point(point)
+    return in_map_bounds(point) and (
+        is_vehicle_accessible_point(point) or point_key(point) in SERVICE_POINT_POINTS
+    )
 
 # 调度线程仍然会并发修改订单和小车状态，这里继续保留全局锁。
 state_lock = RLock()

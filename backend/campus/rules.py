@@ -54,13 +54,18 @@ def service_point_payload(point_id):
     return {
         "x": service_point["point"]["x"],
         "y": service_point["point"]["y"],
-        "label_text": service_point["name"].replace("收件点", ""),
+        "label_text": service_point["name"].replace("收件点", "").strip(),
     }
 
 
 def service_points_by_ids(point_ids):
     """按 id 列表返回订单可用点位。"""
     return [service_point_payload(point_id) for point_id in point_ids]
+
+
+def all_order_pickup_points():
+    """寄件点使用全部业务点位：物流点、门岗和每栋建筑门前点都可以发件。"""
+    return service_points_by_ids(CAMPUS_RULES["simulation"]["pickupPointIds"])
 
 
 DEFAULT_CARTS = CAMPUS_RULES["defaultCarts"]
