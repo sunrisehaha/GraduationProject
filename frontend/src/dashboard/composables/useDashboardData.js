@@ -2,7 +2,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { fetchCarts } from '../../api/carts'
 import { fetchDispatchExplanation } from '../../api/dispatch'
 import { fetchDemoState } from '../../api/demo'
-import { fetchOrderDetail, fetchOrderEvents, fetchOrders } from '../../api/orders'
+import { fetchOrderDetail, fetchOrderEventFeed, fetchOrderEvents, fetchOrders } from '../../api/orders'
 import { formatTime } from './dashboardFormatters'
 import { orderFilterOptions, pickDefaultSelectedOrder } from './dashboardOrders'
 import { createDashboardActions } from './dashboardActions'
@@ -15,7 +15,16 @@ import {
 // 看板轮询间隔：让页面保持实时感，但不要快到影响演示体验。
 const refreshIntervalMs = 1000
 const minimumRefreshIntervalMs = 250
-const orderFetchLimit = 120
+
+function buildEventLog(event) {
+  const eventText = event.event_desc || event.event_type || '订单事件'
+  const orderText = event.order_id ? `订单 #${event.order_id}` : '订单'
+
+  return {
+    text: `${orderText} ${eventText}`,
+    time: event.create_time || '-',
+  }
+}
 
 export function useDashboardData() {
   // 基础数据：后端轮询回来的原始小车和订单。
@@ -38,13 +47,8 @@ export function useDashboardData() {
   const selectedOrderDetail = ref(null)
   const selectedOrderEvents = ref([])
 
-  // 系统消息：保留最近几条关键事件，配合日志面板使用。
-  const logs = ref([
-    {
-      text: '数据库版监控页已启动，页面会持续轮询真实订单与小车数据。',
-      time: formatTime(),
-    },
-  ])
+  // 系统消息：来自后端订单事件表，事件日志面板按真实事件数量展示。
+  const logs = ref([])
 
   const lastUpdatedText = ref('等待数据加载')
   const errorMessage = ref('')
@@ -168,37 +172,6 @@ export function useDashboardData() {
       text,
       time: formatTime(),
     })
-    logs.value = logs.value.slice(0, 12)
-  }
-
-  // 订单变化分析：把状态变化翻译成更友好的系统提示。
-  function processOrderChanges(previousOrders, latestOrders) {
-    const previousOrderMap = new Map(previousOrders.map((order) => [order.id, order]))
-
-    latestOrders.forEach((order) => {
-      const previousOrder = previousOrderMap.get(order.id)
-
-      if (!previousOrder) {
-        addLog(
-          order.source === 'simulated'
-            ? `仿真系统生成订单 ${order.order_no || `#${order.id}`}。`
-            : `收到手动创建订单 ${order.order_no || `#${order.id}`}。`
-        )
-        return
-      }
-
-      if (previousOrder.status === order.status) {
-        return
-      }
-
-      if (order.status === 'assigned') {
-        addLog(`订单 #${order.id} 已分配给小车 #${order.assigned_cart_id}。`)
-      } else if (order.status === 'delivering') {
-        addLog(`订单 #${order.id} 已进入配送中。`)
-      } else if (order.status === 'completed') {
-        addLog(`订单 #${order.id} 已完成配送。`)
-      }
-    })
   }
 
   // 详情加载器：历史面板只在这里读取订单详情和事件，方便后面继续扩展。
@@ -225,24 +198,24 @@ export function useDashboardData() {
     try {
       errorMessage.value = ''
 
-      const previousOrders = orders.value.slice()
-      const [latestCarts, latestOrders, latestDemoState, latestDispatchExplanation] = await Promise.all([
+      const [latestCarts, latestOrders, latestDemoState, latestDispatchExplanation, latestOrderEvents] = await Promise.all([
         fetchCarts(),
-        fetchOrders('all', orderFetchLimit),
+        fetchOrders(),
         fetchDemoState(),
         fetchDispatchExplanation(),
+        fetchOrderEventFeed(),
       ])
 
       if (requestId !== refreshRequestId) {
         return
       }
 
-      processOrderChanges(previousOrders, latestOrders)
       carts.value = latestCarts
       animateDisplayCarts(latestCarts)
       orders.value = latestOrders
       demoState.value = latestDemoState
       dispatchExplanationState.value = latestDispatchExplanation
+      logs.value = latestOrderEvents.map((event) => buildEventLog(event))
 
       const selectedStillExists = latestOrders.some((order) => order.id === selectedOrderId.value)
       const fallbackOrder = pickDefaultSelectedOrder(latestOrders)

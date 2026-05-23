@@ -19,18 +19,6 @@ const markerColors = {
   start: '#22c55e',
   end: '#ef4444',
 }
-const anchorColors = {
-  gate: '#7dd3fc',
-  hub: '#22d3ee',
-  teaching: '#60a5fa',
-  dorm: '#a78bfa',
-  service: '#14b8a6',
-  sports: '#f59e0b',
-  utility: '#fb7185',
-  parking: '#fbbf24',
-  lab: '#38bdf8',
-  barrier: '#f97316',
-}
 
 function createState() {
   return {
@@ -55,7 +43,6 @@ function createState() {
     campusScene: null,
     cartObjects: new Map(),
     swayingObjects: [],
-    pulseObjects: [],
     cleanupHandlers: [],
     interactionState: reactive({
       activeDragMode: null,
@@ -243,46 +230,6 @@ function addCampusModel(state) {
   state.sceneRoot.add(campus)
   state.campusScene = campus
   collectSwayTargets(state, campus)
-}
-
-function addAnchorEffects(state) {
-  campusSceneConfig.businessAnchors.forEach((anchor, index) => {
-    const world = gridPointToWorld(anchor.point, campusSceneConfig.groundY)
-    const color = anchorColors[anchor.type] || '#7dd3fc'
-
-    const ring = new THREE.Mesh(
-      new THREE.RingGeometry(0.42, 0.6, 56),
-      createGlowMaterial(color, 0.5)
-    )
-    ring.rotation.x = -Math.PI / 2
-    ring.position.set(world.x, world.y + 0.035, world.z)
-    state.effectRoot.add(ring)
-
-    const halo = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.14, 0.3, 1.8, 18, 1, true),
-      createGlowMaterial(color, 0.12)
-    )
-    halo.position.set(world.x, world.y + 0.94, world.z)
-    state.effectRoot.add(halo)
-
-    state.pulseObjects.push({
-      object: ring,
-      baseScale: 1,
-      speed: 1.1 + index * 0.07,
-      intensity: 0.18,
-      opacityBase: 0.28,
-      opacityWave: 0.24,
-    })
-
-    state.pulseObjects.push({
-      object: halo,
-      baseScale: 1,
-      speed: 0.85 + index * 0.05,
-      intensity: 0.08,
-      opacityBase: 0.08,
-      opacityWave: 0.08,
-    })
-  })
 }
 
 const routeHeights = {
@@ -984,16 +931,6 @@ function updateEnvironmentalAnimations(state, elapsedSeconds) {
       entry.baseRotationY + Math.sin(elapsedSeconds * entry.speed + index * 0.6) * entry.amplitude
   })
 
-  state.pulseObjects.forEach((entry, index) => {
-    const wave = Math.sin(elapsedSeconds * entry.speed + index * 0.5)
-    const scale = entry.baseScale + wave * entry.intensity
-    entry.object.scale.setScalar(scale)
-
-    if (entry.object.material) {
-      entry.object.material.opacity = entry.opacityBase + (wave + 1) * 0.5 * entry.opacityWave
-    }
-  })
-
   if (state.pathLine?.userData.animatedMaterials) {
     state.pathLine.userData.animatedMaterials.forEach((entry, index) => {
       const wave = Math.sin(elapsedSeconds * entry.speed + index * 0.45)
@@ -1072,7 +1009,6 @@ export function useThreeCampusPrototype(containerRef, sceneData) {
     createBaseScene(state, container)
     await loadAssets(state)
     addCampusModel(state)
-    addAnchorEffects(state)
     updateSceneData(state)
     resizeRenderer(state, container)
     startLoop(state)

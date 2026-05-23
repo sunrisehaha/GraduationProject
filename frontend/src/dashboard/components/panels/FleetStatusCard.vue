@@ -1,5 +1,5 @@
 <script setup>
-// 小车状态卡片：用紧凑列表展示车队状态，减少占用空间。
+// 车队状态卡片：一次性展示全部小车，避免在模块里再套一层滚动。
 const props = defineProps({
   fleet: {
     type: Array,
@@ -21,7 +21,7 @@ const props = defineProps({
     <div class="panel-card__header">
       <div>
         <p class="panel-card__eyebrow">车队状态</p>
-        <h2>小车状态</h2>
+        <h2>车队状态</h2>
       </div>
     </div>
 

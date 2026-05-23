@@ -16,7 +16,6 @@ import {
   shouldKeepCurrentOrder,
 } from './dashboardOrders'
 
-const historyListLimit = 60
 const activeOrderStatuses = ['assigned', 'to_pickup', 'delivering']
 const manualOrderStartOrder = ['marker_express_pickup', 'hub_dispatch_loading', 'gate_north', 'gate_south']
 
@@ -236,7 +235,6 @@ export function createDashboardViewModels({
     return rawOrders
       .slice()
       .reverse()
-      .slice(0, historyListLimit)
       .map((order) => buildOrderView(order))
   })
 

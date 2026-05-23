@@ -1,5 +1,5 @@
 <script setup>
-// 系统消息卡片：按时间倒序展示最近的调度和配送日志。
+// 系统消息卡片：按时间倒序展示后端订单事件表里的真实日志。
 defineProps({
   logs: {
     type: Array,
@@ -21,7 +21,7 @@ defineProps({
 
     <ul v-else class="message-list message-list--compact">
       <li
-        v-for="(log, index) in logs.slice(0, 8)"
+        v-for="(log, index) in logs"
         :key="`${log.text}-${log.time}`"
         class="message-item"
         :class="{ 'message-item--latest': index === 0 }"

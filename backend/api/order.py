@@ -7,6 +7,7 @@ from backend.business.order import (
     create_order,
     get_order_by_id,
     get_order_detail,
+    list_all_order_events,
     list_order_events,
     list_orders,
     list_orders_by_status,
@@ -29,6 +30,14 @@ def register_order_api(app):
                 return jsonify(list_orders_by_status(status, limit=limit))
 
             return jsonify(list_orders(limit=limit))
+
+    @app.route("/api/order-events", methods=["GET"])
+    def get_order_event_feed():
+        """返回全部订单事件，给事件日志面板使用。"""
+        ensure_workers_started(app)
+        limit = request.args.get("limit", type=int)
+        with state_lock:
+            return jsonify(list_all_order_events(limit=limit))
 
     @app.route("/api/orders/<int:order_id>", methods=["GET"])
     def get_order_detail_view(order_id):

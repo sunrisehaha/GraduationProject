@@ -23,7 +23,7 @@
   width: 100%;
   padding: 12px 14px;
   border: 1px solid rgba(84, 120, 138, 0.16);
-  border-radius: 14px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.78);
   color: var(--text);
   outline: none;
@@ -38,7 +38,7 @@
 .order-form__feedback {
   margin: 0;
   padding: 12px 14px;
-  border-radius: 14px;
+  border-radius: 8px;
   font-size: 13px;
   line-height: 1.6;
 }
@@ -57,7 +57,7 @@
 
 .order-form button {
   padding: 13px 16px;
-  border-radius: 14px;
+  border-radius: 8px;
   color: white;
   background: linear-gradient(135deg, var(--accent-strong) 0%, var(--accent) 100%);
   font-size: 14px;

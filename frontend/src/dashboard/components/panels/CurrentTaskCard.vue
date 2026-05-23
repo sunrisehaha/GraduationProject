@@ -39,30 +39,27 @@ defineProps({
       </li>
     </ol>
 
-    <div class="info-stack info-stack--compact">
-      <div class="info-row">
-        <span class="info-row__label">起点</span>
-        <span class="info-row__value">{{ task.start }}</span>
+    <div class="current-task-route">
+      <span>路线</span>
+      <strong>{{ task.start }} → {{ task.end }}</strong>
+    </div>
+
+    <div class="current-task-meta-grid">
+      <div class="current-task-meta-item">
+        <span>小车</span>
+        <strong>{{ task.cart }}</strong>
       </div>
-      <div class="info-row">
-        <span class="info-row__label">终点</span>
-        <span class="info-row__value">{{ task.end }}</span>
+      <div class="current-task-meta-item">
+        <span>路径</span>
+        <strong>{{ task.pathNodes }} 节点</strong>
       </div>
-      <div class="info-row">
-        <span class="info-row__label">小车</span>
-        <span class="info-row__value">{{ task.cart }}</span>
+      <div class="current-task-meta-item">
+        <span>来源</span>
+        <strong>{{ task.source }}</strong>
       </div>
-      <div class="info-row">
-        <span class="info-row__label">路径</span>
-        <span class="info-row__value">{{ task.pathNodes }} 节点</span>
-      </div>
-      <div class="info-row">
-        <span class="info-row__label">来源</span>
-        <span class="info-row__value">{{ task.source }}</span>
-      </div>
-      <div class="info-row">
-        <span class="info-row__label">创建</span>
-        <span class="info-row__value">{{ task.createdAt }}</span>
+      <div class="current-task-meta-item">
+        <span>创建</span>
+        <strong>{{ task.createdAt }}</strong>
       </div>
     </div>
   </section>

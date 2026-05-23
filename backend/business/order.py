@@ -227,6 +227,16 @@ def list_order_events(order_id, limit=5):
     return [serialize_order_event(event) for event in events]
 
 
+def list_all_order_events(limit=None):
+    """查询全部订单事件：事件日志面板按真实事件数量展示。"""
+    query = OrderEvent.query.order_by(OrderEvent.create_time.desc(), OrderEvent.id.desc())
+
+    if limit:
+        query = query.limit(limit)
+
+    return [serialize_order_event(event) for event in query.all()]
+
+
 def get_pending_orders():
     """查询待分配订单：调度器每轮只需要处理这批订单。"""
     return Order.query.filter_by(status="pending").order_by(Order.id.asc()).all()

@@ -39,7 +39,7 @@ export const campusSceneConfig = {
   cartModel: {
     asset: 'delivery_bot',
     targetSize: 1.12,
-    rotationY: -Math.PI / 2,
+    rotationY: Math.PI / 2,
   },
   // 业务锚点：只展示关键点位，完整派件目标来自 shared/campus_rules.json。
   businessAnchors: [

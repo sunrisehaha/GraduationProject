@@ -50,11 +50,11 @@ const {
 const moduleDefinitions = [
   { id: 'currentTask', title: '当前任务', icon: 'task', defaultOpen: true, region: 'side' },
   { id: 'demoControl', title: '演示控制', icon: 'control', defaultOpen: true, region: 'side' },
-  { id: 'fleetStatus', title: '小车状态', icon: 'fleet', defaultOpen: true, region: 'bottom' },
-  { id: 'systemLog', title: '事件日志', icon: 'log', defaultOpen: true, region: 'bottom' },
+  { id: 'orderHistory', title: '订单详情', icon: 'history', defaultOpen: true, region: 'bottom' },
+  { id: 'fleetStatus', title: '车队状态', icon: 'fleet', defaultOpen: true, region: 'bottom' },
+  { id: 'createOrder', title: '手动派单', icon: 'order', defaultOpen: true, region: 'bottom' },
   { id: 'dispatchExplanation', title: '调度解释', icon: 'dispatch', defaultOpen: true, region: 'bottom' },
-  { id: 'orderHistory', title: '订单历史', icon: 'history', defaultOpen: true, region: 'bottom' },
-  { id: 'createOrder', title: '手动派单', icon: 'order', defaultOpen: false, region: 'bottom' },
+  { id: 'systemLog', title: '事件日志', icon: 'log', defaultOpen: true, region: 'bottom' },
 ]
 
 const moduleComponentMap = {
@@ -72,12 +72,14 @@ const moduleOpenState = ref({ ...defaultOpenState })
 
 function getModuleSummary(moduleId) {
   const summaryMap = {
-    demoControl: '',
-    currentTask: '',
-    dispatchExplanation: '',
-    fleetStatus: '',
-    systemLog: '',
-    orderHistory: `${filteredOrders.value.length} 条记录`,
+    demoControl: `${demoControl.value.activeOrderCount} 单 · ${demoControl.value.speed}x`,
+    currentTask: `${currentTask.value.status} · ${currentTask.value.cart}`,
+    dispatchExplanation: dispatchExplanation.value.hasExplanation
+      ? `选中 ${dispatchExplanation.value.selectedCartText}`
+      : '暂无决策',
+    fleetStatus: `${fleetSummary.value.active} 执行 · ${fleetSummary.value.idle} 空闲`,
+    systemLog: `${logs.value.length} 条`,
+    orderHistory: `${filteredOrders.value.length} 条订单`,
     createOrder: '',
   }
 
