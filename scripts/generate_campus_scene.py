@@ -1790,7 +1790,6 @@ def generate_scene():
     landscape = ensure_collection("03_Landscape")
     buildings = ensure_collection("04_Buildings")
     markers = ensure_collection("05_Markers")
-    coordinates = ensure_collection("06_Coordinates")
 
     add_ground(ground)
     add_outer_landscape(landscape)
@@ -1800,7 +1799,6 @@ def generate_scene():
     add_central_park(landscape)
     add_public_area(buildings)
     add_lights_and_markers(markers)
-    add_coordinate_guide(coordinates)
     remove_outlier_meshes()
     cleanup_asset_templates()
     merge_static_plane_meshes()
