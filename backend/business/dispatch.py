@@ -13,16 +13,20 @@ from backend.business.order import (
     get_order_start_end,
     get_pending_orders,
     mark_order_delivering,
+    record_order_event,
     set_order_assignment,
 )
+from backend.business.sensor import scan_front_obstacle_sensor
 from backend.campus.pathfinding import find_path
 from backend.system.extensions import db
 from backend.system.runtime import (
     MAP_HEIGHT,
     MAP_WIDTH,
-    OBSTACLES,
     accessible_points_for_order,
+    get_current_obstacles,
     set_last_dispatch_explanation,
+    should_record_dynamic_obstacle_block,
+    should_record_dynamic_obstacle_sensor,
 )
 
 BATTERY_MAX_LEVEL = 100
@@ -46,7 +50,7 @@ def build_path_segments(cart, order):
     path_to_start = find_path(
         start=cart_position,
         end=start_point,
-        obstacles=OBSTACLES,
+        obstacles=get_current_obstacles(),
         width=MAP_WIDTH,
         height=MAP_HEIGHT,
         accessible_points=accessible_points_for_order(cart_position, start_point),
@@ -54,12 +58,24 @@ def build_path_segments(cart, order):
     path_to_end = find_path(
         start=start_point,
         end=end_point,
-        obstacles=OBSTACLES,
+        obstacles=get_current_obstacles(),
         width=MAP_WIDTH,
         height=MAP_HEIGHT,
         accessible_points=accessible_points_for_order(start_point, end_point),
     )
     return path_to_start, path_to_end
+
+
+def build_path_between(start_point, end_point):
+    """按最新障碍物规划两点之间的路径。"""
+    return find_path(
+        start=start_point,
+        end=end_point,
+        obstacles=get_current_obstacles(),
+        width=MAP_WIDTH,
+        height=MAP_HEIGHT,
+        accessible_points=accessible_points_for_order(start_point, end_point),
+    )
 
 
 def build_full_path(cart, order):
@@ -95,6 +111,88 @@ def estimate_battery_usage(path):
 def should_drain_battery_for_step(moved_steps):
     """按路径步数扣电：第 1、5、9...步各扣 1%，总量与预估保持一致。"""
     return moved_steps > 0 and (moved_steps - 1) % BATTERY_STEPS_PER_PERCENT == 0
+
+
+def build_rerouted_path(cart, order):
+    """遇到临时障碍后，从小车当前位置重新规划剩余路线。"""
+    start_point, end_point = get_order_start_end(order)
+    cart_position = {"x": cart.current_x, "y": cart.current_y}
+
+    if order.status == "delivering" or cart.status == "delivering":
+        return build_path_between(cart_position, end_point)
+
+    path_to_start = build_path_between(cart_position, start_point)
+    path_to_end = build_path_between(start_point, end_point)
+
+    if not path_to_start or not path_to_end:
+        return []
+
+    return path_to_start + path_to_end[1:]
+
+
+def record_obstacle_blocked_event(cart, order, obstacle):
+    """重规划失败时记录一次等待清除事件，避免后台循环刷屏。"""
+    obstacle_id = obstacle.get("id") or "demo_obstacle_1"
+
+    if not should_record_dynamic_obstacle_block(order.id, cart.id, obstacle_id):
+        return
+
+    record_order_event(
+        order,
+        "blocked",
+        "临时障碍阻断道路，等待障碍清除",
+        extra={
+            "cart_id": cart.id,
+            "obstacle": obstacle,
+        },
+    )
+    db.session.commit()
+
+
+def record_sensor_detected_event(cart, order, sensor_status):
+    """传感器首次检测到同一障碍时写入订单事件。"""
+    obstacle = sensor_status.get("obstacle") or {}
+    obstacle_id = obstacle.get("id") or "demo_obstacle_1"
+
+    if not should_record_dynamic_obstacle_sensor(order.id, cart.id, obstacle_id):
+        return
+
+    record_order_event(
+        order,
+        "sensor_detected",
+        sensor_status.get("message") or "传感器检测到临时障碍",
+        extra={
+            "cart_id": cart.id,
+            "sensor": sensor_status,
+        },
+    )
+    db.session.commit()
+
+
+def reroute_cart_around_obstacle(cart, order, obstacle):
+    """动态避障：下一格被临时障碍占用时，替换为最新路径。"""
+    new_path = build_rerouted_path(cart, order)
+
+    if len(new_path) < 2:
+        record_obstacle_blocked_event(cart, order, obstacle)
+        return False
+
+    cart.current_path_json = json.dumps(new_path, ensure_ascii=False)
+    cart.path_index = 1
+    order.path_json = json.dumps(new_path, ensure_ascii=False)
+    touch_cart(cart)
+    record_order_event(
+        order,
+        "rerouted",
+        "传感器检测到临时障碍，已触发避障重规划",
+        extra={
+            "cart_id": cart.id,
+            "obstacle": obstacle,
+            "path_length": len(new_path),
+        },
+    )
+    db.session.commit()
+    return True
 
 
 def build_candidate_score(cart, path_to_start, path_to_end):
@@ -324,6 +422,12 @@ def advance_carts():
 
         if cart.path_index >= len(path):
             complete_cart_order(cart, order)
+            continue
+
+        sensor_status = scan_front_obstacle_sensor(cart, path)
+        if sensor_status.get("detected"):
+            record_sensor_detected_event(cart, order, sensor_status)
+            reroute_cart_around_obstacle(cart, order, sensor_status["obstacle"])
             continue
 
         next_point = path[cart.path_index]

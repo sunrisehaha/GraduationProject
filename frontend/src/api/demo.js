@@ -24,3 +24,15 @@ export function createOneDemoOrder() {
 export function createFiveDemoOrders() {
   return postAction('/api/demo/order-five', '演示控制请求失败')
 }
+
+export function placeRouteObstacle(orderId = null, cartId = null) {
+  return postJson(
+    '/api/demo/obstacle-route',
+    { order_id: orderId, cart_id: cartId },
+    '投放临时障碍失败'
+  )
+}
+
+export function clearRouteObstacle() {
+  return postAction('/api/demo/obstacle-clear', '清除临时障碍失败')
+}

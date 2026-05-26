@@ -1,7 +1,9 @@
 // 看板动作：集中处理会改变后端状态的按钮和表单操作。
 import {
+  clearRouteObstacle,
   createFiveDemoOrders,
   createOneDemoOrder,
+  placeRouteObstacle,
   resetDemoScene,
   setDemoMode,
   setDemoSpeed,
@@ -123,9 +125,35 @@ export function createDashboardActions({
     }
   }
 
+  async function handlePlaceRouteObstacle(orderId = null, cartId = null) {
+    try {
+      demoState.value = await placeRouteObstacle(orderId, cartId)
+      addLog('已在当前路径前方投放临时障碍。')
+      await refreshData()
+      return { ok: true }
+    } catch (error) {
+      addLog(`临时障碍投放失败：${error.message}`)
+      return { ok: false, message: error.message }
+    }
+  }
+
+  async function handleClearRouteObstacle() {
+    try {
+      demoState.value = await clearRouteObstacle()
+      addLog('已清除临时障碍。')
+      await refreshData()
+      return { ok: true }
+    } catch (error) {
+      addLog(`临时障碍清除失败：${error.message}`)
+      return { ok: false, message: error.message }
+    }
+  }
+
   return {
     handleCreateFiveDemoOrders,
     handleCreateOneDemoOrder,
+    handleClearRouteObstacle,
+    handlePlaceRouteObstacle,
     handleResetDemo,
     handleRestoreAutoSimulation,
     handleSetDemoSpeed,

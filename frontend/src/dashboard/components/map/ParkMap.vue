@@ -28,6 +28,10 @@ const props = defineProps({
     type: Number,
     default: 1,
   },
+  dynamicObstacles: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const sceneRef = ref(null)
@@ -38,6 +42,7 @@ const sceneData = computed(() => ({
   orders: props.orders,
   currentPath: props.currentPath,
   demoSpeed: props.demoSpeed,
+  dynamicObstacles: props.dynamicObstacles,
 }))
 
 // 3D 场景接收实时业务数据，用于突出当前任务、路径和小车位置。

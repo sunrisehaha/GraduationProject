@@ -3,6 +3,7 @@
 import json
 from datetime import datetime
 
+from backend.business.sensor import scan_front_obstacle_sensor
 from backend.database import Cart
 from backend.system.extensions import db
 
@@ -14,6 +15,8 @@ def _load_path(path_text):
 
 def serialize_cart(cart):
     """把 ORM 小车对象转成前端能直接消费的字典。"""
+    current_path = _load_path(cart.current_path_json)
+
     return {
         "id": cart.id,
         "name": cart.name,
@@ -21,9 +24,10 @@ def serialize_cart(cart):
         "x": cart.current_x,
         "y": cart.current_y,
         "current_order_id": cart.current_order_id,
-        "current_path": _load_path(cart.current_path_json),
+        "current_path": current_path,
         "path_index": cart.path_index,
         "battery_level": cart.battery_level,
+        "sensor_status": scan_front_obstacle_sensor(cart, current_path),
     }
 
 

@@ -65,6 +65,18 @@ function getBatteryWidth(value) {
   return `${normalizeBatteryLevel(value).toFixed(2)}%`
 }
 
+function getSensorText(sensorStatus, fallbackText = '传感器待命') {
+  if (!sensorStatus) {
+    return fallbackText
+  }
+
+  if (sensorStatus.detected) {
+    return `前方 ${sensorStatus.distance_tiles} 格有障碍`
+  }
+
+  return sensorStatus.message || fallbackText
+}
+
 export function formatCartName(cart) {
   const rawName = cart?.name || cart?.cart_name || ''
   const cartId = cart?.id ?? cart?.cart_id
@@ -185,12 +197,14 @@ export function createDashboardViewModels({
       : null
 
     return {
+      orderId: order?.id || null,
       id: order ? `#${order.id}` : '暂无',
       orderNo: order?.order_no || '-',
       start: formatPlace(order?.start_point, order?.start_label),
       end: formatPlace(order?.end_point, order?.end_label),
       status: order ? getStatusText(order.status) : '无任务',
       cart: assignedCart ? formatCartName(assignedCart) : (order ? '待分配' : '-'),
+      sensorText: getSensorText(assignedCart?.sensor_status),
       source: order ? getSourceText(order.source) : '-',
       pathNodes: order?.path?.length || 0,
       createdAt: order?.create_time || '-',
@@ -221,6 +235,8 @@ export function createDashboardViewModels({
         batteryWidth: getBatteryWidth(cart.battery_level),
         batteryColor: getBatteryColor(cart.battery_level),
         orderId: cart.current_order_id,
+        sensorStatus: cart.sensor_status || null,
+        sensorText: getSensorText(cart.sensor_status),
         isActive: cart.status !== 'idle',
       }))
       .sort((left, right) => left.id - right.id)
@@ -258,6 +274,10 @@ export function createDashboardViewModels({
     modeText: demoState.value.demo_mode_enabled ? '演示模式' : '自动仿真',
     demoOrderCount: demoState.value.current_demo_order_count || 0,
     activeOrderCount: demoState.value.active_orders || 0,
+    dynamicObstacles: Array.isArray(demoState.value.dynamic_obstacles)
+      ? demoState.value.dynamic_obstacles
+      : [],
+    dynamicObstacleCount: demoState.value.dynamic_obstacle_count || 0,
     isDemoMode: demoState.value.demo_mode_enabled,
     speed: demoState.value.speed_multiplier || 1,
   }))

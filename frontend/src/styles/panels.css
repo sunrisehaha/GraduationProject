@@ -119,6 +119,12 @@
   border: 1px solid rgba(84, 120, 138, 0.12);
 }
 
+.demo-button--obstacle {
+  color: #fff7ed;
+  background: linear-gradient(135deg, #e45f2b 0%, #f59e0b 100%);
+  box-shadow: 0 8px 18px rgba(228, 95, 43, 0.16);
+}
+
 .demo-button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
@@ -477,6 +483,17 @@
   border-radius: 8px;
 }
 
+.demo-control-actions--obstacle {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.demo-control-actions--obstacle .demo-button {
+  min-height: 36px;
+  padding: 8px 8px;
+  border-radius: 8px;
+}
+
 .fleet-summary-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -498,6 +515,82 @@
   font-size: 14px;
 }
 
+.fleet-device-panel {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(240, 249, 255, 0.92), rgba(255, 255, 255, 0.76));
+}
+
+.fleet-device-panel--alert {
+  border-color: rgba(249, 115, 22, 0.32);
+  background: linear-gradient(135deg, rgba(255, 247, 237, 0.94), rgba(255, 255, 255, 0.78));
+}
+
+.fleet-device-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.fleet-device-panel__head div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fleet-device-panel__head span,
+.fleet-device-panel__grid span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.fleet-device-panel__head strong {
+  color: var(--text);
+  font-size: 16px;
+}
+
+.fleet-device-panel__badge {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #075985;
+  background: rgba(186, 230, 253, 0.76);
+  font-weight: 800;
+}
+
+.fleet-device-panel--alert .fleet-device-panel__badge {
+  color: #9a3412;
+  background: rgba(254, 215, 170, 0.78);
+}
+
+.fleet-device-panel__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.fleet-device-panel__grid span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 7px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.fleet-device-panel__grid strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .fleet-card-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
@@ -511,6 +604,24 @@
 .fleet-card-list .mini-list__item {
   padding: 8px 9px;
   border-radius: 8px;
+}
+
+.fleet-card-list__item {
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.fleet-card-list__item:hover,
+.fleet-card-list__item:focus-visible {
+  border-color: rgba(56, 189, 248, 0.24);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.fleet-card-list__item--selected {
+  border-color: rgba(14, 165, 233, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(14, 165, 233, 0.16);
 }
 
 .fleet-card-list .mini-list__head {
@@ -724,6 +835,10 @@
 
   .dispatch-summary-row {
     grid-template-columns: 1fr;
+  }
+
+  .fleet-device-panel__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .history-panel {

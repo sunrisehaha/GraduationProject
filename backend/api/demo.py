@@ -4,9 +4,11 @@ from flask import jsonify, request
 
 from backend.api.page import ensure_workers_started
 from backend.business.demo import (
+    clear_route_obstacle,
     create_five_demo_orders,
     create_one_demo_order,
     get_current_demo_state,
+    place_route_obstacle,
     reset_demo_scene,
     set_demo_enabled,
     set_demo_speed_multiplier,
@@ -60,3 +62,26 @@ def register_demo_api(app):
         ensure_workers_started(app)
         with state_lock:
             return jsonify(create_five_demo_orders()), 201
+
+    @app.route("/api/demo/obstacle-route", methods=["POST"])
+    def add_route_obstacle():
+        """在当前运行路径前方投放一个临时障碍。"""
+        ensure_workers_started(app)
+        data = request.get_json(silent=True) or {}
+        with state_lock:
+            try:
+                return jsonify(
+                    place_route_obstacle(
+                        order_id=data.get("order_id"),
+                        cart_id=data.get("cart_id"),
+                    )
+                )
+            except ValueError as error:
+                return jsonify({"error": str(error)}), 400
+
+    @app.route("/api/demo/obstacle-clear", methods=["POST"])
+    def clear_obstacle():
+        """清除当前临时障碍。"""
+        ensure_workers_started(app)
+        with state_lock:
+            return jsonify(clear_route_obstacle())

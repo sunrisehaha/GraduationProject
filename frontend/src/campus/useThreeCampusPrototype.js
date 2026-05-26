@@ -18,6 +18,7 @@ import {
 const markerColors = {
   start: '#22c55e',
   end: '#ef4444',
+  obstacle: '#f97316',
 }
 
 const renderPerformanceConfig = {
@@ -64,6 +65,7 @@ function createState() {
       orders: [],
       currentPath: [],
       demoSpeed: 1,
+      dynamicObstacles: [],
     },
   }
 }
@@ -632,11 +634,32 @@ function buildMarkerPointSignature(point) {
   ].join(':')
 }
 
-function buildMarkerSignature(currentOrder) {
+function buildObstacleSignature(obstacle) {
+  if (!obstacle) {
+    return 'none'
+  }
+
+  const center = getObstacleCenter(obstacle)
+  const cellText = (obstacle.cells || [])
+    .map((cell) => `${Number(cell.x)},${Number(cell.y)}`)
+    .join(';')
+
+  return [
+    obstacle.id || '',
+    obstacle.block_mode || '',
+    obstacle.road_width || '',
+    Number(center.x),
+    Number(center.y),
+    cellText,
+  ].join(':')
+}
+
+function buildMarkerSignature(currentOrder, dynamicObstacles = []) {
   return [
     currentOrder?.id ?? 'none',
     buildMarkerPointSignature(currentOrder?.start_point),
     buildMarkerPointSignature(currentOrder?.end_point),
+    dynamicObstacles.map((obstacle) => buildObstacleSignature(obstacle)).join('|'),
   ].join('>')
 }
 
@@ -949,64 +972,258 @@ function shortenMarkerLabel(text) {
   return `${text.slice(0, 8)}…`
 }
 
+function normalizeObstacleCells(obstacle) {
+  const cells = Array.isArray(obstacle?.cells) ? obstacle.cells : []
+  const normalizedCells = cells
+    .filter((cell) => Number.isFinite(Number(cell?.x)) && Number.isFinite(Number(cell?.y)))
+    .map((cell) => ({
+      x: Number(cell.x),
+      y: Number(cell.y),
+    }))
+
+  if (normalizedCells.length) {
+    return normalizedCells
+  }
+
+  if (Number.isFinite(Number(obstacle?.x)) && Number.isFinite(Number(obstacle?.y))) {
+    return [{ x: Number(obstacle.x), y: Number(obstacle.y) }]
+  }
+
+  return []
+}
+
+function getObstacleCenter(obstacle) {
+  const centerX = Number(obstacle?.center?.x ?? obstacle?.x)
+  const centerY = Number(obstacle?.center?.y ?? obstacle?.y)
+
+  if (Number.isFinite(centerX) && Number.isFinite(centerY)) {
+    return { x: centerX, y: centerY }
+  }
+
+  const cells = normalizeObstacleCells(obstacle)
+  if (!cells.length) {
+    return { x: 0, y: 0 }
+  }
+
+  return {
+    x: cells.reduce((sum, cell) => sum + cell.x, 0) / cells.length,
+    y: cells.reduce((sum, cell) => sum + cell.y, 0) / cells.length,
+  }
+}
+
+function getObstacleLabel(obstacle) {
+  if (obstacle?.block_mode === 'full_closure') {
+    return '2格路封闭'
+  }
+
+  if (obstacle?.block_mode === 'partial_block') {
+    return '3格路占道'
+  }
+
+  return getRoutePointLabel(obstacle) || '临时施工'
+}
+
 function createMarker(point, type) {
   const color = markerColors[type]
-  const prefix = type === 'start' ? '起点' : '终点'
+  const prefixMap = {
+    start: '起点',
+    end: '终点',
+    obstacle: '障碍',
+  }
+  const prefix = prefixMap[type] || '标记'
   const pointLabel = shortenMarkerLabel(getRoutePointLabel(point))
   const labelText = pointLabel ? `${prefix} ${pointLabel}` : prefix
   const marker = new THREE.Group()
   const world = gridPointToWorld(point, campusSceneConfig.groundY + routeHeights.marker)
   const isEnd = type === 'end'
+  const isObstacle = type === 'obstacle'
 
   const pillar = new THREE.Mesh(
-    new THREE.CylinderGeometry(isEnd ? 0.13 : 0.11, isEnd ? 0.22 : 0.18, isEnd ? 1.34 : 1.08, 24),
+    new THREE.CylinderGeometry(
+      isEnd || isObstacle ? 0.13 : 0.11,
+      isEnd || isObstacle ? 0.22 : 0.18,
+      isEnd || isObstacle ? 1.34 : 1.08,
+      24
+    ),
     new THREE.MeshStandardMaterial({
       color,
       emissive: color,
-      emissiveIntensity: isEnd ? 0.62 : 0.48,
+      emissiveIntensity: isEnd || isObstacle ? 0.62 : 0.48,
       roughness: 0.36,
       metalness: 0.1,
     })
   )
-  pillar.position.y = isEnd ? 0.74 : 0.61
+  pillar.position.y = isEnd || isObstacle ? 0.74 : 0.61
   pillar.castShadow = true
   pillar.receiveShadow = true
   marker.add(pillar)
 
   const base = new THREE.Mesh(
-    new THREE.CylinderGeometry(isEnd ? 0.38 : 0.32, isEnd ? 0.42 : 0.36, 0.055, 40),
-    createGlowMaterial(color, isEnd ? 0.62 : 0.5)
+    new THREE.CylinderGeometry(
+      isEnd || isObstacle ? 0.38 : 0.32,
+      isEnd || isObstacle ? 0.42 : 0.36,
+      0.055,
+      40
+    ),
+    createGlowMaterial(color, isEnd || isObstacle ? 0.62 : 0.5)
   )
   base.position.y = 0.04
   marker.add(base)
 
   const ring = new THREE.Mesh(
-    new THREE.RingGeometry(isEnd ? 0.58 : 0.5, isEnd ? 0.86 : 0.74, 64),
-    createGlowMaterial(color, isEnd ? 0.74 : 0.66)
+    new THREE.RingGeometry(
+      isEnd || isObstacle ? 0.58 : 0.5,
+      isEnd || isObstacle ? 0.86 : 0.74,
+      64
+    ),
+    createGlowMaterial(color, isEnd || isObstacle ? 0.74 : 0.66)
   )
   ring.rotation.x = -Math.PI / 2
   ring.position.y = 0.075
   marker.add(ring)
 
   const glowColumn = new THREE.Mesh(
-    new THREE.CylinderGeometry(isEnd ? 0.28 : 0.22, isEnd ? 0.42 : 0.34, isEnd ? 1.92 : 1.62, 24, 1, true),
-    createGlowMaterial(color, isEnd ? 0.2 : 0.16)
+    new THREE.CylinderGeometry(
+      isEnd || isObstacle ? 0.28 : 0.22,
+      isEnd || isObstacle ? 0.42 : 0.34,
+      isEnd || isObstacle ? 1.92 : 1.62,
+      24,
+      1,
+      true
+    ),
+    createGlowMaterial(color, isEnd || isObstacle ? 0.2 : 0.16)
   )
-  glowColumn.position.y = isEnd ? 1.0 : 0.86
+  glowColumn.position.y = isEnd || isObstacle ? 1.0 : 0.86
   marker.add(glowColumn)
 
   const orb = new THREE.Mesh(
-    new THREE.SphereGeometry(isEnd ? 0.23 : 0.19, 24, 18),
+    new THREE.SphereGeometry(isEnd || isObstacle ? 0.23 : 0.19, 24, 18),
     createGlowMaterial(color, 0.96)
   )
-  orb.position.y = isEnd ? 1.48 : 1.24
+  orb.position.y = isEnd || isObstacle ? 1.48 : 1.24
   marker.add(orb)
+
+  const pulseParts = [base, pillar, ring, glowColumn, orb]
+
+  if (isObstacle) {
+    const warningRing = new THREE.Mesh(
+      new THREE.TorusGeometry(0.86, 0.06, 12, 56),
+      createGlowMaterial(color, 0.9)
+    )
+    warningRing.rotation.x = Math.PI / 2
+    warningRing.position.y = 0.12
+    marker.add(warningRing)
+    pulseParts.push(warningRing)
+
+    const beacon = new THREE.Mesh(
+      new THREE.ConeGeometry(0.28, 0.56, 28),
+      new THREE.MeshStandardMaterial({
+        color,
+        emissive: color,
+        emissiveIntensity: 0.9,
+        roughness: 0.28,
+        metalness: 0.08,
+      })
+    )
+    beacon.position.y = 1.94
+    marker.add(beacon)
+    pulseParts.push(beacon)
+  }
 
   marker.add(createMarkerLabel(labelText, color))
 
   marker.position.set(world.x, world.y, world.z)
   marker.userData.baseY = world.y
-  marker.userData.pulseParts = [base, pillar, ring, glowColumn, orb]
+  marker.userData.pulseParts = pulseParts
+
+  if (isObstacle) {
+    marker.scale.setScalar(1.45)
+  }
+
+  return marker
+}
+
+function createObstacleCone(color, x, z) {
+  const cone = new THREE.Mesh(
+    new THREE.ConeGeometry(0.16, 0.42, 24),
+    new THREE.MeshStandardMaterial({
+      color,
+      emissive: color,
+      emissiveIntensity: 0.42,
+      roughness: 0.34,
+      metalness: 0.06,
+    })
+  )
+  cone.position.set(x, 0.36, z)
+  cone.castShadow = true
+  cone.receiveShadow = true
+  return cone
+}
+
+function createObstacleMarker(obstacle) {
+  const color = markerColors.obstacle
+  const cells = normalizeObstacleCells(obstacle)
+  const center = getObstacleCenter(obstacle)
+  const world = gridPointToWorld(center, campusSceneConfig.groundY + routeHeights.marker)
+  const marker = new THREE.Group()
+  const tileSize = campusSceneConfig.tileSize
+  const minX = Math.min(...cells.map((cell) => cell.x), center.x)
+  const maxX = Math.max(...cells.map((cell) => cell.x), center.x)
+  const minY = Math.min(...cells.map((cell) => cell.y), center.y)
+  const maxY = Math.max(...cells.map((cell) => cell.y), center.y)
+  const width = Math.max(tileSize * 0.86, (maxX - minX + 1) * tileSize * 0.88)
+  const depth = Math.max(tileSize * 0.86, (maxY - minY + 1) * tileSize * 0.88)
+
+  const warningArea = new THREE.Mesh(
+    new THREE.BoxGeometry(width, 0.045, depth),
+    createGlowMaterial(color, 0.42)
+  )
+  warningArea.position.y = 0.04
+  marker.add(warningArea)
+
+  const barrier = new THREE.Mesh(
+    new THREE.BoxGeometry(width, 0.26, depth),
+    new THREE.MeshStandardMaterial({
+      color,
+      emissive: '#ef4444',
+      emissiveIntensity: 0.32,
+      roughness: 0.31,
+      metalness: 0.08,
+      transparent: true,
+      opacity: 0.92,
+    })
+  )
+  barrier.position.y = 0.2
+  marker.add(barrier)
+
+  const warningRing = new THREE.Mesh(
+    new THREE.TorusGeometry(Math.max(width, depth) * 0.74, 0.045, 12, 64),
+    createGlowMaterial(color, 0.78)
+  )
+  warningRing.rotation.x = Math.PI / 2
+  warningRing.position.y = 0.1
+  marker.add(warningRing)
+
+  const coneOffsets =
+    width >= depth
+      ? [
+          [-width * 0.42, 0],
+          [0, 0],
+          [width * 0.42, 0],
+        ]
+      : [
+          [0, -depth * 0.42],
+          [0, 0],
+          [0, depth * 0.42],
+        ]
+  coneOffsets.forEach(([x, z]) => {
+    marker.add(createObstacleCone(color, x, z))
+  })
+
+  marker.add(createMarkerLabel(`障碍 ${getObstacleLabel(obstacle)}`, color))
+  marker.position.set(world.x, world.y, world.z)
+  marker.userData.baseY = world.y
+  marker.userData.pulseParts = [warningArea, warningRing]
   return marker
 }
 
@@ -1077,7 +1294,8 @@ function updateSceneData(state) {
 
   const startPoint = currentOrder?.start_point
   const endPoint = currentOrder?.end_point
-  const nextMarkerSignature = buildMarkerSignature(currentOrder)
+  const dynamicObstacles = state.currentSceneData.dynamicObstacles
+  const nextMarkerSignature = buildMarkerSignature(currentOrder, dynamicObstacles)
 
   if (nextMarkerSignature === state.markerSignature) {
     return
@@ -1092,6 +1310,10 @@ function updateSceneData(state) {
   if (endPoint) {
     state.markerRoot.add(createMarker(endPoint, 'end'))
   }
+
+  dynamicObstacles.forEach((obstacle) => {
+    state.markerRoot.add(createObstacleMarker(obstacle))
+  })
 
   state.markerSignature = nextMarkerSignature
 }
@@ -1181,6 +1403,7 @@ export function useThreeCampusPrototype(containerRef, sceneData) {
         orders: Array.isArray(value?.orders) ? value.orders : [],
         currentPath: Array.isArray(value?.currentPath) ? value.currentPath : [],
         demoSpeed: Number.isFinite(Number(value?.demoSpeed)) ? Number(value.demoSpeed) : 1,
+        dynamicObstacles: Array.isArray(value?.dynamicObstacles) ? value.dynamicObstacles : [],
       }
 
       if (state.scene && state.assetsReady) {

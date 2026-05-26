@@ -6,5 +6,6 @@ import './styles/dashboard.css'
 import './styles/components.css'
 import './styles/forms.css'
 import './styles/panels.css'
+import './styles/admin.css'
 
 createApp(App).mount('#app')

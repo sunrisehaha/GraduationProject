@@ -40,6 +40,7 @@ defineProps({
         {{ item.label }} {{ item.value }}
       </span>
       <span class="topbar__time">{{ lastUpdatedText.replace('最近刷新时间：', '') }}</span>
+      <a class="topbar__admin-link" href="/admin">后台管理</a>
     </div>
   </header>
 </template>

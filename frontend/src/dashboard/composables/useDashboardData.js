@@ -15,6 +15,8 @@ import {
 // 看板轮询间隔：让页面保持实时感，但不要快到影响演示体验。
 const refreshIntervalMs = 1000
 const minimumRefreshIntervalMs = 800
+const dashboardOrderLimit = 80
+const dashboardEventLimit = 80
 
 function buildEventLog(event) {
   const eventText = event.event_desc || event.event_type || '订单事件'
@@ -38,6 +40,8 @@ export function useDashboardData() {
     current_demo_order_count: 0,
     active_orders: 0,
     speed_multiplier: 1,
+    dynamic_obstacles: [],
+    dynamic_obstacle_count: 0,
   })
   const dispatchExplanationState = ref(null)
 
@@ -198,13 +202,13 @@ export function useDashboardData() {
     try {
       errorMessage.value = ''
 
-      const [latestCarts, latestOrders, latestDemoState, latestDispatchExplanation, latestOrderEvents] = await Promise.all([
-        fetchCarts(),
-        fetchOrders(),
-        fetchDemoState(),
-        fetchDispatchExplanation(),
-        fetchOrderEventFeed(),
-      ])
+	      const [latestCarts, latestOrders, latestDemoState, latestDispatchExplanation, latestOrderEvents] = await Promise.all([
+	        fetchCarts(),
+	        fetchOrders('all', dashboardOrderLimit),
+	        fetchDemoState(),
+	        fetchDispatchExplanation(),
+	        fetchOrderEventFeed(dashboardEventLimit),
+	      ])
 
       if (requestId !== refreshRequestId) {
         return
@@ -259,6 +263,8 @@ export function useDashboardData() {
   const {
     handleCreateFiveDemoOrders,
     handleCreateOneDemoOrder,
+    handleClearRouteObstacle,
+    handlePlaceRouteObstacle,
     handleResetDemo,
     handleRestoreAutoSimulation,
     handleSetDemoSpeed,
@@ -336,6 +342,8 @@ export function useDashboardData() {
     stats,
     handleCreateFiveDemoOrders,
     handleCreateOneDemoOrder,
+    handleClearRouteObstacle,
+    handlePlaceRouteObstacle,
     handleResetDemo,
     handleRestoreAutoSimulation,
     handleSetDemoSpeed,

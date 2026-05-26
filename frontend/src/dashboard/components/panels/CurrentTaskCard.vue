@@ -54,6 +54,10 @@ defineProps({
         <strong>{{ task.pathNodes }} 节点</strong>
       </div>
       <div class="current-task-meta-item">
+        <span>传感器</span>
+        <strong>{{ task.sensorText }}</strong>
+      </div>
+      <div class="current-task-meta-item">
         <span>来源</span>
         <strong>{{ task.source }}</strong>
       </div>

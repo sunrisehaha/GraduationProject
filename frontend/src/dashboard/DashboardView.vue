@@ -32,8 +32,10 @@ const {
   orderFilter,
   orderFilterOptions,
   stats,
+  handleClearRouteObstacle,
   handleCreateFiveDemoOrders,
   handleCreateOneDemoOrder,
+  handlePlaceRouteObstacle,
   handleResetDemo,
   handleRestoreAutoSimulation,
   handleSetDemoSpeed,
@@ -92,9 +94,13 @@ function getModuleProps(moduleId) {
       demoControl: demoControl.value,
       systemStatusText: topBar.value.statusText,
       onlineCartCount: carts.value.length,
+      currentOrderId: currentTask.value.orderId || null,
+      currentCartId: currentCartView.value?.id || null,
       resetDemo: handleResetDemo,
       createOneDemoOrder: handleCreateOneDemoOrder,
       createFiveDemoOrders: handleCreateFiveDemoOrders,
+      placeRouteObstacle: handlePlaceRouteObstacle,
+      clearRouteObstacle: handleClearRouteObstacle,
       restoreAutoSimulation: handleRestoreAutoSimulation,
       setDemoSpeed: handleSetDemoSpeed,
     },
@@ -180,6 +186,7 @@ const bottomModules = computed(() => getModulesByRegion('bottom'))
           :carts="carts"
           :orders="orders"
           :demo-speed="demoControl.speed"
+          :dynamic-obstacles="demoControl.dynamicObstacles"
         />
       </section>
 

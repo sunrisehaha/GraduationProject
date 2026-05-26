@@ -15,6 +15,14 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+  currentOrderId: {
+    type: Number,
+    default: null,
+  },
+  currentCartId: {
+    type: Number,
+    default: null,
+  },
   resetDemo: {
     type: Function,
     required: true,
@@ -24,6 +32,14 @@ const props = defineProps({
     required: true,
   },
   createFiveDemoOrders: {
+    type: Function,
+    required: true,
+  },
+  placeRouteObstacle: {
+    type: Function,
+    required: true,
+  },
+  clearRouteObstacle: {
     type: Function,
     required: true,
   },
@@ -60,6 +76,27 @@ async function runAction(actionName, action, successText) {
 function runSpeedChange(speed) {
   return runAction(`speed-${speed}`, () => props.setDemoSpeed(speed), `演示倍速已切换为 ${speed}x。`)
 }
+
+function getObstacleText() {
+  const obstacle = props.demoControl.dynamicObstacles?.[0]
+
+  if (!obstacle) {
+    return '暂无临时障碍'
+  }
+
+  const modeText = obstacle.block_mode === 'full_closure' ? '封闭' : '局部占道'
+  const center = obstacle.center || obstacle
+
+  return `${obstacle.road_width || '-'} 格路${modeText} (${center.x}, ${center.y})`
+}
+
+function canPlaceObstacle() {
+  return (
+    !runningAction.value &&
+    props.demoControl.activeOrderCount > 0 &&
+    !props.demoControl.dynamicObstacleCount
+  )
+}
 </script>
 
 <template>
@@ -76,6 +113,7 @@ function runSpeedChange(speed) {
       <span>{{ demoControl.activeOrderCount }} 单</span>
       <span>{{ onlineCartCount }} 车</span>
       <span>{{ systemStatusText }}</span>
+      <span>{{ getObstacleText() }}</span>
     </div>
 
     <div class="demo-speed-row demo-speed-row--compact">
@@ -124,6 +162,25 @@ function runSpeedChange(speed) {
         @click="runAction('restore', restoreAutoSimulation, '已恢复自动仿真。')"
       >
         {{ runningAction === 'restore' ? '...' : '自动' }}
+      </button>
+    </div>
+
+    <div class="demo-control-actions demo-control-actions--obstacle">
+      <button
+        type="button"
+        class="demo-button demo-button--obstacle"
+        :disabled="!canPlaceObstacle()"
+        @click="runAction('obstacle', () => placeRouteObstacle(currentOrderId, currentCartId), '已投放临时障碍。')"
+      >
+        {{ runningAction === 'obstacle' ? '...' : demoControl.dynamicObstacleCount ? '已有障碍' : '投放障碍' }}
+      </button>
+      <button
+        type="button"
+        class="demo-button demo-button--ghost"
+        :disabled="Boolean(runningAction)"
+        @click="runAction('clearObstacle', clearRouteObstacle, '临时障碍已清除。')"
+      >
+        {{ runningAction === 'clearObstacle' ? '...' : '清除障碍' }}
       </button>
     </div>
 

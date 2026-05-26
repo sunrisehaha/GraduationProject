@@ -114,6 +114,114 @@ simulation_paused = False
 current_demo_order_ids = []
 last_dispatch_explanation = None
 demo_speed_multiplier = 1.0
+dynamic_obstacles = []
+dynamic_obstacle_block_event_keys = set()
+dynamic_obstacle_sensor_event_keys = set()
+
+
+def serialize_obstacle_cell(point):
+    """障碍占格只保留整数坐标，A* 按这些格点判断是否可通行。"""
+    return {
+        "x": int(point["x"]),
+        "y": int(point["y"]),
+    }
+
+
+def serialize_dynamic_obstacle(obstacle):
+    """统一临时障碍物返回格式：视觉显示用 center，路径规划用 cells。"""
+    cells = [serialize_obstacle_cell(point) for point in obstacle.get("cells", [obstacle])]
+    center = obstacle.get("center") or cells[0]
+
+    return {
+        "id": obstacle.get("id") or "demo_obstacle_1",
+        "type": obstacle.get("type") or "road_block",
+        "label_text": obstacle.get("label_text") or "临时施工",
+        "road_id": obstacle.get("road_id"),
+        "road_name": obstacle.get("road_name"),
+        "road_width": obstacle.get("road_width"),
+        "block_mode": obstacle.get("block_mode") or "partial_block",
+        "center": {
+            "x": float(center["x"]),
+            "y": float(center["y"]),
+        },
+        "cells": cells,
+        # 兼容旧前端读取 x/y；新逻辑优先读取 center。
+        "x": float(center["x"]),
+        "y": float(center["y"]),
+    }
+
+
+def get_dynamic_obstacles():
+    """读取当前临时障碍物；演示版只保留一个障碍对象。"""
+    return [serialize_dynamic_obstacle(obstacle) for obstacle in dynamic_obstacles]
+
+
+def set_dynamic_obstacle(obstacle):
+    """设置一个临时障碍物：用于模拟道路突发占用。"""
+    global dynamic_obstacles, dynamic_obstacle_block_event_keys, dynamic_obstacle_sensor_event_keys
+    dynamic_obstacles = [serialize_dynamic_obstacle(obstacle)]
+    dynamic_obstacle_block_event_keys = set()
+    dynamic_obstacle_sensor_event_keys = set()
+
+
+def clear_dynamic_obstacles():
+    """清空临时障碍物：演示重置或手动清除时调用。"""
+    global dynamic_obstacles, dynamic_obstacle_block_event_keys, dynamic_obstacle_sensor_event_keys
+    dynamic_obstacles = []
+    dynamic_obstacle_block_event_keys = set()
+    dynamic_obstacle_sensor_event_keys = set()
+
+
+def get_dynamic_obstacle_cells():
+    """把障碍对象展开成 A* 使用的占用格点。"""
+    return [
+        cell
+        for obstacle in get_dynamic_obstacles()
+        for cell in obstacle["cells"]
+    ]
+
+
+def get_current_obstacles():
+    """合并固定障碍和临时障碍，让路径规划使用最新路况。"""
+    return [*OBSTACLES, *get_dynamic_obstacle_cells()]
+
+
+def get_dynamic_obstacle_for_point(point):
+    """返回占用指定格点的临时障碍对象。"""
+    target_key = point_key(point)
+
+    for obstacle in get_dynamic_obstacles():
+        if target_key in {point_key(cell) for cell in obstacle["cells"]}:
+            return obstacle
+
+    return None
+
+
+def is_dynamic_obstacle(point):
+    """判断点位是否被临时障碍占用。"""
+    return get_dynamic_obstacle_for_point(point) is not None
+
+
+def should_record_dynamic_obstacle_block(order_id, cart_id, obstacle_id):
+    """同一个障碍阻断同一辆车时，只记录一次等待清除事件。"""
+    key = f"{order_id}:{cart_id}:{obstacle_id}"
+
+    if key in dynamic_obstacle_block_event_keys:
+        return False
+
+    dynamic_obstacle_block_event_keys.add(key)
+    return True
+
+
+def should_record_dynamic_obstacle_sensor(order_id, cart_id, obstacle_id):
+    """同一个障碍被同一辆车传感器检测到时，只记录一次事件。"""
+    key = f"{order_id}:{cart_id}:{obstacle_id}"
+
+    if key in dynamic_obstacle_sensor_event_keys:
+        return False
+
+    dynamic_obstacle_sensor_event_keys.add(key)
+    return True
 
 
 def is_demo_simulation_paused():
@@ -163,6 +271,7 @@ def get_demo_speed():
 
 def get_demo_state(active_orders=0):
     """返回演示状态快照：避免路由层直接拼全局变量。"""
+    obstacles = get_dynamic_obstacles()
     return {
         "demo_mode_enabled": demo_mode_enabled,
         "simulation_paused": is_demo_simulation_paused(),
@@ -170,6 +279,8 @@ def get_demo_state(active_orders=0):
         "current_demo_order_count": len(current_demo_order_ids),
         "active_orders": active_orders,
         "speed_multiplier": demo_speed_multiplier,
+        "dynamic_obstacles": obstacles,
+        "dynamic_obstacle_count": len(obstacles),
     }
 
 
