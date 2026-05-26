@@ -2,6 +2,7 @@
 
 import math
 import random
+import re
 from pathlib import Path
 
 import bpy
@@ -20,6 +21,17 @@ OUTPUT_PREVIEW = CAMPUS_SOURCE_DIR / "campus_preview.png"
 # 场景微调阶段只保存 .blend，等布局确认后再导出前端资源。
 EXPORT_GLB = False
 RENDER_PREVIEW = False
+
+# Draco 压缩用于降低前端首屏加载体积；前端 GLTFLoader 已配置 /scene/draco/ 解码器。
+GLB_DRACO_EXPORT_OPTIONS = {
+    "export_draco_mesh_compression_enable": True,
+    "export_draco_mesh_compression_level": 6,
+    "export_draco_position_quantization": 14,
+    "export_draco_normal_quantization": 10,
+    "export_draco_texcoord_quantization": 12,
+    "export_draco_color_quantization": 10,
+    "export_draco_generic_quantization": 12,
+}
 
 ASSET_SPECS = {
     "boundary_tree": {
@@ -49,6 +61,7 @@ ASSET_SPECS = {
 
 ASSET_TEMPLATES = {}
 ASSET_TEMPLATE_OBJECTS = []
+MATERIAL_CACHE = {}
 
 GRID_COLS = 100
 GRID_ROWS = 90
@@ -145,6 +158,7 @@ def hex_to_rgba(hex_color, alpha=1.0):
 
 def clear_scene():
     """清空默认场景，保证每次生成都是干净结果。"""
+    MATERIAL_CACHE.clear()
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete(use_global=False)
 
@@ -182,11 +196,27 @@ def link_object(obj, collection):
 
 def make_material(name, hex_color, roughness=0.72, metallic=0.0, alpha=1.0, emission=None):
     """统一创建 PBR 材质，导出 GLB 后颜色更稳定。"""
+    emission_key = None
+    if emission:
+        emission_key = (emission[0].lower(), round(float(emission[1]), 4))
+    material_key = (
+        hex_color.lower(),
+        round(float(roughness), 4),
+        round(float(metallic), 4),
+        round(float(alpha), 4),
+        emission_key,
+    )
+    cached_material = MATERIAL_CACHE.get(material_key)
+    if cached_material and bpy.data.materials.get(cached_material.name) == cached_material:
+        return cached_material
+
     material = bpy.data.materials.get(name)
     if material:
+        MATERIAL_CACHE[material_key] = material
         return material
 
     material = bpy.data.materials.new(name)
+    MATERIAL_CACHE[material_key] = material
     material.use_nodes = True
     material.diffuse_color = hex_to_rgba(hex_color, alpha)
     if alpha < 1:
@@ -212,6 +242,57 @@ def make_material(name, hex_color, roughness=0.72, metallic=0.0, alpha=1.0, emis
             principled.inputs["Emission Strength"].default_value = emission[1]
 
     return material
+
+
+def is_mergeable_static_plane(obj):
+    """只合并静态单面平面，保留复杂模型和动态对象的独立结构。"""
+    return (
+        obj.type == "MESH"
+        and len(obj.data.vertices) == 4
+        and len(obj.data.polygons) == 1
+        and len(obj.data.materials) == 1
+        and not obj.modifiers
+        and not obj.animation_data
+    )
+
+
+def sanitize_object_name(name):
+    """把 collection 和材质名压成 Blender/GLB 里稳定可读的对象名。"""
+    return re.sub(r"[^0-9A-Za-z_]+", "_", name).strip("_").lower() or "scene"
+
+
+def merge_static_plane_meshes():
+    """减少静态平面对象数量，直接降低前端每帧 draw call 压力。"""
+    groups = {}
+    for obj in bpy.data.objects:
+        if not is_mergeable_static_plane(obj):
+            continue
+
+        material = obj.data.materials[0]
+        collection_name = obj.users_collection[0].name if obj.users_collection else "Scene"
+        groups.setdefault((collection_name, material.name), []).append(obj)
+
+    merged_objects = 0
+    removed_objects = 0
+    for (collection_name, material_name), objects in sorted(groups.items()):
+        if len(objects) < 2:
+            continue
+
+        bpy.ops.object.select_all(action="DESELECT")
+        active = objects[0]
+        bpy.context.view_layer.objects.active = active
+        for obj in objects:
+            obj.select_set(True)
+        bpy.ops.object.join()
+
+        merged = bpy.context.active_object
+        base_name = sanitize_object_name(f"merged_{collection_name}_{material_name}")[:58]
+        merged.name = base_name
+        merged.data.name = base_name
+        merged_objects += 1
+        removed_objects += len(objects) - 1
+
+    print(f"已合并静态平面：{removed_objects} 个对象 -> {merged_objects} 个对象")
 
 
 def replace_object_materials(obj, material):
@@ -1722,6 +1803,7 @@ def generate_scene():
     add_coordinate_guide(coordinates)
     remove_outlier_meshes()
     cleanup_asset_templates()
+    merge_static_plane_meshes()
     setup_lighting_and_camera()
 
 
@@ -1737,6 +1819,7 @@ def export_scene():
             use_selection=False,
             export_yup=True,
             export_apply=True,
+            **GLB_DRACO_EXPORT_OPTIONS,
         )
 
     if RENDER_PREVIEW:

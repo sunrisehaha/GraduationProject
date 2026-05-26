@@ -20,6 +20,15 @@ const markerColors = {
   end: '#ef4444',
 }
 
+const renderPerformanceConfig = {
+  maxPixelRatio: 2,
+  antialias: false,
+  enableShadows: false,
+  shadowMapSize: 1024,
+  maxSwayingObjects: 80,
+  minInstanceGroupSize: 4,
+}
+
 function createState() {
   return {
     container: null,
@@ -37,6 +46,8 @@ function createState() {
     cartRoot: null,
     effectRoot: null,
     pathLine: null,
+    routeVisualizationSignature: '',
+    markerSignature: '',
     lockedRouteOrderId: null,
     assets: {},
     assetsReady: false,
@@ -109,6 +120,82 @@ function markImportedAsset(object) {
   })
 }
 
+function getStaticInstanceGroupKey(mesh) {
+  if (
+    !mesh.isMesh ||
+    mesh.isSkinnedMesh ||
+    !mesh.visible ||
+    !mesh.geometry ||
+    !mesh.material ||
+    Array.isArray(mesh.material) ||
+    mesh.material.transparent
+  ) {
+    return ''
+  }
+
+  if (mesh.geometry.morphAttributes && Object.keys(mesh.geometry.morphAttributes).length) {
+    return ''
+  }
+
+  return `${mesh.geometry.uuid}:${mesh.material.uuid}:${mesh.castShadow ? 1 : 0}:${mesh.receiveShadow ? 1 : 0}`
+}
+
+function optimizeStaticMeshInstances(root) {
+  root.updateMatrixWorld(true)
+
+  const groups = new Map()
+  root.traverse((child) => {
+    const key = getStaticInstanceGroupKey(child)
+    if (!key) {
+      return
+    }
+
+    if (!groups.has(key)) {
+      groups.set(key, [])
+    }
+    groups.get(key).push(child)
+  })
+
+  const rootWorldInverse = new THREE.Matrix4().copy(root.matrixWorld).invert()
+  const instanceMatrix = new THREE.Matrix4()
+  let sourceMeshCount = 0
+  let instanceMeshCount = 0
+
+  groups.forEach((meshes) => {
+    if (meshes.length < renderPerformanceConfig.minInstanceGroupSize) {
+      return
+    }
+
+    const source = meshes[0]
+    const instancedMesh = new THREE.InstancedMesh(source.geometry, source.material, meshes.length)
+    instancedMesh.name = `${source.name || 'static_mesh'}_instances`
+    instancedMesh.castShadow = source.castShadow
+    instancedMesh.receiveShadow = source.receiveShadow
+    instancedMesh.frustumCulled = true
+    instancedMesh.matrixAutoUpdate = false
+    instancedMesh.layers.mask = source.layers.mask
+
+    meshes.forEach((mesh, index) => {
+      instanceMatrix.multiplyMatrices(rootWorldInverse, mesh.matrixWorld)
+      instancedMesh.setMatrixAt(index, instanceMatrix)
+    })
+    instancedMesh.instanceMatrix.needsUpdate = true
+    instancedMesh.computeBoundingSphere()
+    instancedMesh.computeBoundingBox()
+
+    root.add(instancedMesh)
+    meshes.forEach((mesh) => mesh.removeFromParent())
+
+    sourceMeshCount += meshes.length
+    instanceMeshCount += 1
+  })
+
+  root.userData.instanceOptimization = {
+    sourceMeshCount,
+    instanceMeshCount,
+  }
+}
+
 function fitToSize(object, targetSize) {
   const box = new THREE.Box3().setFromObject(object)
   const size = new THREE.Vector3()
@@ -142,9 +229,15 @@ function createBaseScene(state, container) {
   )
   applyCameraControls(state)
 
-  state.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-  state.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-  state.renderer.shadowMap.enabled = true
+  state.renderer = new THREE.WebGLRenderer({
+    antialias: renderPerformanceConfig.antialias,
+    alpha: true,
+    powerPreference: 'high-performance',
+  })
+  state.renderer.setPixelRatio(
+    Math.min(window.devicePixelRatio || 1, renderPerformanceConfig.maxPixelRatio)
+  )
+  state.renderer.shadowMap.enabled = renderPerformanceConfig.enableShadows
   state.renderer.shadowMap.type = THREE.PCFSoftShadowMap
   state.renderer.outputColorSpace = THREE.SRGBColorSpace
   state.renderer.toneMapping = THREE.ACESFilmicToneMapping
@@ -154,8 +247,11 @@ function createBaseScene(state, container) {
   state.ambientLight = new THREE.HemisphereLight('#ffffff', '#d3efe5', 2.7)
   state.sunLight = new THREE.DirectionalLight('#fff4d8', 3.2)
   state.sunLight.position.set(-12, 26, 18)
-  state.sunLight.castShadow = true
-  state.sunLight.shadow.mapSize.set(2048, 2048)
+  state.sunLight.castShadow = renderPerformanceConfig.enableShadows
+  state.sunLight.shadow.mapSize.set(
+    renderPerformanceConfig.shadowMapSize,
+    renderPerformanceConfig.shadowMapSize
+  )
   state.sunLight.shadow.camera.left = -cameraConfig.shadowExtent
   state.sunLight.shadow.camera.right = cameraConfig.shadowExtent
   state.sunLight.shadow.camera.top = cameraConfig.shadowExtent
@@ -198,6 +294,10 @@ async function loadAssets(state) {
 
 function collectSwayTargets(state, root) {
   root.traverse((child) => {
+    if (state.swayingObjects.length >= renderPerformanceConfig.maxSwayingObjects) {
+      return
+    }
+
     const name = (child.name || '').toLowerCase()
 
     if (!child.isObject3D || child.children.length === 0) {
@@ -225,8 +325,9 @@ function addCampusModel(state) {
   }
 
   const campus = source.clone(true)
-  markImportedAsset(campus)
   campus.position.set(0, 0, 0)
+  optimizeStaticMeshInstances(campus)
+  markImportedAsset(campus)
   state.sceneRoot.add(campus)
   state.campusScene = campus
   collectSwayTargets(state, campus)
@@ -461,6 +562,82 @@ function buildActiveRouteData(currentOrder, currentPath, carts, activeCartId) {
     remaining,
     currentIndex,
   }
+}
+
+function buildPointSignature(points) {
+  return points.map((point) => `${point.x},${point.y}`).join('|')
+}
+
+function buildMutedRoutesSignature(carts, activeCartId) {
+  return carts
+    .map((cart) => {
+      if (
+        String(cart.id) === String(activeCartId) ||
+        cart.status === 'idle' ||
+        !cart.current_order_id
+      ) {
+        return ''
+      }
+
+      const cartPath = normalizeRoutePoints(cart.current_path || [])
+
+      if (cartPath.length < 2) {
+        return ''
+      }
+
+      const startIndex = resolveRouteProgressIndex(cartPath, cart)
+      const visiblePath = cartPath.slice(startIndex)
+
+      if (visiblePath.length < 2) {
+        return ''
+      }
+
+      return [
+        cart.id,
+        cart.current_order_id,
+        cart.status,
+        startIndex,
+        buildPointSignature(visiblePath),
+      ].join(':')
+    })
+    .filter(Boolean)
+    .sort()
+    .join('~')
+}
+
+function buildRouteVisualizationSignature(routeData, carts) {
+  const activeSignature = routeData?.points?.length
+    ? [
+        'active',
+        routeData.activeCartId ?? 'none',
+        routeData.currentIndex,
+        buildPointSignature(routeData.points),
+      ].join(':')
+    : 'no-active'
+  const mutedSignature = buildMutedRoutesSignature(carts, routeData?.activeCartId)
+
+  return `${activeSignature}::${mutedSignature || 'no-muted'}`
+}
+
+function buildMarkerPointSignature(point) {
+  if (!point) {
+    return 'none'
+  }
+
+  return [
+    point.id || '',
+    Number(point.x),
+    Number(point.y),
+    getRoutePointLabel(point),
+  ].join(':')
+}
+
+function buildMarkerSignature(currentOrder) {
+  return [
+    currentOrder?.id ?? 'none',
+    buildMarkerPointSignature(currentOrder?.start_point),
+    buildMarkerPointSignature(currentOrder?.end_point),
+  ].join('>')
 }
 
 function createRouteNodes(points, currentIndex) {
@@ -879,21 +1056,34 @@ function updateSceneData(state) {
     markImportedAsset,
   })
 
-  if (state.pathLine) {
-    state.pathLine.removeFromParent()
-    disposeObject(state.pathLine)
-    state.pathLine = null
-  }
+  const nextRouteSignature = buildRouteVisualizationSignature(
+    activeRouteData,
+    state.currentSceneData.carts
+  )
+  if (nextRouteSignature !== state.routeVisualizationSignature) {
+    if (state.pathLine) {
+      state.pathLine.removeFromParent()
+      disposeObject(state.pathLine)
+      state.pathLine = null
+    }
 
-  clearGroup(state.markerRoot)
+    if (activeRouteData || state.currentSceneData.carts.length) {
+      state.pathLine = createRouteVisualization(activeRouteData, state.currentSceneData.carts)
+      state.pathLine && state.effectRoot.add(state.pathLine)
+    }
 
-  if (activeRouteData || state.currentSceneData.carts.length) {
-    state.pathLine = createRouteVisualization(activeRouteData, state.currentSceneData.carts)
-    state.pathLine && state.effectRoot.add(state.pathLine)
+    state.routeVisualizationSignature = nextRouteSignature
   }
 
   const startPoint = currentOrder?.start_point
   const endPoint = currentOrder?.end_point
+  const nextMarkerSignature = buildMarkerSignature(currentOrder)
+
+  if (nextMarkerSignature === state.markerSignature) {
+    return
+  }
+
+  clearGroup(state.markerRoot)
 
   if (startPoint) {
     state.markerRoot.add(createMarker(startPoint, 'start'))
@@ -902,6 +1092,8 @@ function updateSceneData(state) {
   if (endPoint) {
     state.markerRoot.add(createMarker(endPoint, 'end'))
   }
+
+  state.markerSignature = nextMarkerSignature
 }
 
 function resizeRenderer(state, container) {

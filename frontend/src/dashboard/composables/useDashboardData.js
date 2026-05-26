@@ -14,7 +14,7 @@ import {
 
 // 看板轮询间隔：让页面保持实时感，但不要快到影响演示体验。
 const refreshIntervalMs = 1000
-const minimumRefreshIntervalMs = 250
+const minimumRefreshIntervalMs = 800
 
 function buildEventLog(event) {
   const eventText = event.event_desc || event.event_type || '订单事件'
